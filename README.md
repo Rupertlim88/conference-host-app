@@ -2,6 +2,15 @@
 
 A demo conference system for two societies: AMS (Isobar Meetings) and GSA (Strata Guide). Each has an attendee app, an organiser console and a developer console. The app gets its talk matches from the conference API over HTTP, as any outside conference system would. It has no other link to the conference API.
 
+## What it needs to run by itself
+
+This repo began as a copy of the host app from ConferenceApp. These were added so it runs by itself:
+
+- a copy of the conference API's contract;
+- the shared lint and TypeScript settings;
+- the npm and Turborepo setup, with the same package versions as ConferenceApp;
+- file paths fixed for the new layout.
+
 ## Layout
 
 | Folder | What it holds |
