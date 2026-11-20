@@ -43,6 +43,6 @@ The store and backend database tests run only when `HOST_TEST_DATABASE_URL` and 
 
 ## The conference API's contract
 
-`conference-api-contract` is a copy. When the conference API's contract changes, copy the new version here and run the checks. CI fails if its generated JSON Schema and OpenAPI files drift from its zod source.
+`conference-api-contract` is a copy. When the conference API's contract changes, copy the new version here and run the checks. To confirm its generated JSON Schema and OpenAPI files still match its zod source, run `npm run emit --workspace=@repo/contracts`; `git diff` should show nothing.
 
 To put the apps online, follow `HOSTING.md`.

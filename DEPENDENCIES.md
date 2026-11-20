@@ -10,10 +10,10 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 
 | Tool | Declared | Used |
 | --- | --- | --- |
-| Node.js | >=24 (package.json engines) | 24 (CI) |
+| Node.js | >=24 (package.json engines) | not pinned (CI) |
 | npm | 10.9.3 (package.json packageManager) | 10.9.3 |
-| Python | >=3.12 (pyproject.toml) | 3.12 (CI) |
-| uv | setup-uv@v6 (CI) | latest uv at CI time (not pinned) |
+| Python | >=3.12 (pyproject.toml) | not pinned (CI) |
+| uv | not used (CI) | latest uv at CI time (not pinned) |
 | Java | >=11 (backend/verification/pinned-tools.json) | not pinned (the machine's own install) |
 | TLA+ tools (tla2tools.jar, the TLC model checker) | 1.7.4 (backend/verification/pinned-tools.json) | 1.7.4, SHA-256 936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88 |
 
