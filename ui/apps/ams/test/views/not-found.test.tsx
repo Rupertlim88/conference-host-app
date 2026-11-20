@@ -1,0 +1,30 @@
+// @vitest-environment jsdom
+import { fireEvent, screen } from "@testing-library/react";
+import { expect, test } from "vitest";
+
+import PageError from "@/app/(app)/error";
+import AppNotFound from "@/app/(app)/not-found";
+import NotFound from "@/app/not-found";
+
+import { renderApp } from "../render";
+
+test("an address that matches no page says so, leads home, and is the page's main region", () => {
+  renderApp(<NotFound />);
+  expect(screen.getByRole("main")).toHaveTextContent("We could not find that page.");
+  expect(screen.getByRole("link", { name: "Back to Home" })).toHaveAttribute("href", "/");
+});
+
+test("an unknown id inside the app says so in the shell's main region, without one of its own", () => {
+  renderApp(<AppNotFound />);
+  expect(screen.getByText("We could not find that page.")).toBeInTheDocument();
+  expect(screen.getByRole("link", { name: "Back to Home" })).toHaveAttribute("href", "/");
+  expect(screen.queryByRole("main")).not.toBeInTheDocument();
+});
+
+test("a failed page says something went wrong and can try again", () => {
+  const tries: string[] = [];
+  renderApp(<PageError reset={() => tries.push("again")} />);
+  expect(screen.getByText("Something went wrong.")).toBeInTheDocument();
+  fireEvent.click(screen.getByRole("button", { name: "Try again" }));
+  expect(tries).toEqual(["again"]);
+});

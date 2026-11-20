@@ -1,0 +1,122 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "result": {
+          "type": "object",
+          "properties": {
+            "programmeVersion": {
+              "type": "string",
+              "pattern": "^pv_[A-Za-z0-9_-]{22}$",
+              "x-data-kind": "operational"
+            },
+            "added": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "x-data-kind": "operational"
+            },
+            "changed": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "x-data-kind": "operational"
+            },
+            "withdrawn": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "x-data-kind": "operational"
+            },
+            "unchanged": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 1000000,
+              "x-data-kind": "operational"
+            },
+            "matchingJob": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "pattern": "^job_[A-Za-z0-9_-]{22}$"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "x-data-kind": "operational"
+            }
+          },
+          "required": [
+            "programmeVersion",
+            "added",
+            "changed",
+            "withdrawn",
+            "unchanged",
+            "matchingJob"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "ok",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": false
+        },
+        "errors": {
+          "minItems": 1,
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "talk": {
+                "x-data-kind": "programme",
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+              },
+              "field": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 200,
+                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                "x-data-kind": "operational"
+              },
+              "problem": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                "x-data-kind": "pii"
+              }
+            },
+            "required": [
+              "field",
+              "problem"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "ok",
+        "errors"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

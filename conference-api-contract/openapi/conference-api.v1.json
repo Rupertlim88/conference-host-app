@@ -1,0 +1,4614 @@
+{
+  "openapi": "3.1.1",
+  "info": {
+    "title": "Conference API",
+    "version": "1.0.0",
+    "description": "Matching for conferences. Only partners' servers call it, with OAuth 2 client credentials."
+  },
+  "security": [
+    {
+      "partnerOAuth": []
+    }
+  ],
+  "x-protections": {
+    "failedSignInsPerMinutePerAddress": 20,
+    "unknownConferencesPerMinutePerPartner": 20
+  },
+  "x-data-kinds": {
+    "pii": {
+      "protection": "high",
+      "description": "About an identifiable person: their IDs, names, ORCID iDs, attendance and credentials. Sealed field by field where stored, never logged in full, never cached, and sent only to services approved for it."
+    },
+    "programme": {
+      "protection": "moderate",
+      "description": "A conference's programme and what is worked out from it: talks, sessions, their content and match reasons."
+    },
+    "operational": {
+      "protection": "standard",
+      "description": "How the API works: the IDs it makes, counts, scores, settings, times, agreement terms and refusals."
+    }
+  },
+  "x-versioning": {
+    "noticeMonths": 6,
+    "policy": "A change that would break partners becomes a new version under a new path prefix, running alongside the old one. A retiring operation is marked deprecated here, and its answers carry Deprecation and Sunset headers and a link to its successor. It keeps every security fix until it is switched off."
+  },
+  "x-business-limits": {
+    "talksPerConference": 50000,
+    "keptTalkRevisionsPerConference": 2000000,
+    "programmeVersionsPerConference": 200000,
+    "agreementsPerOrganiser": 1000
+  },
+  "paths": {
+    "/v1/conferences/{conference}/talks:write": {
+      "post": {
+        "operationId": "writeTalks",
+        "summary": "Send one talk, several, or the whole programme. All or nothing.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "talks:write",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 10000000,
+          "requestsPerMinute": 60,
+          "requestsPerDay": 10000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 25
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "talks:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TalksWriteRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TalksWriteResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conferences/{conference}/matches:search": {
+      "post": {
+        "operationId": "searchMatches",
+        "summary": "Get matches already worked out, by people or by liked talks.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "matches:read",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 65536,
+          "requestsPerMinute": 600,
+          "requestsPerDay": 200000,
+          "concurrentRequests": 20,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "matches:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchesSearchRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchesSearchResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conferences/{conference}/matches:fromText": {
+      "post": {
+        "operationId": "matchesFromText",
+        "summary": "Get matches for text a person enters, worked out on the spot.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "matches:read",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 65536,
+          "requestsPerMinute": 60,
+          "requestsPerDay": 20000,
+          "concurrentRequests": 10,
+          "timeoutSeconds": 20
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "matches:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchesFromTextRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchesFromTextResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conferences/{conference}/matchSettings": {
+      "get": {
+        "operationId": "getMatchSettings",
+        "summary": "Which matches the conference's attendees get, as its organiser chose.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "matches:read",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 0,
+          "requestsPerMinute": 60,
+          "requestsPerDay": 10000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "matches:read"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "operationId": "setMatchSettings",
+        "summary": "As the organiser, choose which kinds of match attendees get, and how many each person gets at most.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "settings:write",
+        "x-partner-kinds": [
+          "organiser"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 1024,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 1000,
+          "concurrentRequests": 1,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "settings:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/MatchSettingsRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/MatchSettings"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conferences/{conference}/attendance:report": {
+      "post": {
+        "operationId": "reportAttendance",
+        "summary": "Report who attended. Signed over the whole message; each report becomes one entry in a tamper-evident log.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "attendance:write",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": true,
+        "x-limits": {
+          "maxBodyBytes": 2097152,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 1000,
+          "concurrentRequests": 1,
+          "timeoutSeconds": 25
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "attendance:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          },
+          {
+            "name": "Signature-Input",
+            "description": "RFC 9421. Must cover @method, @authority, @path, content-digest and content-type, with created and keyid.",
+            "in": "header",
+            "required": true,
+            "x-data-kind": "operational",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          },
+          {
+            "name": "Signature",
+            "description": "RFC 9421: the signature, made with one of the partner's registered keys (ed25519 or ecdsa-p256-sha256).",
+            "in": "header",
+            "required": true,
+            "x-data-kind": "operational",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          },
+          {
+            "name": "Content-Digest",
+            "description": "RFC 9530: the SHA-256 digest of the body, as sha-256=:<base64>:.",
+            "in": "header",
+            "required": true,
+            "x-data-kind": "operational",
+            "schema": {
+              "type": "string",
+              "minLength": 1,
+              "maxLength": 2000
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AttendanceReportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AttendanceReportResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conferences/{conference}/people/{person}:erase": {
+      "post": {
+        "operationId": "erasePerson",
+        "summary": "As the organiser, erase one person's data: their name, ORCID iD and attendance can never be read again.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "people:erase",
+        "x-partner-kinds": [
+          "organiser"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 1024,
+          "requestsPerMinute": 60,
+          "requestsPerDay": 5000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "people:erase"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          },
+          {
+            "name": "person",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "pii",
+            "schema": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+              "x-data-kind": "pii"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErasePersonRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErasedPerson"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conferences/{conference}/credentials:issue": {
+      "post": {
+        "operationId": "issueCredential",
+        "summary": "Issue one person's attendance credential, signed by us. Asking again gives the same credential.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "credentials:issue",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 1024,
+          "requestsPerMinute": 300,
+          "requestsPerDay": 50000,
+          "concurrentRequests": 4,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "credentials:issue"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/IssueCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuedCredential"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/conferences/{conference}/credentials/{credential}:withdraw": {
+      "post": {
+        "operationId": "withdrawCredential",
+        "summary": "Withdraw a credential issued in error. The public status list shows it withdrawn from then on.",
+        "x-audience": "partner",
+        "x-target": "conference",
+        "x-permission": "credentials:issue",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 1024,
+          "requestsPerMinute": 60,
+          "requestsPerDay": 5000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "credentials:issue"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          },
+          {
+            "name": "credential",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "operational",
+            "schema": {
+              "type": "string",
+              "pattern": "^cred_[A-Za-z0-9_-]{22}$",
+              "x-data-kind": "operational"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WithdrawnCredential"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/oauth/token": {
+      "post": {
+        "operationId": "issueToken",
+        "summary": "Sign in a partner's system: OAuth 2 client credentials, proven with a statement it signed with its own key. Answers an opaque token.",
+        "x-audience": "public",
+        "x-target": "none",
+        "x-permission": null,
+        "x-partner-kinds": [],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 16384,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 5000,
+          "concurrentRequests": 4,
+          "timeoutSeconds": 10
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/TokenRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TokenResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/oauth/revoke": {
+      "post": {
+        "operationId": "revokeToken",
+        "summary": "Revoke one of the partner's own opaque tokens, at once (RFC 7009). The answer is the same whether or not the token was live.",
+        "x-audience": "public",
+        "x-target": "none",
+        "x-permission": null,
+        "x-partner-kinds": [],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 4096,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 5000,
+          "concurrentRequests": 4,
+          "timeoutSeconds": 10
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/x-www-form-urlencoded": {
+              "schema": {
+                "$ref": "#/components/schemas/RevokeRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RevokeResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/.well-known/jwks.json": {
+      "get": {
+        "operationId": "getIssuerKeys",
+        "summary": "Our public keys, for anyone to check the credentials we issue without asking us.",
+        "x-audience": "public",
+        "x-target": "none",
+        "x-permission": null,
+        "x-partner-kinds": [],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 0,
+          "requestsPerMinute": 600,
+          "requestsPerDay": 100000,
+          "concurrentRequests": 8,
+          "timeoutSeconds": 5
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/IssuerKeys"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/credentials/status/{conference}": {
+      "get": {
+        "operationId": "getStatusList",
+        "summary": "A conference's public status list (W3C Bitstring Status List), signed by us: which credentials were withdrawn.",
+        "x-audience": "public",
+        "x-target": "none",
+        "x-permission": null,
+        "x-partner-kinds": [],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 0,
+          "requestsPerMinute": 600,
+          "requestsPerDay": 100000,
+          "concurrentRequests": 8,
+          "timeoutSeconds": 10
+        },
+        "security": [],
+        "parameters": [
+          {
+            "name": "conference",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "programme",
+            "schema": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$",
+              "x-data-kind": "programme"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/vc+jwt": {
+                "schema": {
+                  "$ref": "#/components/schemas/StatusListCredential"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/credentials:verify": {
+      "post": {
+        "operationId": "verifyCredential",
+        "summary": "Check a credential someone chose to share: our signature, whether it was withdrawn, and its dates.",
+        "x-audience": "public",
+        "x-target": "none",
+        "x-permission": null,
+        "x-partner-kinds": [],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 32768,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 2000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerifyCredentialRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyCredentialResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/verify": {
+      "get": {
+        "operationId": "verifyPage",
+        "summary": "The public page that checks a credential someone pastes. It cannot look anyone up.",
+        "x-audience": "public",
+        "x-target": "none",
+        "x-permission": null,
+        "x-partner-kinds": [],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 0,
+          "requestsPerMinute": 120,
+          "requestsPerDay": 10000,
+          "concurrentRequests": 4,
+          "timeoutSeconds": 5
+        },
+        "security": [],
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "text/html": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerifyPage"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agreements": {
+      "get": {
+        "operationId": "listAgreements",
+        "summary": "The agreements you gave as an organiser, or were given as an app provider.",
+        "x-audience": "partner",
+        "x-target": "account",
+        "x-permission": "agreements:read",
+        "x-partner-kinds": [
+          "organiser",
+          "provider"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 0,
+          "requestsPerMinute": 60,
+          "requestsPerDay": 5000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "agreements:read"
+            ]
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ListAgreementsResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "operationId": "createAgreement",
+        "summary": "As an organiser, let an app provider act for you on some of your conferences, until a date.",
+        "x-audience": "partner",
+        "x-target": "account",
+        "x-permission": "agreements:write",
+        "x-partner-kinds": [
+          "organiser"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 16384,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 1000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "agreements:write"
+            ]
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/CreateAgreementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Agreement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agreements/{agreement}": {
+      "put": {
+        "operationId": "changeAgreement",
+        "summary": "As its organiser, change which conferences and scopes an agreement covers, and when it ends.",
+        "x-audience": "partner",
+        "x-target": "account",
+        "x-permission": "agreements:write",
+        "x-partner-kinds": [
+          "organiser"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 16384,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 1000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "agreements:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agreement",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "operational",
+            "schema": {
+              "type": "string",
+              "pattern": "^agr_[A-Za-z0-9_-]{22}$",
+              "x-data-kind": "operational"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ChangeAgreementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Agreement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/v1/agreements/{agreement}:withdraw": {
+      "post": {
+        "operationId": "withdrawAgreement",
+        "summary": "As its organiser, withdraw an agreement. The app provider is cut off from its next request.",
+        "x-audience": "partner",
+        "x-target": "account",
+        "x-permission": "agreements:write",
+        "x-partner-kinds": [
+          "organiser"
+        ],
+        "x-signed": false,
+        "x-limits": {
+          "maxBodyBytes": 1024,
+          "requestsPerMinute": 30,
+          "requestsPerDay": 1000,
+          "concurrentRequests": 2,
+          "timeoutSeconds": 10
+        },
+        "security": [
+          {
+            "partnerOAuth": [
+              "agreements:write"
+            ]
+          }
+        ],
+        "parameters": [
+          {
+            "name": "agreement",
+            "in": "path",
+            "required": true,
+            "x-data-kind": "operational",
+            "schema": {
+              "type": "string",
+              "pattern": "^agr_[A-Za-z0-9_-]{22}$",
+              "x-data-kind": "operational"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WithdrawAgreementRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Done.",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Agreement"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "401": {
+            "description": "No valid token, or, for a signed request, no valid signature. Sign in again, or sign the request, then retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "403": {
+            "description": "The token lacks the permission this request needs, or the caller is blocked.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "No such conference for this partner.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "413": {
+            "description": "The request body is larger than this request allows.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "415": {
+            "description": "The body is not JSON.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "429": {
+            "description": "Too many requests: per minute, per day or at once from this partner, failed sign-ins from this address, or requests for conferences this partner cannot reach. Retry after the time in Retry-After.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          },
+          "503": {
+            "description": "The API cannot answer in time just now. Safe to retry.",
+            "content": {
+              "application/problem+json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Problem"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "TalksWriteRequest": {
+        "type": "object",
+        "properties": {
+          "talks": {
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "id": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                  "x-data-kind": "programme"
+                },
+                "number": {
+                  "x-data-kind": "programme",
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 64,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                },
+                "title": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                  "x-data-kind": "programme"
+                },
+                "abstract": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 10000,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                  "x-data-kind": "programme"
+                },
+                "type": {
+                  "x-data-kind": "programme",
+                  "type": "string",
+                  "enum": [
+                    "oral",
+                    "poster",
+                    "invited",
+                    "keynote",
+                    "panel",
+                    "other"
+                  ]
+                },
+                "keywords": {
+                  "x-data-kind": "programme",
+                  "maxItems": 50,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                  }
+                },
+                "tracks": {
+                  "x-data-kind": "programme",
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 100,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                  }
+                },
+                "session": {
+                  "x-data-kind": "programme",
+                  "type": "object",
+                  "properties": {
+                    "id": {
+                      "type": "string",
+                      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                      "x-data-kind": "programme"
+                    },
+                    "title": {
+                      "x-data-kind": "programme",
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 500,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    },
+                    "type": {
+                      "x-data-kind": "programme",
+                      "type": "string",
+                      "enum": [
+                        "oral",
+                        "poster",
+                        "invited",
+                        "other"
+                      ]
+                    }
+                  },
+                  "required": [
+                    "id"
+                  ],
+                  "additionalProperties": false
+                },
+                "start": {
+                  "x-data-kind": "programme",
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "end": {
+                  "x-data-kind": "programme",
+                  "type": "string",
+                  "format": "date-time",
+                  "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$"
+                },
+                "language": {
+                  "x-data-kind": "programme",
+                  "type": "string",
+                  "pattern": "^[a-z]{2,3}(-[A-Za-z0-9]{2,8})*$"
+                },
+                "authors": {
+                  "x-data-kind": "pii",
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "id": {
+                        "type": "string",
+                        "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                        "x-data-kind": "pii"
+                      },
+                      "name": {
+                        "type": "string",
+                        "minLength": 1,
+                        "maxLength": 300,
+                        "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                        "x-data-kind": "pii"
+                      },
+                      "orcid": {
+                        "x-data-kind": "pii",
+                        "type": "string",
+                        "pattern": "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$"
+                      }
+                    },
+                    "required": [
+                      "id",
+                      "name"
+                    ],
+                    "additionalProperties": false
+                  }
+                },
+                "presenters": {
+                  "x-data-kind": "pii",
+                  "maxItems": 200,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+                  }
+                },
+                "status": {
+                  "x-data-kind": "programme",
+                  "type": "string",
+                  "enum": [
+                    "scheduled",
+                    "withdrawn",
+                    "cancelled"
+                  ]
+                }
+              },
+              "required": [
+                "id",
+                "title",
+                "abstract"
+              ],
+              "additionalProperties": false
+            },
+            "x-data-kind": "pii"
+          },
+          "withdraw": {
+            "x-data-kind": "programme",
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            }
+          },
+          "sync": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9._:-]{1,100}$"
+          },
+          "complete": {
+            "x-data-kind": "operational",
+            "type": "boolean"
+          }
+        },
+        "required": [
+          "talks"
+        ],
+        "additionalProperties": false,
+        "dependentRequired": {
+          "complete": [
+            "sync"
+          ]
+        }
+      },
+      "MatchesSearchRequest": {
+        "type": "object",
+        "properties": {
+          "people": {
+            "x-data-kind": "pii",
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            },
+            "uniqueItems": true
+          },
+          "likeTalks": {
+            "x-data-kind": "programme",
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            },
+            "uniqueItems": true
+          },
+          "talks": {
+            "x-data-kind": "programme",
+            "minItems": 1,
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+            },
+            "uniqueItems": true
+          },
+          "kind": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "enum": [
+              "core",
+              "unexpected"
+            ]
+          },
+          "minScore": {
+            "x-data-kind": "operational",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "topPerPerson": {
+            "x-data-kind": "operational",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "pageSize": {
+            "default": 100,
+            "x-data-kind": "operational",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          },
+          "pageToken": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{22}$"
+          }
+        },
+        "additionalProperties": false
+      },
+      "MatchesFromTextRequest": {
+        "type": "object",
+        "properties": {
+          "title": {
+            "x-data-kind": "programme",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 500,
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+          },
+          "text": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 10000,
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+            "x-data-kind": "programme"
+          },
+          "kind": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "enum": [
+              "core",
+              "unexpected"
+            ]
+          },
+          "minScore": {
+            "x-data-kind": "operational",
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "top": {
+            "x-data-kind": "operational",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "text"
+        ],
+        "additionalProperties": false
+      },
+      "MatchSettingsRequest": {
+        "type": "object",
+        "properties": {
+          "kinds": {
+            "minItems": 1,
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "core",
+                "unexpected"
+              ]
+            },
+            "uniqueItems": true,
+            "x-data-kind": "operational"
+          },
+          "maxPerPerson": {
+            "x-data-kind": "operational",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000
+          }
+        },
+        "required": [
+          "kinds"
+        ],
+        "additionalProperties": false
+      },
+      "AttendanceReportRequest": {
+        "type": "object",
+        "properties": {
+          "reportId": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "x-data-kind": "operational"
+          },
+          "attendees": {
+            "minItems": 1,
+            "maxItems": 5000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "person": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                  "x-data-kind": "pii"
+                },
+                "name": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 300,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                  "x-data-kind": "pii"
+                },
+                "orcid": {
+                  "x-data-kind": "pii",
+                  "type": "string",
+                  "pattern": "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$"
+                },
+                "attended": {
+                  "type": "boolean",
+                  "x-data-kind": "pii"
+                }
+              },
+              "required": [
+                "person",
+                "name",
+                "attended"
+              ],
+              "additionalProperties": false
+            },
+            "x-data-kind": "pii"
+          },
+          "corrects": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "pattern": "^att_[A-Za-z0-9_-]{22}$"
+          }
+        },
+        "required": [
+          "reportId",
+          "attendees"
+        ],
+        "additionalProperties": false
+      },
+      "ErasePersonRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "IssueCredentialRequest": {
+        "type": "object",
+        "properties": {
+          "person": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "x-data-kind": "pii"
+          }
+        },
+        "required": [
+          "person"
+        ],
+        "additionalProperties": false
+      },
+      "WithdrawCredentialRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "TokenRequest": {
+        "type": "object",
+        "properties": {
+          "grant_type": {
+            "type": "string",
+            "const": "client_credentials",
+            "x-data-kind": "operational"
+          },
+          "client_assertion_type": {
+            "type": "string",
+            "const": "urn:ietf:params:oauth:client-assertion-type:jwt-bearer",
+            "x-data-kind": "operational"
+          },
+          "client_assertion": {
+            "type": "string",
+            "maxLength": 8192,
+            "pattern": "^[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}$",
+            "x-data-kind": "operational"
+          },
+          "scope": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "maxLength": 512,
+            "pattern": "^(talks:write|matches:read|settings:write|attendance:write|credentials:issue|people:erase|agreements:read|agreements:write)( (talks:write|matches:read|settings:write|attendance:write|credentials:issue|people:erase|agreements:read|agreements:write))*$"
+          }
+        },
+        "required": [
+          "grant_type",
+          "client_assertion_type",
+          "client_assertion"
+        ],
+        "additionalProperties": false
+      },
+      "RevokeRequest": {
+        "type": "object",
+        "properties": {
+          "token": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "x-data-kind": "operational"
+          },
+          "token_type_hint": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "const": "access_token"
+          }
+        },
+        "required": [
+          "token"
+        ],
+        "additionalProperties": false
+      },
+      "VerifyCredentialRequest": {
+        "type": "object",
+        "properties": {
+          "credential": {
+            "type": "string",
+            "maxLength": 30000,
+            "pattern": "^[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}$",
+            "x-data-kind": "pii"
+          }
+        },
+        "required": [
+          "credential"
+        ],
+        "additionalProperties": false
+      },
+      "CreateAgreementRequest": {
+        "type": "object",
+        "properties": {
+          "provider": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "x-data-kind": "operational"
+          },
+          "conferences": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$"
+            },
+            "uniqueItems": true,
+            "x-data-kind": "operational"
+          },
+          "scopes": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "talks:write",
+                "matches:read",
+                "attendance:write",
+                "credentials:issue"
+              ]
+            },
+            "uniqueItems": true,
+            "x-data-kind": "operational"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "x-data-kind": "operational"
+          }
+        },
+        "required": [
+          "provider",
+          "conferences",
+          "scopes",
+          "endsAt"
+        ],
+        "additionalProperties": false
+      },
+      "ChangeAgreementRequest": {
+        "type": "object",
+        "properties": {
+          "conferences": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$"
+            },
+            "uniqueItems": true,
+            "x-data-kind": "operational"
+          },
+          "scopes": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "talks:write",
+                "matches:read",
+                "attendance:write",
+                "credentials:issue"
+              ]
+            },
+            "uniqueItems": true,
+            "x-data-kind": "operational"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z|([+-](?:[01]\\d|2[0-3]):[0-5]\\d)))$",
+            "x-data-kind": "operational"
+          }
+        },
+        "required": [
+          "conferences",
+          "scopes",
+          "endsAt"
+        ],
+        "additionalProperties": false
+      },
+      "WithdrawAgreementRequest": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "TalksWriteResponse": {
+        "type": "object",
+        "properties": {
+          "programmeVersion": {
+            "type": "string",
+            "pattern": "^pv_[A-Za-z0-9_-]{22}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "added": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "changed": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "withdrawn": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "unchanged": {
+            "type": "integer",
+            "minimum": 0,
+            "maximum": 1000000,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "matchingJob": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^job_[A-Za-z0-9_-]{22}$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "programmeVersion",
+          "added",
+          "changed",
+          "withdrawn",
+          "unchanged",
+          "matchingJob"
+        ],
+        "additionalProperties": false
+      },
+      "MatchesSearchResponse": {
+        "type": "object",
+        "properties": {
+          "matches": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "person": {
+                  "x-data-kind": "pii",
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                  "x-visibility": "public"
+                },
+                "talk": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                  "x-data-kind": "programme",
+                  "x-visibility": "public"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "core",
+                    "unexpected"
+                  ],
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "rank": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000,
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                  "x-data-kind": "programme",
+                  "x-visibility": "public"
+                },
+                "sharedMethods": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                  },
+                  "x-data-kind": "programme",
+                  "x-visibility": "public"
+                },
+                "programmeVersion": {
+                  "type": "string",
+                  "pattern": "^pv_[A-Za-z0-9_-]{22}$",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                }
+              },
+              "required": [
+                "talk",
+                "kind",
+                "rank",
+                "score",
+                "reason",
+                "sharedMethods",
+                "programmeVersion"
+              ],
+              "additionalProperties": false
+            },
+            "x-data-kind": "pii",
+            "x-visibility": "public"
+          },
+          "nextPageToken": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{22}$",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "matches"
+        ],
+        "additionalProperties": false
+      },
+      "MatchesFromTextResponse": {
+        "type": "object",
+        "properties": {
+          "enoughInformation": {
+            "type": "boolean",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "whatIsMissing": {
+            "anyOf": [
+              {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 500,
+                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "matches": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "talk": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                  "x-data-kind": "programme",
+                  "x-visibility": "public"
+                },
+                "kind": {
+                  "type": "string",
+                  "enum": [
+                    "core",
+                    "unexpected"
+                  ],
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "rank": {
+                  "type": "integer",
+                  "minimum": 1,
+                  "maximum": 1000000,
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "score": {
+                  "type": "number",
+                  "minimum": 0,
+                  "maximum": 1,
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "reason": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 2000,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                  "x-data-kind": "programme",
+                  "x-visibility": "public"
+                },
+                "sharedMethods": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 200,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                  },
+                  "x-data-kind": "programme",
+                  "x-visibility": "public"
+                },
+                "programmeVersion": {
+                  "type": "string",
+                  "pattern": "^pv_[A-Za-z0-9_-]{22}$",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                }
+              },
+              "required": [
+                "talk",
+                "kind",
+                "rank",
+                "score",
+                "reason",
+                "sharedMethods",
+                "programmeVersion"
+              ],
+              "additionalProperties": false
+            },
+            "x-data-kind": "programme",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "enoughInformation",
+          "whatIsMissing",
+          "matches"
+        ],
+        "additionalProperties": false
+      },
+      "MatchSettings": {
+        "type": "object",
+        "properties": {
+          "kinds": {
+            "minItems": 1,
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "core",
+                "unexpected"
+              ]
+            },
+            "uniqueItems": true,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "maxPerPerson": {
+            "x-data-kind": "operational",
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 1000,
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "kinds"
+        ],
+        "additionalProperties": false
+      },
+      "AttendanceReportResponse": {
+        "type": "object",
+        "properties": {
+          "entry": {
+            "type": "string",
+            "pattern": "^att_[A-Za-z0-9_-]{22}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "sequence": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "recordedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "attendees": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 5000,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "corrects": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "pattern": "^att_[A-Za-z0-9_-]{22}$",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "entry",
+          "sequence",
+          "recordedAt",
+          "attendees"
+        ],
+        "additionalProperties": false
+      },
+      "ErasedPerson": {
+        "type": "object",
+        "properties": {
+          "person": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "x-data-kind": "pii",
+            "x-visibility": "public"
+          },
+          "erasedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "person",
+          "erasedAt"
+        ],
+        "additionalProperties": false
+      },
+      "IssuedCredential": {
+        "type": "object",
+        "properties": {
+          "credential": {
+            "type": "string",
+            "pattern": "^cred_[A-Za-z0-9_-]{22}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "person": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "x-data-kind": "pii",
+            "x-visibility": "public"
+          },
+          "status": {
+            "type": "string",
+            "const": "active",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "jwt": {
+            "type": "string",
+            "maxLength": 30000,
+            "pattern": "^[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}$",
+            "x-data-kind": "pii",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "credential",
+          "person",
+          "status",
+          "issuedAt",
+          "jwt"
+        ],
+        "additionalProperties": false
+      },
+      "WithdrawnCredential": {
+        "type": "object",
+        "properties": {
+          "credential": {
+            "type": "string",
+            "pattern": "^cred_[A-Za-z0-9_-]{22}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "person": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+            "x-data-kind": "pii",
+            "x-visibility": "public"
+          },
+          "status": {
+            "type": "string",
+            "const": "withdrawn",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "issuedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "withdrawnAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "credential",
+          "person",
+          "status",
+          "issuedAt",
+          "withdrawnAt"
+        ],
+        "additionalProperties": false
+      },
+      "TokenResponse": {
+        "type": "object",
+        "properties": {
+          "access_token": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_-]{43}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "token_type": {
+            "type": "string",
+            "const": "Bearer",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "expires_in": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 3600,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "scope": {
+            "type": "string",
+            "maxLength": 512,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "access_token",
+          "token_type",
+          "expires_in",
+          "scope"
+        ],
+        "additionalProperties": false
+      },
+      "RevokeResponse": {
+        "type": "object",
+        "properties": {},
+        "additionalProperties": false
+      },
+      "IssuerKeys": {
+        "type": "object",
+        "properties": {
+          "keys": {
+            "minItems": 1,
+            "maxItems": 10,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "kty": {
+                  "type": "string",
+                  "const": "EC",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "crv": {
+                  "type": "string",
+                  "const": "P-256",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "x": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{43}$",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "y": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{43}$",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "kid": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9_-]{43}$",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "alg": {
+                  "type": "string",
+                  "const": "ES256",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "use": {
+                  "type": "string",
+                  "const": "sig",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                }
+              },
+              "required": [
+                "kty",
+                "crv",
+                "x",
+                "y",
+                "kid",
+                "alg",
+                "use"
+              ],
+              "additionalProperties": false
+            },
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "keys"
+        ],
+        "additionalProperties": false
+      },
+      "StatusListCredential": {
+        "type": "string",
+        "maxLength": 30000,
+        "pattern": "^[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}\\.[A-Za-z0-9_-]{2,}$",
+        "x-data-kind": "operational"
+      },
+      "VerifyCredentialResponse": {
+        "anyOf": [
+          {
+            "type": "object",
+            "properties": {
+              "valid": {
+                "type": "boolean",
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              },
+              "checks": {
+                "type": "object",
+                "properties": {
+                  "signature": {
+                    "type": "string",
+                    "const": "valid",
+                    "x-data-kind": "operational",
+                    "x-visibility": "public"
+                  },
+                  "status": {
+                    "type": "string",
+                    "enum": [
+                      "active",
+                      "withdrawn"
+                    ],
+                    "x-data-kind": "operational",
+                    "x-visibility": "public"
+                  },
+                  "dates": {
+                    "type": "string",
+                    "enum": [
+                      "current",
+                      "not-yet-valid",
+                      "expired"
+                    ],
+                    "x-data-kind": "operational",
+                    "x-visibility": "public"
+                  }
+                },
+                "required": [
+                  "signature",
+                  "status",
+                  "dates"
+                ],
+                "additionalProperties": false,
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              },
+              "says": {
+                "type": "object",
+                "properties": {
+                  "name": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                    "x-data-kind": "pii",
+                    "x-visibility": "public"
+                  },
+                  "orcid": {
+                    "x-data-kind": "pii",
+                    "type": "string",
+                    "pattern": "^\\d{4}-\\d{4}-\\d{4}-\\d{3}[\\dX]$",
+                    "x-visibility": "public"
+                  },
+                  "conference": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                    "x-data-kind": "programme",
+                    "x-visibility": "public"
+                  },
+                  "attendedFrom": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                    "x-data-kind": "programme",
+                    "x-visibility": "public"
+                  },
+                  "attendedUntil": {
+                    "type": "string",
+                    "format": "date",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))$",
+                    "x-data-kind": "programme",
+                    "x-visibility": "public"
+                  },
+                  "issuer": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 300,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                    "x-data-kind": "operational",
+                    "x-visibility": "public"
+                  },
+                  "issuedAt": {
+                    "type": "string",
+                    "format": "date-time",
+                    "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+                    "x-data-kind": "operational",
+                    "x-visibility": "public"
+                  }
+                },
+                "required": [
+                  "name",
+                  "conference",
+                  "attendedFrom",
+                  "attendedUntil",
+                  "issuer",
+                  "issuedAt"
+                ],
+                "additionalProperties": false,
+                "x-data-kind": "pii",
+                "x-visibility": "public"
+              }
+            },
+            "required": [
+              "valid",
+              "checks",
+              "says"
+            ],
+            "additionalProperties": false
+          },
+          {
+            "type": "object",
+            "properties": {
+              "valid": {
+                "type": "boolean",
+                "const": false,
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              },
+              "checks": {
+                "type": "object",
+                "properties": {
+                  "signature": {
+                    "type": "string",
+                    "const": "invalid",
+                    "x-data-kind": "operational",
+                    "x-visibility": "public"
+                  }
+                },
+                "required": [
+                  "signature"
+                ],
+                "additionalProperties": false,
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              }
+            },
+            "required": [
+              "valid",
+              "checks"
+            ],
+            "additionalProperties": false
+          }
+        ]
+      },
+      "VerifyPage": {
+        "type": "string",
+        "minLength": 1,
+        "maxLength": 100000,
+        "x-data-kind": "operational"
+      },
+      "ListAgreementsResponse": {
+        "type": "object",
+        "properties": {
+          "agreements": {
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Agreement"
+            },
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "agreements"
+        ],
+        "additionalProperties": false
+      },
+      "Agreement": {
+        "type": "object",
+        "properties": {
+          "id": {
+            "type": "string",
+            "pattern": "^agr_[A-Za-z0-9_-]{22}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "organiser": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300,
+                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "provider": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              },
+              "name": {
+                "type": "string",
+                "minLength": 1,
+                "maxLength": 300,
+                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                "x-data-kind": "operational",
+                "x-visibility": "public"
+              }
+            },
+            "required": [
+              "id",
+              "name"
+            ],
+            "additionalProperties": false,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "conferences": {
+            "minItems": 1,
+            "maxItems": 100,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$"
+            },
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "scopes": {
+            "minItems": 1,
+            "maxItems": 4,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "talks:write",
+                "matches:read",
+                "attendance:write",
+                "credentials:issue"
+              ]
+            },
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "endsAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "status": {
+            "type": "string",
+            "enum": [
+              "active",
+              "ended",
+              "withdrawn"
+            ],
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "createdAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "changedAt": {
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "withdrawnAt": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "format": "date-time",
+            "pattern": "^(?:(?:\\d\\d[2468][048]|\\d\\d[13579][26]|\\d\\d0[48]|[02468][048]00|[13579][26]00)-02-29|\\d{4}-(?:(?:0[13578]|1[02])-(?:0[1-9]|[12]\\d|3[01])|(?:0[469]|11)-(?:0[1-9]|[12]\\d|30)|(?:02)-(?:0[1-9]|1\\d|2[0-8])))T(?:(?:[01]\\d|2[0-3]):[0-5]\\d:[0-5]\\d(?:\\.\\d+)?(?:Z))$",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "id",
+          "organiser",
+          "provider",
+          "conferences",
+          "scopes",
+          "endsAt",
+          "status",
+          "createdAt",
+          "changedAt"
+        ],
+        "additionalProperties": false
+      },
+      "Problem": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "pattern": "^\\/problems\\/[a-z0-9-]{1,60}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "title": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 200,
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "status": {
+            "type": "integer",
+            "minimum": 400,
+            "maximum": 599,
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          },
+          "detail": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 2000,
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+            "x-visibility": "public"
+          },
+          "errors": {
+            "x-data-kind": "pii",
+            "maxItems": 1000,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "talk": {
+                  "x-data-kind": "programme",
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                  "x-visibility": "public"
+                },
+                "field": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 200,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                  "x-data-kind": "operational",
+                  "x-visibility": "public"
+                },
+                "problem": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 500,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                  "x-data-kind": "pii",
+                  "x-visibility": "public"
+                }
+              },
+              "required": [
+                "field",
+                "problem"
+              ],
+              "additionalProperties": false
+            },
+            "x-visibility": "public"
+          },
+          "error": {
+            "x-data-kind": "operational",
+            "type": "string",
+            "enum": [
+              "invalid_request",
+              "invalid_client",
+              "invalid_grant",
+              "unauthorized_client",
+              "unsupported_grant_type",
+              "invalid_scope",
+              "temporarily_unavailable"
+            ],
+            "x-visibility": "public"
+          },
+          "requestId": {
+            "type": "string",
+            "pattern": "^req_[A-Za-z0-9_-]{22}$",
+            "x-data-kind": "operational",
+            "x-visibility": "public"
+          }
+        },
+        "required": [
+          "type",
+          "title",
+          "status",
+          "requestId"
+        ],
+        "additionalProperties": false
+      }
+    },
+    "securitySchemes": {
+      "partnerOAuth": {
+        "type": "oauth2",
+        "description": "Short-lived tokens, bound to the partner's key.",
+        "flows": {
+          "clientCredentials": {
+            "tokenUrl": "/oauth/token",
+            "scopes": {
+              "talks:write": "Send talks.",
+              "matches:read": "Get matches.",
+              "settings:write": "Change a conference's match settings, as its organiser.",
+              "attendance:write": "Report who attended.",
+              "credentials:issue": "Issue and withdraw attendance credentials.",
+              "people:erase": "Erase a person's data, as the organiser.",
+              "agreements:read": "See your agreements.",
+              "agreements:write": "Make, change and withdraw agreements, as an organiser."
+            }
+          }
+        }
+      }
+    }
+  }
+}

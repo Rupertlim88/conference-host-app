@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "keyId": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,63}$"
+    },
+    "alg": {
+      "type": "string",
+      "enum": [
+        "ecdsa-p256-sha256",
+        "ed25519"
+      ]
+    },
+    "publicKey": {
+      "type": "string",
+      "minLength": 80,
+      "maxLength": 1000,
+      "format": "starts_with",
+      "pattern": "^-----BEGIN PUBLIC KEY-----\\n.*"
+    }
+  },
+  "required": [
+    "keyId",
+    "alg",
+    "publicKey"
+  ],
+  "additionalProperties": false
+}

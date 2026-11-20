@@ -1,0 +1,124 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": true
+        },
+        "result": {
+          "type": "object",
+          "properties": {
+            "matches": {
+              "maxItems": 1000,
+              "type": "array",
+              "items": {
+                "type": "object",
+                "properties": {
+                  "person": {
+                    "x-data-kind": "pii",
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+                  },
+                  "talk": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
+                    "x-data-kind": "programme"
+                  },
+                  "kind": {
+                    "type": "string",
+                    "enum": [
+                      "core",
+                      "unexpected"
+                    ],
+                    "x-data-kind": "operational"
+                  },
+                  "rank": {
+                    "type": "integer",
+                    "minimum": 1,
+                    "maximum": 1000000,
+                    "x-data-kind": "operational"
+                  },
+                  "score": {
+                    "type": "number",
+                    "minimum": 0,
+                    "maximum": 1,
+                    "x-data-kind": "operational"
+                  },
+                  "reason": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 2000,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
+                    "x-data-kind": "programme"
+                  },
+                  "sharedMethods": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 200,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    },
+                    "x-data-kind": "programme"
+                  },
+                  "programmeVersion": {
+                    "type": "string",
+                    "pattern": "^pv_[A-Za-z0-9_-]{22}$",
+                    "x-data-kind": "operational"
+                  }
+                },
+                "required": [
+                  "talk",
+                  "kind",
+                  "rank",
+                  "score",
+                  "reason",
+                  "sharedMethods",
+                  "programmeVersion"
+                ],
+                "additionalProperties": false
+              },
+              "x-data-kind": "pii"
+            },
+            "nextPageToken": {
+              "x-data-kind": "operational",
+              "type": "string",
+              "pattern": "^[A-Za-z0-9_-]{22}$"
+            }
+          },
+          "required": [
+            "matches"
+          ],
+          "additionalProperties": false
+        }
+      },
+      "required": [
+        "ok",
+        "result"
+      ],
+      "additionalProperties": false
+    },
+    {
+      "type": "object",
+      "properties": {
+        "ok": {
+          "type": "boolean",
+          "const": false
+        },
+        "problem": {
+          "type": "string",
+          "const": "page-token-invalid"
+        }
+      },
+      "required": [
+        "ok",
+        "problem"
+      ],
+      "additionalProperties": false
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "engine": "graph_v1",
+  "request": {
+    "title": "Heat in thin films",
+    "text": "We use X-ray scattering to follow heat.",
+    "kind": "core",
+    "top": 10
+  }
+}

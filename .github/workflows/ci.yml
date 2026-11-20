@@ -1,0 +1,107 @@
+name: ci
+# Runs on pull requests, and by hand.
+on:
+  pull_request:
+    types: [opened, synchronize, reopened, ready_for_review]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+env:
+  TURBO_TELEMETRY_DISABLED: "1"
+  DO_NOT_TRACK: "1"
+
+jobs:
+  web:
+    name: web
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Boundaries (package graph)
+        run: npm run boundaries
+      - name: Lint
+        run: npm run lint
+      # `.*` not `[^\n]*`: GNU grep reads a backslash inside brackets literally,
+      # so `[^\n]` would exclude the letter n and never match "-next-line".
+      - name: Guard comments (no disabling the import guards)
+        run: |
+          if grep -rnE 'eslint-disable.*no-restricted-(imports|modules|syntax)|@boundaries-ignore' ui backend data contracts conference-api-contract tooling --include='*.ts' --include='*.tsx' --include='*.js' --include='*.mjs' --exclude-dir=node_modules --exclude-dir=.next; then
+            echo "::error::a comment disables an import guard"; exit 1; fi
+      - name: Types
+        run: npm run check-types
+      - name: Tests
+        run: npm run test
+      - name: Script tests
+        run: npm run test:scripts
+      - name: DEPENDENCIES.md is current
+        run: npm run deps:check
+      - name: Contract schema drift
+        run: |
+          npm run emit --workspace=@repo/contracts
+          git add -N conference-api-contract/schema conference-api-contract/openapi
+          git diff --exit-code -- conference-api-contract/schema conference-api-contract/openapi
+
+  python:
+    name: python
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          enable-cache: true
+          cache-dependency-glob: uv.lock
+      - run: uv python install 3.12
+      - name: Programme loader and the contract's Python tests
+        run: uv run --locked pytest -q
+
+  database:
+    name: database
+    if: ${{ github.event_name != 'pull_request' || !github.event.pull_request.draft }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: kindred
+          POSTGRES_PASSWORD: kindred
+          POSTGRES_DB: kindred
+        ports: ["5432:5432"]
+        options: >-
+          --health-cmd "pg_isready -U kindred"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    env:
+      CI: "1"
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci
+      - name: Host store against Postgres
+        run: npm run test --workspace=@repo/host-store
+        env:
+          HOST_TEST_DATABASE_URL: postgres://kindred:kindred@localhost:5432/kindred
+      - name: Host backend against Postgres
+        run: |
+          PGPASSWORD=kindred psql -h localhost -U kindred -d kindred -c 'create database host_backend_test'
+          npm run test --workspace=@repo/host-backend
+        env:
+          HOST_BACKEND_TEST_DATABASE_URL: postgres://kindred:kindred@localhost:5432/host_backend_test

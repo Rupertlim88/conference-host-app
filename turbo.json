@@ -1,0 +1,112 @@
+{
+  "$schema": "https://turborepo.dev/schema.json",
+  "ui": "tui",
+  "tasks": {
+    "build": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        ".env*"
+      ],
+      "outputs": [
+        ".next/**",
+        "!.next/cache/**",
+        "!.next/dev/**"
+      ]
+    },
+    "lint": {
+      "dependsOn": [
+        "^lint"
+      ]
+    },
+    "check-types": {
+      "dependsOn": [
+        "^check-types"
+      ]
+    },
+    "test": {
+      "dependsOn": [
+        "^build"
+      ],
+      "inputs": [
+        "$TURBO_DEFAULT$",
+        "fixtures/**",
+        "schema/**"
+      ]
+    },
+    "dev": {
+      "cache": false,
+      "persistent": true
+    }
+  },
+  "globalEnv": [
+    "BETTER_AUTH_SECRET",
+    "BETTER_AUTH_URL",
+    "CI",
+    "CONFERENCE_API_KEY",
+    "CONFERENCE_API_URL",
+    "CONFERENCE_API_VERIFY_URL",
+    "CRON_SECRET",
+    "GOOGLE_CLIENT_ID",
+    "GOOGLE_CLIENT_SECRET",
+    "HOST_DATABASE_URL",
+    "HOST_SOCIETY",
+    "PLAYWRIGHT_BASE_URL"
+  ],
+  "boundaries": {
+    "tags": {
+      "contract": {
+        "dependencies": {
+          "allow": [
+            "tooling"
+          ]
+        }
+      },
+      "host-contract": {
+        "dependencies": {
+          "allow": [
+            "tooling"
+          ]
+        }
+      },
+      "host-backend": {
+        "dependencies": {
+          "allow": [
+            "host-contract",
+            "host-store",
+            "contract",
+            "tooling"
+          ]
+        }
+      },
+      "host-ui": {
+        "dependencies": {
+          "allow": [
+            "host-backend",
+            "host-contract",
+            "host-store",
+            "contract",
+            "tooling"
+          ]
+        }
+      },
+      "host-store": {
+        "dependencies": {
+          "allow": [
+            "host-contract",
+            "tooling"
+          ]
+        }
+      },
+      "tooling": {
+        "dependencies": {
+          "allow": [
+            "tooling"
+          ]
+        }
+      }
+    }
+  }
+}

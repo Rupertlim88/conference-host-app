@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "partner": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "organiser",
+        "provider"
+      ]
+    },
+    "scopes": {
+      "minItems": 1,
+      "type": "array",
+      "items": {
+        "type": "string",
+        "enum": [
+          "talks:write",
+          "matches:read",
+          "settings:write",
+          "attendance:write",
+          "credentials:issue",
+          "people:erase",
+          "agreements:read",
+          "agreements:write"
+        ]
+      }
+    },
+    "sealedSignedToken": {
+      "type": "string",
+      "pattern": "^(?:[0-9a-f]{2}){29,16384}$"
+    }
+  },
+  "required": [
+    "partner",
+    "kind",
+    "scopes"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,18 @@
+{
+  "id": 1,
+  "title": "Measuring heat transport",
+  "abstract": "We measure heat.",
+  "units": [
+    "DCMP"
+  ],
+  "topics": [
+    "thermal transport"
+  ],
+  "authorIds": [
+    3,
+    4
+  ],
+  "presenterIds": [
+    3
+  ]
+}

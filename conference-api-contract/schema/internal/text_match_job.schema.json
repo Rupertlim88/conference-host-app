@@ -1,0 +1,64 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^job_[A-Za-z0-9_-]{22}$"
+    },
+    "programmeVersion": {
+      "anyOf": [
+        {
+          "type": "string",
+          "pattern": "^pv_[A-Za-z0-9_-]{22}$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "title": {
+      "anyOf": [
+        {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 500,
+          "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "text": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 10000,
+      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+    },
+    "kind": {
+      "type": "string",
+      "enum": [
+        "core",
+        "unexpected"
+      ]
+    },
+    "minScore": {
+      "type": "number",
+      "minimum": 0,
+      "maximum": 1
+    },
+    "top": {
+      "type": "integer",
+      "minimum": 1,
+      "maximum": 1000
+    }
+  },
+  "required": [
+    "id",
+    "programmeVersion",
+    "title",
+    "text"
+  ],
+  "additionalProperties": false
+}

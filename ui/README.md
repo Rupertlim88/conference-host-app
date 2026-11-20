@@ -1,0 +1,14 @@
+# UIs — where things are
+
+The rules for this part are in this folder's CLAUDE.md. This file says where they are wired up.
+
+| What | Where |
+|---|---|
+| One app per UI | `ui/apps/<ui>`: `ams` (Isobar Meetings) and `gsa` (Strata Guide) |
+| Each app's shadcn/ui components | `ui/apps/<ui>/components/ui` |
+| Each app's theme tokens | `ui/apps/<ui>/app/globals.css` |
+
+- Every app is self-contained. Two apps never share components, styles, or helpers, so each app keeps its own copy.
+- Add a missing shadcn primitive to one app from the repo root: `npx shadcn@latest add <name> -c ui/apps/<ui>`.
+- An app reaches data only through `@repo/host-backend`. The shared lint config `tooling/eslint-config/next.js` rejects imports of `@repo/host-store`, `drizzle-orm`, and `postgres`.
+- Next.js here has breaking changes from older versions. Its own guides are in `node_modules/next/dist/docs/`, resolved from the app's folder, because in this monorepo `next` may not be visible from the repo root.

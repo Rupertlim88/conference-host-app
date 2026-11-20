@@ -1,0 +1,58 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "actor": {
+      "type": "object",
+      "properties": {
+        "partner": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "organiser": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        }
+      },
+      "required": [
+        "partner",
+        "organiser"
+      ],
+      "additionalProperties": false
+    },
+    "settings": {
+      "type": "object",
+      "properties": {
+        "kinds": {
+          "minItems": 1,
+          "maxItems": 2,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "core",
+              "unexpected"
+            ]
+          },
+          "uniqueItems": true,
+          "x-data-kind": "operational"
+        },
+        "maxPerPerson": {
+          "x-data-kind": "operational",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        }
+      },
+      "required": [
+        "kinds"
+      ],
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "actor",
+    "settings"
+  ],
+  "additionalProperties": false
+}

@@ -1,0 +1,1 @@
+{ "partner": "app-events", "kind": "provider", "scopes": ["matches:read", "agreements:read"] }

@@ -1,0 +1,17 @@
+{
+  "matches": [
+    {
+      "person": "P1",
+      "talk": "T42",
+      "kind": "unexpected",
+      "rank": 1,
+      "score": 1.5,
+      "reason": "Both use time-resolved X-ray scattering to follow heat flow across interfaces.",
+      "sharedMethods": [
+        "time-resolved X-ray scattering"
+      ],
+      "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc"
+    }
+  ],
+  "nextPageToken": "Tm90aGVyMTIzNDU2Nzg5MD"
+}

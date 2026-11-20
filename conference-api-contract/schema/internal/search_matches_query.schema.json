@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "engine": {
+      "type": "string",
+      "pattern": "^[a-z0-9_]{1,64}$"
+    },
+    "partner": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    },
+    "request": {
+      "type": "object",
+      "properties": {
+        "people": {
+          "x-data-kind": "pii",
+          "minItems": 1,
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "uniqueItems": true
+        },
+        "likeTalks": {
+          "x-data-kind": "programme",
+          "minItems": 1,
+          "maxItems": 100,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "uniqueItems": true
+        },
+        "talks": {
+          "x-data-kind": "programme",
+          "minItems": 1,
+          "maxItems": 1000,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+          },
+          "uniqueItems": true
+        },
+        "kind": {
+          "x-data-kind": "operational",
+          "type": "string",
+          "enum": [
+            "core",
+            "unexpected"
+          ]
+        },
+        "minScore": {
+          "x-data-kind": "operational",
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "topPerPerson": {
+          "x-data-kind": "operational",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "pageSize": {
+          "default": 100,
+          "x-data-kind": "operational",
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 1000
+        },
+        "pageToken": {
+          "x-data-kind": "operational",
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_-]{22}$"
+        }
+      },
+      "additionalProperties": false
+    }
+  },
+  "required": [
+    "engine",
+    "partner",
+    "request"
+  ],
+  "additionalProperties": false
+}

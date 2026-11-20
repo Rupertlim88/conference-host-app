@@ -1,0 +1,542 @@
+{
+ "sessions": [
+  {
+   "id": 96389,
+   "number": "173",
+   "title": "T104. Advances in hydrologic modeling",
+   "chairs": "Andrew Leaf, Anna Fehling",
+   "description": "Recent advances in hydrologic modeling; especially practical applications for decision support. Topics of interest include getting the most out of sparse data, the \"right\" level of model complexity, addressing uncertainty, communicating with stakeholders, and more!",
+   "date_time": "Monday, 12 October - 1:30 PM (Mountain Time (US & Canada))",
+   "room": "CCC, 111",
+   "session_type": "Topical Sessions",
+   "format": "Oral",
+   "presentations": [
+    {
+     "paper_no": "",
+     "booth": "",
+     "title": "Introductory Remarks",
+     "presenting_author": "",
+     "start": "01:30 PM",
+     "end": "01:35 PM",
+     "application_id": null
+    },
+    {
+     "paper_no": "173-1",
+     "booth": "",
+     "title": "Multi-Objective Optimization with Groundwater Models: Framing Complex Results for Resource Management Decisions",
+     "presenting_author": "Nicholas Corson-Dosch",
+     "start": "01:35 PM",
+     "end": "01:55 PM",
+     "application_id": 16121
+    },
+    {
+     "paper_no": "173-2",
+     "booth": "",
+     "title": "A stochastic assessment of a large trichloroethene and 1,4 dioxane plume using MODFLOW 6 and the PEST++ Iterative Ensemble Smoother",
+     "presenting_author": "Andrew Leaf",
+     "start": "01:55 PM",
+     "end": "02:10 PM",
+     "application_id": 19115
+    },
+    {
+     "paper_no": "173-3",
+     "booth": "",
+     "title": "Climate Scenario Assessment of Groundwater Sustainability in the Mississippi Alluvial Plain Using a Hydrogeological Digital Twin",
+     "presenting_author": "Yuqi Song",
+     "start": "02:10 PM",
+     "end": "02:25 PM",
+     "application_id": 15852
+    },
+    {
+     "paper_no": "173-4",
+     "booth": "",
+     "title": "Simulation of Groundwater Flow in the Moab-Spanish Valley, Utah",
+     "presenting_author": "Thomas Lachmar",
+     "start": "02:25 PM",
+     "end": "02:40 PM",
+     "application_id": 18888
+    },
+    {
+     "paper_no": "",
+     "booth": "",
+     "title": "Withdrawal of Abstract 18976",
+     "presenting_author": "",
+     "start": "02:40 PM",
+     "end": "02:55 PM",
+     "application_id": null
+    },
+    {
+     "paper_no": "173-6",
+     "booth": "",
+     "title": "Improving Groundwater Model Development Using Remote Sensing Observations and a National Hydrologic Model",
+     "presenting_author": "Soheil Nozari",
+     "start": "02:55 PM",
+     "end": "03:10 PM",
+     "application_id": 18506
+    },
+    {
+     "paper_no": "173-7",
+     "booth": "",
+     "title": "Geologic Framework of a Consolidated Rock Aquifer System Using Airborne Electromagnetic and Borehole Data, Adelaida Area, San Luis Obispo County, California",
+     "presenting_author": "Sarah Neuhaus",
+     "start": "03:10 PM",
+     "end": "03:25 PM",
+     "application_id": 19031
+    },
+    {
+     "paper_no": "",
+     "booth": "",
+     "title": "Break",
+     "presenting_author": "",
+     "start": "03:25 PM",
+     "end": "03:40 PM",
+     "application_id": null
+    },
+    {
+     "paper_no": "173-8",
+     "booth": "",
+     "title": "Quantifying Groundwater Response and Uncertainty in Beaver-Influenced Mountainous Floodplains Using Machine Learning-Based Model Calibration",
+     "presenting_author": "Lijing Wang",
+     "start": "03:40 PM",
+     "end": "04:00 PM",
+     "application_id": 17213
+    },
+    {
+     "paper_no": "173-9",
+     "booth": "",
+     "title": "Sensitivity of headwater watershed hydrology to subsurface properties and their spatial heterogeneity",
+     "presenting_author": "Victor Oladoja",
+     "start": "04:00 PM",
+     "end": "04:15 PM",
+     "application_id": 18959
+    },
+    {
+     "paper_no": "173-10",
+     "booth": "",
+     "title": "Where the Water Goes: Mechanistic Controls on Spatially Distributed Runoff Efficiency in a Snow-Dominated Mountain Catchment",
+     "presenting_author": "Olivia Stanley",
+     "start": "04:15 PM",
+     "end": "04:30 PM",
+     "application_id": 19217
+    },
+    {
+     "paper_no": "173-11",
+     "booth": "",
+     "title": "Stochastic Pore Network Modeling for Absolute Permeability Predictions in Dolomites",
+     "presenting_author": "Shaluka Senevirathna",
+     "start": "04:30 PM",
+     "end": "04:45 PM",
+     "application_id": 15919
+    },
+    {
+     "paper_no": "173-12",
+     "booth": "",
+     "title": "Impact of Fracture Network Characteristics on Radionuclide Transport in a High-Level Radioactive Waste Repository Using Integrated System-based Modeling",
+     "presenting_author": "Dongsup Kim",
+     "start": "04:45 PM",
+     "end": "05:00 PM",
+     "application_id": 18388
+    },
+    {
+     "paper_no": "173-13",
+     "booth": "",
+     "title": "Hydrostratigraphic Controls on Machine Learning Groundwater Prediction: Evidence from 35 Texas Monitoring Wells",
+     "presenting_author": "Ahmed Omar",
+     "start": "05:00 PM",
+     "end": "05:15 PM",
+     "application_id": 21894
+    },
+    {
+     "paper_no": "173-14",
+     "booth": "",
+     "title": "Beyond the Flow-Weighted Mixture: An Axisymmetric MODFLOW-USG Workflow for Simulating Turbulent Wellbore Transport in Long-Screened Wells",
+     "presenting_author": "Miguel Valencia",
+     "start": "05:15 PM",
+     "end": "05:30 PM",
+     "application_id": 22221
+    }
+   ]
+  },
+  {
+   "id": 96514,
+   "number": "52",
+   "title": "T145. “All creatures great and small”: Macro to micro approaches and perspectives in stratigraphic paleobiology (Posters)",
+   "chairs": "Annaka Clement | Department of Biology, Geology, and Environmental Science, Katharine Loughney, Madeline Marshall, Pedro Monarrez",
+   "description": "The fossil record is linked to the structure of the stratigraphic record from basins down to microfacies. This session welcomes stratigraphic paleobiology that describes the record of life manifesting differently across spatiotemporal scales of analysis. Author Availability: 2:00 to 4:00 p.m.",
+   "date_time": "Sunday, 11 October - 2:00 PM (Mountain Time (US & Canada))",
+   "room": "CCC, Hall F",
+   "session_type": "Poster: Topical",
+   "format": "Poster",
+   "presentations": [
+    {
+     "paper_no": "52-1",
+     "booth": "306",
+     "title": "A new orodromine (Dinosauria: Ornithischia) from the Upper Cretaceous Two Medicine Formation of Northcentral Montana.",
+     "presenting_author": "Zakaria Hannebaum",
+     "start": "",
+     "end": "",
+     "application_id": 15697
+    },
+    {
+     "paper_no": "52-2",
+     "booth": "307",
+     "title": "A Parking Lot Dinosaur: Mitigation, Excavation, and Preparation of a Sauropod at Dinosaur National Monument, UT",
+     "presenting_author": "Rudolph Hummel",
+     "start": "",
+     "end": "",
+     "application_id": 22416
+    }
+   ]
+  }
+ ],
+ "abstracts": [
+  {
+   "application_id": 15697,
+   "session_id": 96514,
+   "paper_no": "52-1",
+   "title": "A new orodromine (Dinosauria: Ornithischia) from the Upper Cretaceous Two Medicine Formation of Northcentral Montana.",
+   "session_title": "“All creatures great and small”: Macro to micro approaches and perspectives in stratigraphic paleobiology (Posters)",
+   "presenting_author": "Zakaria Hannebaum",
+   "authors": "Hannebaum, Zakaria [1], Avrahami, Haviv Moshe [2], Clark, Brendan [3], Brown, Caleb Marshall [4], Scheetz, Rodney [5], Varricchio, David [6]",
+   "affiliations": [
+    "(1) Department of Geosciences, University of Alaska Fairbanks, Fairbanks, AK, USA; Museum of the North, University of Alaska, Fairbanks, Alaska, USA",
+    "(2) Museum of the Rockies, Bozeman, MT,",
+    "(3) Earth Science Department, Montana State University, Bozeman, MT, USA",
+    "(4) Curator, Dinosaur Systematics and Evolution, Royal Tyrrell Museum of Palaeontology, Drumheller, Alberta, Canada",
+    "(5) Brigham Young University, Geological Sciences, Provo, UT, USA",
+    "(6) Montana State Univ, Dept Earth Sciences, Bozeman, MT,"
+   ],
+   "abstract": "Orodromine dinosaurs are a frequent constituent of the Campanian Two Medicine Formation fauna, especially in the Flag Butte Member. Since the erection of Orodromeus makelai in 1988, all orodromine skeletal material from the Two Medicine Formation subsequently fell under the purview of this monospecific genus. However, these skeletal occurrences span approximately five million years and morphological variation previously observed in this sample warrants a comprehensive reexamination.\n\nHere we report the first new orodromine taxon to emerge from the Two Medicine assemblage, informally referred to as the “Landslide Butte Orodromine”. This taxon represents the stratigraphically youngest orodromine known in the Two Medicine-Judith River-Belly River clastic wedge. The “Landslide Butte Orodromine” exhibits a jugal horn morphology distinct from other Early and Late Cretaceous orodromines and illuminates important aspects of the orodromine body plan that have remained poorly understood, particularly the manus and tail.\n\nFurthermore, the “Landslide Butte Orodromine” raises important questions about the disappearance of the clade from Laramidia after the Campanian, and how orodromines were able to coexist with other small-bodied ornithischians. Lastly, referred “Landslide Butte Orodromine” specimens from Alberta suggest previously unrecognized faunal connectivity between the upper Two Medicine and Dinosaur Park Formations among small-bodied dinosaur taxa.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-15697",
+   "category": "Topical Sessions",
+   "format": "Poster",
+   "date": "10/11/2026",
+   "start_time": "",
+   "room": "CCC, Hall F"
+  },
+  {
+   "application_id": 15852,
+   "session_id": 96389,
+   "paper_no": "173-3",
+   "title": "Climate Scenario Assessment of Groundwater Sustainability in the Mississippi Alluvial Plain Using a Hydrogeological Digital Twin",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Yuqi Song",
+   "authors": "Song, Yuqi [1], Yang, Shuo [2], Villers, Jessica J. [3], Duncan, Leslie L. [4], Tsai, Frank [5]",
+   "affiliations": [
+    "(1) Department of Civil and Environmental Engineering, Louisiana State University, Baton Rouge, Louisiana, USA",
+    "(2) INTERA Incorporated, Austin, Texas, USA",
+    "(3) Lower Mississippi-Gulf Water Science Center, U.S. Geological Survey, New Orleans, Louisiana, USA",
+    "(4) Lower Mississippi-Gulf Water Science Center, U.S. Geological Survey, Nashville, Tennessee, USA",
+    "(5) Department of Civil and Environmental Engineering, Louisiana State University, Baton Rouge, LA, USA"
+   ],
+   "abstract": "The Mississippi Alluvial Plain (MAP) contains one of the most intensively pumped agricultural aquifers in the United States, where the Mississippi River Valley alluvial aquifer (MRVA) continues to experience long-term groundwater depletion. Assessing MRVA’s sustainability under changing future climate conditions requires hydrologic models capable of integrating climate forcing, anthropogenic drivers, groundwater flow dynamics, and geological heterogeneity at regional scales. Here we present a climatic assessment framework based on a Hydrogeological Digital Twin of the MAP developed using MODFLOW 6 with an unstructured quadtree discretization. The model integrates hydrostratigraphic characterization, groundwater pumping records, climate-driven recharge simulations, and existing statewide Louisiana and Mississippi Embayment studies to evaluate the alluvial aquifer sustainability under future climate conditions. Climate-driven groundwater recharge was simulated using a modified U.S. Geological Survey Soil-Water-Balance (SWB) model driven by historical observations from the Parameter-elevation Regressions on Independent Slopes Model (PRISM) and downscaled Coupled Model Intercomparison Project Phase 6 (CMIP6) NEX-GDDP climate projections extending through 2100. Simulation results indicate that increasing precipitation generally leads to elevated evapotranspiration and recharge across much of the alluvial plain. However, enhanced recharge does not uniformly alleviate groundwater stress because agricultural pumping and hydrogeologic variability produce persistent regional hotspots of depletion. Pronounced cones of depression remain evident in the Mississippi Delta, Grand Prairie, and northeastern Louisiana regions under multiple climate scenarios, indicating continued vulnerability of heavily irrigated areas. Results demonstrate that wetter climate conditions do not necessarily translate into groundwater recovery, highlighting the nonlinear relationship among precipitation, evapotranspiration, recharge, and groundwater storage. The modeling framework provides a scalable decision-support tool for evaluating long-term aquifer sustainability and identifying regions where groundwater management strategies may be required to mitigate future depletion under changing climatic conditions.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-15852",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "02:10 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 15919,
+   "session_id": 96389,
+   "paper_no": "173-11",
+   "title": "Stochastic Pore Network Modeling for Absolute Permeability Predictions in Dolomites",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Shaluka Senevirathna",
+   "authors": "Senevirathna, Shaluka [1], Vilcaez, Javier [2]",
+   "affiliations": [
+    "(1) Boone Pickens School of Geology, Oklahoma State University, Stillwater, Oklahoma, USA",
+    "(2) Boone Pickens School of Geology, Oklahoma State University, Stillwater, Oklahoma, USA"
+   ],
+   "abstract": "Predicting fluid flow behavior in carbonate rocks such as dolomites remains challenging due to their strong heterogeneity. In this study, we introduce a hybrid framework that integrates high-resolution micro-CT imaging of dolomite core plugs with stochastic construction of 3D pore-networks and OpenPNM pore-network modeling. Hundreds of 3D pore-networks of equal probability of occurrence are stochastically constructed from pore-size distribution and porosity extracted from micro-CT images. Absolute permeability simulations, conducted within the OpenPNM framework, on hundreds of 3D pore-networks are used to statistically determine the most probable absolute permeability of the core plug. As such, this approach explicitly addresses carbonate heterogeneity by accounting for the stochastic connectivity of pore-bodies through pore-throats, while preserving key rock physics characteristics, namely pore size distribution and overall porosity. Core flooding experiments were conducted to validate the numerical results, and multiple spatially distinct sub-volumes were analyzed within the same core plug to assess intra-sample heterogeneity. The stochastic simulations produced mean permeability values that are within the same order of magnitude as experimental measurements. However, variability across different sub-volumes within the same rock sample was found to be greater than the variability introduced by stochastic realizations, highlighting that natural spatial heterogeneity dominates permeability uncertainty at the core scale. The results demonstrate that the proposed stochastic pore-network workflow is both physically consistent and robust in predicting permeability in complex carbonate systems. The ability to reproduce permeability behavior across multiple representative sub-volumes using statistically constrained pore-size information suggests strong potential for upscaling, which provides a practical pathway for bridging pore-scale physics with core- and reservoir-scale permeability estimations.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-15919",
+   "category": "Discipline > Hydrogeology",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "04:30 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 16121,
+   "session_id": 96389,
+   "paper_no": "173-1",
+   "title": "Multi-Objective Optimization with Groundwater Models: Framing Complex Results for Resource Management Decisions",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Nicholas Corson-Dosch",
+   "authors": "Corson-Dosch, Nicholas T [1]",
+   "affiliations": [
+    "(1) U.S. Geological Survey, Upper Midwest Water Science Center, Madison, WI, USA"
+   ],
+   "abstract": "Groundwater management decisions require balancing competing objectives under uncertainty. Managers must weigh tradeoffs between sustaining water supply, protecting ecosystems, or addressing contamination within systems that are imperfectly understood. Numerical groundwater models can be effective tools for evaluating these systems, yet their complexity can make it difficult to translate simulation results into clear, actionable guidance for decision-makers. Multi-objective optimization offers a framework for systematically exploring tradeoffs and presenting model outcomes in terms that are relevant and understandable to resource managers and stakeholders. This talk presents applications of multi-objective optimization to groundwater remediation design, drawing on two projects involving pump-and-treat systems. In both cases, optimization was used to evaluate tradeoffs among competing remediation objectives, producing sets of solutions that reveal the structure of the decision space. Through these examples, the talk explores the opportunities and challenges of using optimization to move beyond single \"best\" answers toward a broader characterization of what outcomes are achievable and at what cost, reframing complex model outputs into information that more readily supports decision-making. However, challenges remain. One is distilling large sets of optimal solutions into decision‑relevant advice without overstating model certainty. Another is computational demand: multi‑objective analyses often require thousands of model runs, limiting accessibility for many practitioners. Model emulators - surrogate representations trained on subsets of full model runs - offer a promising way to reduce this burden by enabling efficient exploration of the decision space once essential decision variables and forecasts are identified. The talk will highlight lessons from applied optimization studies, strategies for effectively communicating tradeoffs, and opportunities to make these methods more computationally efficient and broadly useful in groundwater management.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-16121",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "01:35 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 17213,
+   "session_id": 96389,
+   "paper_no": "173-8",
+   "title": "Quantifying Groundwater Response and Uncertainty in Beaver-Influenced Mountainous Floodplains Using Machine Learning-Based Model Calibration",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Lijing Wang",
+   "authors": "Wang, Lijing [1], Babey, Tristan [2], Perzan, Zach [3], Pierce, Sam [4], Briggs, Martin [5], Boye, Kristin [6], Maher, Kate [7]",
+   "affiliations": [
+    "(1) Earth Sciences, University of Connecticut, Storrs Mansfield, CT, USA",
+    "(2) University of Rennes,",
+    "(3) University of Nevada Las Vegas,",
+    "(4) Stanford University,",
+    "(5) Hydrologic Remote Sensing Branch, U.S. Geological Survey, Observing Systems Division,",
+    "(6) SLAC National Accelerator Laboratory,",
+    "(7) Stanford University,"
+   ],
+   "abstract": "Beavers alter river corridor hydrology by creating ponds and inundating floodplains, and thereby improving surface water storage. However, the impact of inundation on groundwater, particularly in mountainous alluvial floodplains with permeable gravel/cobble layers overlain by a soil layer, remains uncertain. Numerical modeling across various floodplain structures considers topographic and sediment complexity and multidirectional flow, linking inundation to groundwater response. This study develops a model-data integration workflow to address uncertainty in groundwater response to beaver-induced inundations in a mountainous alluvial floodplain in the Upper Colorado River Basin. Uncertain factors include seasonal hydrologic dynamics, hydraulic conductivities, floodplain structures, and meteorological forcings. We employed an ensemble of groundwater models, based on geophysical and hydrologic data, with machine learning-based calibration using a neural density estimator. This allowed us to quantify the vertical flux from the soil layer to the permeable gravel bed, the down-valley underflow within the gravel bed, and their ratios. Results show a significant increase in the vertical flux relative to down-valley underflow, from 2% during dry pond periods to 20% during wet periods, serving as an analogy for conditions without and with beaver ponds. The study highlights the influence of floodplain structure on groundwater storage, water balance, and water quality impacted by beaver ponds. A thick gravel bed layer, with a large down-valley underflow, minimizes the effect of beaver-induced inundation on water quality. We emphasize the need for field-scale measurements of floodplain structure and improved characterization of evapotranspiration changes to reduce uncertainty in groundwater response.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-17213",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "03:40 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 18388,
+   "session_id": 96389,
+   "paper_no": "173-12",
+   "title": "Impact of Fracture Network Characteristics on Radionuclide Transport in a High-Level Radioactive Waste Repository Using Integrated System-based Modeling",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Dongsup Kim",
+   "authors": "Kim, Dongsup [1], Han, Weon Shik [2], Hwang, Jeonghwan [3], Yoon, Won Woo [4], Kwon, Sanghoon [5], Um, Wooyong [6], Choi, Yunjin [7]",
+   "affiliations": [
+    "(1) Department of Earth System Sciences, Yonsei University, Seoul, Korea (The Republic of)",
+    "(2) Department of Earth System Sciences, Yonsei University, Seoul, Korea (The Republic of)",
+    "(3) Advanced Disposal Technology R&D Division, Korea Atomic Energy Research Institute, Dajeon, Korea (The Republic of)",
+    "(4) Advanced Disposal Technology R&D Division, Korea Atomic Energy Research Institute, Dajeon, Korea (The Republic of)",
+    "(5) Department of Earth System Sciences, Yonsei University, Seoul, Korea (The Republic of)",
+    "(6) Division of Advanced Nuclear Engineering, Pohang University of Science and Technology (POSTECH), Pohang, Korea (The Republic of)",
+    "(7) Division of Advanced Nuclear Engineering, Pohang University of Science and Technology (POSTECH), Pohang, Korea (The Republic of)"
+   ],
+   "abstract": "High-level radioactive waste (HLW) generated from nuclear energy production requires long-term isolation due to its high radiotoxicity. Accordingly, deep geological disposal has been internationally recommended, with safety assessments conducted to evaluate repository performance using advanced numerical modeling. While process-based simulations enable high-fidelity modeling of coupled Thermal–Hydraulic–Mechanical–Chemical (THMC) processes, the substantial computational cost limits their application in field-scale simulations. Therefore, system-based simulations have been widely adopted to evaluate integrated radionuclide transport across the near-field, far-field, and biosphere over long timescales. However, previous system-based modeling studies have simplified radionuclide transport in the host rock by assuming conventional single-, dual-, or triple-fracture models, thereby potentially overestimating radionuclide migration.\n\nTo address these limitations, a Discrete Fracture Network (DFN) algorithm applicable to system-based models was developed based on a sequential multi-layer concept extending from the repository (source layer) to the ground surface (sink layer). Multiple nodes were assigned to each layer and stochastically connected to nodes in the adjacent layer to capture heterogeneous fracture distributions in the far-field. This framework enables systematic evaluation of the impact of network characteristics (fracture number and length) and repository depth on radionuclide transport and radioactivity. For application to realistic repository conditions, the near-field, far-field, and biosphere domains were integrated into a system-based model implemented in GoldSim. The DFN parameters were subsequently varied to evaluate their effects on ingestion dose through four biosphere exposure pathways–groundwater, crop, meat, and marine fish.\n\nThe total ingestion dose predicted by the DFN model was 1–2 orders of magnitude lower than that of conventional fracture models. Notably, multi-peak dose behavior was observed only in the DFN model, suggesting that this feature originated from structural differences in the far-field. The first peak was driven by radionuclides with low distribution coefficients (K d ), which migrated rapidly through the fracture network. In contrast, the second peak was governed by daughter radionuclides exhibiting relatively high sorption (high K d ). This behavior reflects the coupled effects of parent radionuclide retardation and continuous daughter radionuclide ingrowth along the complex fracture network. Across additional sensitivity scenarios, repository depth exerted the dominant influence on the ingestion dose, followed by fracture number and length. These results emphasize the importance of incorporating DFN-based modeling and complete radionuclide decay chains into system-based long-term performance and safety assessment of a HLW repository.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-18388",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "04:45 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 18506,
+   "session_id": 96389,
+   "paper_no": "173-6",
+   "title": "Improving Groundwater Model Development Using Remote Sensing Observations and a National Hydrologic Model",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Soheil Nozari",
+   "authors": "Nozari, Soheil [1], Smith, Ryan [2], Rastad, Dana [3], Mueller, Erich [4], Bailey, Ryan [5]",
+   "affiliations": [
+    "(1) Civil and Environmental Engineering, Colorado State University, Fort Collins, CO, USA",
+    "(2) Civil and Environmental Engineering, Colorado State University, Fort Collins, CO, USA",
+    "(3) Civil and Environmental Engineering, Colorado State University, Fort Collins, CO, USA",
+    "(4) Department of Geosciences, Southern Utah University, Cedar City, UT, USA",
+    "(5) Civil and Environmental Engineering, Colorado State University, Fort Collins, CO, USA"
+   ],
+   "abstract": "Groundwater depletion driven by irrigated agriculture threatens the long-term sustainability of food production systems across the semi-arid western United States. Developing reliable groundwater models is essential for sustainable groundwater management but is often limited by uncertainty in key model inputs (e.g., pumping rates and groundwater recharge) and aquifer parameters (e.g., storage properties). This study demonstrates how satellite-based remote sensing products and a national-scale hydrologic model can improve groundwater model development by providing more accurate model inputs and additional calibration constraints. We use irrigation mapping datasets (IrrMapper and LANID) combined with OpenET evapotranspiration estimates to distribute regional annual groundwater withdrawals among individual irrigation wells based on irrigation consumptive use, enabling estimation of monthly pumping rates. Initial groundwater recharge estimates are obtained from the National Agroecosystem Model (NAM), a physically based hydrologic model developed for the contiguous United States using publicly available datasets. In addition, we incorporate land subsidence observations derived from Interferometric Synthetic Aperture Radar (InSAR) as an additional calibration target to better constrain aquifer storage parameters and reduce parameter non-uniqueness. We apply this framework to develop and calibrate a MODFLOW groundwater model for Parowan Valley, Utah. Remote sensing-based estimates of well-level groundwater pumping substantially outperform simpler approaches for distributing regional groundwater withdrawals. Compared with transmissivity-weighted and uniform allocation methods, the remote sensing approach improves agreement with pumping estimates derived from power consumption records, increasing R 2 from -0.48 and -0.15 to 0.63, respectively. Using recharge estimates from the calibrated NAM also significantly improves groundwater model performance relative to recharge estimates from the uncalibrated NAM, reducing head simulation bias from 28.22 to 5.55 m, RMSE from 30.14 to 12.60 m, and increasing R 2 from -3.95 to 0.14. Incorporating InSAR-derived land subsidence into model calibration further improves model performance during the testing period, decreasing head simulation bias from 5.66 to 4.43 m, RMSE from 10.36 to 9.09 m, and increasing R 2 from 0.44 to 0.57. These results demonstrate that leveraging remote sensing observations and a national-scale hydrologic model can substantially improve groundwater model inputs, parameter characterization, and predictive performance, providing a practical framework for groundwater modeling in data-limited, groundwater-dependent agricultural regions.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-18506",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "02:55 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 18888,
+   "session_id": 96389,
+   "paper_no": "173-4",
+   "title": "Simulation of Groundwater Flow in the Moab-Spanish Valley, Utah",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Thomas Lachmar",
+   "authors": "Taylor, Brooklyn [1], Lachmar, Thomas [2]",
+   "affiliations": [
+    "(1) Department of Water, Earth and Environmental Sciences, Utah State University, Logan, Utah, USA",
+    "(2) Department of Water, Earth and Environmental Sciences, Utah State University, Logan, Utah, USA"
+   ],
+   "abstract": "Groundwater is a critical resource in the Moab–Spanish Valley, a northwest-southeast trending valley in southeastern Utah. Continued population growth and projected climate change raise concerns regarding the long-term sustainability of groundwater resources in the valley.\n\nA three-dimensional, numerical, groundwater-flow model was developed in MODFLOW-USG to evaluate groundwater availability, and to assess potential future impacts of climate change and increased groundwater demand. The model consists of seven layers. Three of the upper four layers represent the aquifers: the unconfined valley fill aquifer (VFA), the underlying unconfined Glen Canyon Group aquifer (GCGA), and the confined deep Glen Canyon Group aquifer (DGCGA). The three lowest layers represent relatively impermeable rocks, as does the third layer, which represents a confining unit between the GCGA and the DGCGA.\n\nThe model was calibrated under both steady-state and transient conditions. Steady-state calibration was performed to represent hydrologic conditions during November, and transient calibration simulated groundwater conditions from January 2022 through April 2024. The final values for the mean residual error (MR), mean absolute error (MAR), and root mean square residual error (RMSR) were -1.05 and -0.07 m, 8.68 and 9.31 m, and 20.92 and 16.23 m, respectively, for the steady-state and transient calibrations. Residual heads were less than 4 m each for 16 of the 20 wells used to calibrate the steady-state model. Sensitivity analysis identified recharge, evapotranspiration and horizontal hydraulic conductivity as the most influential model parameters.\n\nFollowing calibration, nine forecasting scenarios were developed to evaluate varying levels of climate change impacts and groundwater pumping over a six-year time period from 2022 to 2028. The model results suggest that future groundwater availability in the Moab–Spanish Valley will be strongly influenced by climate change, particularly within the VFA, but that increased groundwater demand will have a lesser effect, especially on the DGCGA, which is the aquifer producing the most groundwater from wells in the valley. The calibrated model provides a useful tool for evaluating future management strategies and supports long-term groundwater planning.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-18888",
+   "category": "Discipline > Hydrogeology",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "02:25 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 18959,
+   "session_id": 96389,
+   "paper_no": "173-9",
+   "title": "Sensitivity of headwater watershed hydrology to subsurface properties and their spatial heterogeneity",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Victor Oladoja",
+   "authors": "Oladoja, Victor [1], Wang, Lijing [2], Warix, Sara [3]",
+   "affiliations": [
+    "(1) Department of Earth Sciences, University of Connecticut, Willimantic, CT, USA",
+    "(2) Department of Earth Sciences, University of Connecticut, Storrs, CT, USA",
+    "(3) Department of Geology and Geophysics, University of Utah, Salt Lake City, Utah, USA"
+   ],
+   "abstract": "Although more than 70% of the total stream network length in the United States lies within headwater watersheds, our ability to understand and predict hydrologic processes in these systems remains limited. Because headwater streams are strongly influenced by groundwater, fully integrated, distributed hydrologic models that can simulate surface-subsurface flow interactions offer a promising framework for improving process understanding. However, accurately parameterizing these models remains challenging because of uncertainty in subsurface properties and their spatial heterogeneity. Using Albion Basin in the Wasatch Mountains of Utah as a case study, we investigate which watershed subsurface characteristics, such as porosity, permeability, and depth to bedrock (DTB), exert the greatest control on streamflow throughout the watershed and at the outlet. We also evaluate the degree of spatial heterogeneity required to reproduce observed hydrologic behavior. We simulate watershed hydrology using the Advanced Terrestrial Simulator (ATS), a fully integrated distributed surface-subsurface hydrologic model developed by the U.S. Department of Energy. Model realizations are parameterized using open-source datasets, published literature, and field observations, including geophysical surveys, and are evaluated using distance-based generalized sensitivity analysis. Preliminary results indicate that peak flow, baseflow, and groundwater storage are most sensitive to DTB compared to porosity and permeability, highlighting the dominant role of subsurface water storage capacity in regulating headwater watershed behavior. These findings provide guidance on which watershed properties to prioritize for field observations to better parameterize integrated hydrologic models and improve understanding and prediction of headwater hydrology.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-18959",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "04:00 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 19031,
+   "session_id": 96389,
+   "paper_no": "173-7",
+   "title": "Geologic Framework of a Consolidated Rock Aquifer System Using Airborne Electromagnetic and Borehole Data, Adelaida Area, San Luis Obispo County, California",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Sarah Neuhaus",
+   "authors": "Neuhaus, Sarah [1], Cromwell, Geoffrey [2], Ball, Lyndsay [3]",
+   "affiliations": [
+    "(1) United States Geological Survey, Sacramento, CA, USA",
+    "(2) United States Geological Survey, San Luis Obispo, CA, USA",
+    "(3) United States Geological Survey, Denver, CO, USA"
+   ],
+   "abstract": "Groundwater is the only source of water in the Adelaida area of northern San Luis Obispo County, California. Groundwater is extracted for residential and agricultural use from a consolidated rock aquifer system. Population growth and an increase in irrigated agriculture has impacted groundwater levels and availability. Currently, the Adelaida area is not designated as a groundwater basin by the California Department of Water Resources; thus, no comprehensive evaluations of groundwater resources have been conducted and little is known about the subsurface hydrogeology. Here, we present a preliminary three-dimensional (3D) geologic framework of the area to help understand the hydrogeology of the aquifers of the Adelaida area. The framework was built using borehole lithologic data and construction information, geologic maps, and resistivity profiles from an airborne electromagnetic (AEM) survey.\n\nThe Miocene Monterey Formation is the primary aquifer, although groundwater is also extracted from the underlying Miocene Vaqueros Formation and Cretaceous sandstone. The study area is structurally complex, and the overarching structural trend is a syncline plunging to the southeast. Faults bound the study area to the northeast and southwest along the strike of the syncline, and many minor anticlines and synclines are found throughout.\n\nWe identified surface and subsurface geologic contacts for all units in surface geologic maps, borehole lithologic and geophysical logs, and AEM resistivity profiles. The boreholes provided detailed point data and regional coverage of the study area and were supplemented with AEM data collected in August 2021 by the California Department of Water Resources. We developed new models of the AEM data to better represent the bedrock geology and topographic conditions of the Adelaida area. Interpretations of geologic contacts were iteratively made between the boreholes and AEM profiles, with care taken to evaluate the AEM results with respect to groundwater salinity and other parameters that may affect resistivity. Structural contours and synthetic control points were added as input data to enforce the conceptual understanding of the geology and geologic rules. The 3D framework was constructed using geologic-modeling software and geographic information system software. These results are intended to inform water management decisions for the Adelaida area and provide a useful template for future studies in similar consolidated rock aquifer systems.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-19031",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "03:10 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 19115,
+   "session_id": 96389,
+   "paper_no": "173-2",
+   "title": "A stochastic assessment of a large trichloroethene and 1,4 dioxane plume using MODFLOW 6 and the PEST++ Iterative Ensemble Smoother",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Andrew Leaf",
+   "authors": "Leaf, Andrew [1], Schachter, Laura [2], Westenbroek, Steve [3], Corson-Dosch, Nicholas Thomas [4], Haserodt, Megan Joy [5], Markovich, Katherine [6]",
+   "affiliations": [
+    "(1) US Geological Survey, Upper Midwest Water Science Center, Madison, WI,",
+    "(2) U.S. Geological Survey, Upper Midwest Water Science Center, Madison, WI, USA",
+    "(3) U.S. Geological Survey, Upper Midwest Water Science Center, Madison, WI, USA",
+    "(4) U.S. Geological Survey, Upper Midwest Water Science Center, Madison, WI,",
+    "(5) U.S. Geological Survey, Upper Midwest Water Science Center, Madison, WI, USA",
+    "(6) University of New Mexico, Albuquerque, New Mexico, USA"
+   ],
+   "abstract": "Weapons manufacturing at the former Twin Cities Army Ammunition Plant in Arden Hills, MN resulted in the release of trichloroethene (TCE) and 1,4 dioxane into the Prairie du Chien and Jordan units of the deep bedrock aquifer, forming a ~5 mile long contamination plume. Remedial actions have included soil removal and soil vapor extraction near the source areas in the 1980s and 1990s and “pump and treat” efforts that are ongoing. The U.S. Army Environmental Command initiated a project with the U.S. Geological Survey to better understand the behavior and fate of the plumes, and to guide ongoing remedial pumping. A 16-layer MODFLOW 6 groundwater flow model was developed using detailed bedrock and Quaternary mapping from the Minnesota Geological Survey. The model simulates a complex groundwater flow system influenced by buried valleys, aquifer heterogeneity, numerous lakes, high-capacity pumping, and the geometry of the Mississippi River. Mass transport is simulated in a locally refined area of the model grid, using the MODFLOW 6 Groundwater Transport Model. Inherent uncertainties in the source terms and groundwater flowpaths through heterogeneous and fractured media were considered with an ensemble of plausible model realizations developed using the Iterative Ensemble Smoother in PEST++. Flow and transport model parameters for the ensemble were estimated simultaneously, allowing observed concentrations and the plume shape to inform uncertain hydraulic parameters. Results capture observed decreasing concentration trends in many places and indicate that the current pump and treat system is likely containing nearly all of the contaminant mass on-site. To maintain containment, some continued pumping is likely needed through 2042. Multi-objective optimization under uncertainty may help improve pumping efficiency.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-19115",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "01:55 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 19217,
+   "session_id": 96389,
+   "paper_no": "173-10",
+   "title": "Where the Water Goes: Mechanistic Controls on Spatially Distributed Runoff Efficiency in a Snow-Dominated Mountain Catchment",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Olivia Stanley",
+   "authors": "Stanley, Olivia [1], Small, Eric [2], Raleigh, Mark [3]",
+   "affiliations": [
+    "(1) Earth Science, University of Colorado Boulder, Boulder, Colorado, USA",
+    "(2) Earth Science, University of Colorado Boulder, Boulder, Colorado, USA",
+    "(3) Earth, Oceanic, and Atmospheric Sciences, Oregon State University, Corvallis, Oregon, USA"
+   ],
+   "abstract": "Snow water equivalent (SWE) is widely used as the primary predictor in operational streamflow forecasts across snow-dominated basins, but the relationship between SWE and runoff varies considerably in space within a single watershed. Recent large-sample analyses have shown that targeting new snow measurements at spatially variable \"hotspot\" locations improves water supply predictions more than basin-wide snow mapping, yet the physical mechanisms driving hotspot locations remain largely unexplained by simple terrain attributes. We investigate this gap in the East River basin, Colorado, using a pixel-scale comparison of runoff efficiency (RE) against a SWE-only baseline forecast. This analysis identifies spatial hotspots where local RE deviates from basin-average behavior across a wide range of SWE values, indicating that factors beyond snow accumulation govern hotspot occurrence. To evaluate candidate mechanisms, we compare an independent-pixel bucket model representing purely local water balance controls against the spatially distributed Watershed ECOHydrology (WECOH) model incorporating topographically-driven lateral subsurface throughflow, forced with identical snow and evapotranspiration inputs. Results indicate that lateral connectivity contributes meaningfully to the spatial pattern of simulated runoff efficiency, while local storage and evapotranspiration heterogeneity also play a secondary role, consistent with multiple landscape controls jointly shaping runoff generation rather than a single dominant mechanism. This work moves beyond correlative identification of hotspot locations toward a process-based understanding of their controls, providing a foundation for evaluating whether these controls will remain consistent as snowmelt-dominated systems experience continued warming.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-19217",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "04:15 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 21894,
+   "session_id": 96389,
+   "paper_no": "173-13",
+   "title": "Hydrostratigraphic Controls on Machine Learning Groundwater Prediction: Evidence from 35 Texas Monitoring Wells",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Ahmed Omar",
+   "authors": "Omar, Ahmed [1], Chu, Tianxing [2], Murgulet, Dorina [3]",
+   "affiliations": [
+    "(1) Physical and Environmental Sciences Department, Center for Water Supplies Studies, Conrad Blucher Institute for Surveying and Science, Texas A&M University-Corpus Christi, Corpus Christi, TX, USA; Department of Geology, Faculty of Science, Suez Canal University, Ismailia, Egypt, Arab Rep.",
+    "(2) Department of Computer Science, Conrad Blucher Institute for Surveying and Science, Texas A&M University-Corpus Christi, Corpus Christi, TX, USA",
+    "(3) Center for Water Supplies Studies, Texas A&M University-Corpus Christi, Corpus Christi, TX, USA"
+   ],
+   "abstract": "Predicting groundwater levels across heterogeneous aquifers is challenging because recharge, storage, hydraulic connectivity, and confinement vary spatially. We evaluated whether antecedent hydroclimatic information and hydrostratigraphic grouping improve XGBoost predictions of monthly depth to water (DTW) across 35 Texas monitoring wells classified as confined (15), semiconfined (5), or unconfined (15). Classification used aquifer designation, outcrop position, formation lithology, evidence of confining units, and available well information. Model inputs included GRACE water-storage anomalies, rainfall, normalized difference vegetation index, maximum and minimum temperature, hydraulic conductivity, slope, and sand percentage.\n\nTo prevent temporal leakage, observations were ordered chronologically within each well. The earliest 70% were used for training, the following 15% for validation, and the latest 15% for testing. Models using 2- and 12-month antecedent windows were evaluated on the same 6,320 model-ready observations. For the global model, extending the window from 2 to 12 months reduced test root mean squared error (RMSE) from 11.484 to 11.018 m and mean absolute error (MAE) from 7.135 to 6.974 m, while R² increased from 0.964 to 0.967, indicating a modest benefit from the longer window.\n\nUsing the 2-month window, and hydrostratigraphic grouping reduced RMSE from 15.409 to 12.909 m for confined wells, from 7.536 to 6.971 m for semiconfined wells, and from 7.199 to 6.173 m for unconfined wells. Corresponding MAE decreased from 9.957 to 9.605 m, from 6.234 to 5.746 m, and from 4.630 to 3.795 m, while R² increased from 0.957 to 0.970, from 0.966 to 0.971, and from 0.818 to 0.866. Overall, the findings indicate that hydrostratigraphic grouping enhances regional DTW prediction by capturing class-specific groundwater dynamics, although benefits vary across antecedent-window lengths and hydrostratigraphic settings. Incorporating hydrostratigraphic information directly into machine learning workflows may therefore improve the reliability and transferability of regional groundwater predictions.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-21894",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "05:00 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 22221,
+   "session_id": 96389,
+   "paper_no": "173-14",
+   "title": "Beyond the Flow-Weighted Mixture: An Axisymmetric MODFLOW-USG Workflow for Simulating Turbulent Wellbore Transport in Long-Screened Wells",
+   "session_title": "Advances in hydrologic modeling",
+   "presenting_author": "Miguel Valencia",
+   "authors": "Valencia, Miguel E. [1], Day-Lewis, Frederick D. [2], Hankins, Abbey S [3], Langevin, Christian [4], Iveson, Rebecka [5], Mackley, Rob D [6]",
+   "affiliations": [
+    "(1) Pacific Northwest National Laboratory, Richland, WA, USA",
+    "(2) Pacific Northwest National Laboratory, Richland, WA, USA",
+    "(3) Pacific Northwest National Laboratory, Richalnd, WA, USA",
+    "(4) S.S. Papadopulos & Associates, Inc., USA",
+    "(5) Pacific Northwest National Laboratory, Richland, WA, USA",
+    "(6) Pacific Northwest National Laboratory, Richland, WA, USA"
+   ],
+   "abstract": "Conventional groundwater models often simplify well construction details, such as filter packs and turbulent wellbore dynamics (common under high extraction rates or restrictive downhole equipment), typically assuming laminar flow. Consequently, these simplified representations may not fully capture the complex aquifer-well interactions, potentially masking vertical aquifer heterogeneity. These approximations can bias concentration estimates, increasing uncertainty and leading to underestimated aquifer contamination and suboptimal remediation strategies.\n\nTo address these limitations, we developed a high-resolution, open-source Python workflow using MODFLOW-USG coupled with the Connected Linear Network (CLN) package to simulate turbulent pipe flow within the well, using Darcy-Weisbach friction formulations. The refined axisymmetric model features over 50,000 nodes, utilizing a logarithmic radial discretization extending 2,000 feet and 500 vertical layers (of uniform 1-ft thickness) to explicitly parameterize casing zones, screens, and permeable filter packs (e.g., sand) which are characteristic of long-screened wells at remediation sites.\n\nTransient simulations demonstrate that extraction induces strong upward vertical gradients below the pump intake. This mechanism acts as a hydraulic sweep, funneling deep contaminant mass upward through the highly conductive wellbore. Simulations also capture post-pumping recovery, revealing the wellbore remains a preferential conduit for ambient mixing after extraction ceases. This internal mixing modifies the resulting breakthrough curves compared to standard, non-turbulent conceptual models, producing samples that represent flow-weighted mixtures rather than depth-specific concentrations.\n\nTo bridge the gap between advanced numerical methodologies and applied practice, this workflow integrates an interactive 3D graphical user interface (GUI) for visualizing complex spatial concentration profiles and transient cell-by-cell fluxes. By accurately resolving internal wellbore mixing, this framework helps hydrogeologists interpret sampling data and optimize long-screen well operations. Future work will expand this foundational framework to address bypass flow, discrete packer systems, and automated parameter estimation.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-22221",
+   "category": "Topical Sessions",
+   "format": "Oral",
+   "date": "10/12/2026",
+   "start_time": "05:15 PM",
+   "room": "CCC, 111"
+  },
+  {
+   "application_id": 22416,
+   "session_id": 96514,
+   "paper_no": "52-2",
+   "title": "A Parking Lot Dinosaur: Mitigation, Excavation, and Preparation of a Sauropod at Dinosaur National Monument, UT",
+   "session_title": "“All creatures great and small”: Macro to micro approaches and perspectives in stratigraphic paleobiology (Posters)",
+   "presenting_author": "Rudolph Hummel",
+   "authors": "Hummel, Rudolph Russell [1], Hunt-Foster, ReBecca [2], Sameshima, Andy [3], Simon, Candice Nichole [4]",
+   "affiliations": [
+    "(1) Hermantown, MN,",
+    "(2)",
+    "(3)",
+    "(4)"
+   ],
+   "abstract": "Paleontological monitoring was conducted in association with road maintenance at Dinosaur National Monument from June to October of 2025. Fossil resources were sparce across most project areas; however, dinosaur, plant, and bivalve fossils were found in abundance in September beneath the Quarry Exhibit Hall parking lot. Prominent among these were the remains of a Jurassic sauropod dinosaur within the Quarry Sandstone, a three-meter-thick channel deposit within the Brushy Basin Member of the Morrison Formation. An initial salvage operation occurred during the fall of 2025 and a second in the spring of 2026, with the goal of removing all possible dinosaur bones from the site before paving the parking lot. The fall dig recovered fifteen caudal vertebrae, four limb elements, and an unknown number of pedal elements. In the spring, a further three caudal vertebrae were collected, along with additional elements belonging to at least two additional sauropods, one theropod, and two ornithischians. The Quarry Sandstone dips to the south at 70°, which made the excavation challenging. Thirteen of the vertebrae collected in the fall were articulated and plunging to the west at the proximal end. The distalmost vertebrae in the series were located immediately below the road base installed during construction of the original parking lot in the 1960s and show signs of damage by construction equipment. The gravel and road base include fragments of neural spines damaged at this time. Preparation of the caudal vertebrae is currently underway and has been complicated by the heavy presence of bivalve shells immediately overlying many bones, which cause poor separation between the matrix and bone. This project represents the first major excavation in fresh exposure of the Quarry Sandstone since 1924, and further preparation is expected to yield fresh insights into the stratigraphy and paleontology of these historic fossil beds.",
+   "citation": "Geological Society of America Abstracts with Programs. Vol. 58, No. 5, 2026",
+   "doi": "10.1130/abs/2026AM-22416",
+   "category": "Topical Sessions",
+   "format": "Poster",
+   "date": "10/11/2026",
+   "start_time": "",
+   "room": "CCC, Hall F"
+  }
+ ]
+}

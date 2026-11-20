@@ -1,0 +1,10 @@
+{
+  "type": "/problems/invalid-talks",
+  "title": "Some talks are invalid",
+  "status": 400,
+  "errors": [
+    { "talk": "84213", "field": "abstract", "problem": "longer than 10,000 characters" },
+    { "talk": "84500", "field": "presenters", "problem": "A55 is not in authors" }
+  ],
+  "requestId": "req_Zx81Kd02LmQpZ7rT5vWb3Y"
+}

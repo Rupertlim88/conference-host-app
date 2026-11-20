@@ -1,0 +1,35 @@
+{
+  "job": "job_x91Kd02LmQpZ7rT5vWb3Yu",
+  "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc",
+  "run": {
+    "engineId": "graph_v1",
+    "engineVersion": "1.4.0",
+    "runId": "graph_v1-20261116T010000Z-a1b2c3",
+    "models": {
+      "embedding": "voyage-3",
+      "reasons": "claude-sonnet-5-5"
+    }
+  },
+  "matches": [
+    {
+      "anchor": 1,
+      "candidate": 2,
+      "score": 0.86,
+      "kind": "unexpected",
+      "reason": "Both follow heat flow with X-ray scattering.",
+      "sharedMethods": [
+        "X-ray scattering"
+      ]
+    },
+    {
+      "anchor": 2,
+      "candidate": 1,
+      "score": 0.86,
+      "kind": "unexpected",
+      "reason": "Both follow heat flow with X-ray scattering.",
+      "sharedMethods": [
+        "X-ray scattering"
+      ]
+    }
+  ]
+}

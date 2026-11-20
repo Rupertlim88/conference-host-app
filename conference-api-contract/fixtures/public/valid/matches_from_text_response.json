@@ -1,0 +1,15 @@
+{
+  "enoughInformation": true,
+  "whatIsMissing": null,
+  "matches": [
+    {
+      "talk": "T42",
+      "kind": "core",
+      "rank": 1,
+      "score": 0.91,
+      "reason": "Same method, same kind of material.",
+      "sharedMethods": ["time-resolved X-ray scattering"],
+      "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc"
+    }
+  ]
+}

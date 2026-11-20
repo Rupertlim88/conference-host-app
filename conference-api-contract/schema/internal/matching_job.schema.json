@@ -1,0 +1,30 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "job": {
+      "type": "string",
+      "pattern": "^job_[A-Za-z0-9_-]{22}$"
+    },
+    "programmeVersion": {
+      "type": "string",
+      "pattern": "^pv_[A-Za-z0-9_-]{22}$"
+    },
+    "talks": {
+      "minItems": 1,
+      "maxItems": 100000,
+      "type": "array",
+      "items": {
+        "type": "integer",
+        "minimum": 1,
+        "maximum": 9007199254740991
+      }
+    }
+  },
+  "required": [
+    "job",
+    "programmeVersion",
+    "talks"
+  ],
+  "additionalProperties": false
+}

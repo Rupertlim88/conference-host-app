@@ -1,0 +1,64 @@
+# See https://help.github.com/articles/ignoring-files/ for more about ignoring files.
+
+# Dependencies
+node_modules
+.pnp
+.pnp.js
+
+# Local env files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Testing
+coverage
+
+# Turbo
+.turbo
+
+# Vercel
+.vercel
+
+# Build Outputs
+.next/
+out/
+build
+dist
+
+
+# Debug
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Misc
+.DS_Store
+*.pem
+/data/gps2026/
+
+# Playwright MCP scratch
+.playwright-mcp/
+
+# Excel lock files
+~$*
+
+# Claude Code local runtime state (project settings.json is shared)
+.claude/worktrees/
+.claude/scheduled_tasks.lock
+
+/.playwright-mcp/
+
+# Verification skill runs (pid files, logs, evidence)
+/.verify/
+
+# Python bytecode
+__pycache__/
+*.pyc
+
+# Test reports
+/reports/
+
+# Python virtual environments
+.venv/
