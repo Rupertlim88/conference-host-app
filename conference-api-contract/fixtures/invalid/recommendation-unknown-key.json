@@ -9,8 +9,8 @@
   "strongest_parallel": "Time-resolved photocurrent as the readout of carrier dynamics.",
   "shared_methods": ["transient photocurrent measurement"],
   "evidence": { "same_method": 4, "specificity": 3, "usage_parallel": 5, "rubric_sum": 12 },
-  "engine_id": "graph_v1",
-  "run_id": "graph_v1-20260912T120000Z-a1b2c3",
+  "engine_id": "commonkads_v1",
+  "run_id": "commonkads_v1-20260912T120000Z-a1b2c3",
   "contract_version": 1,
   "same_method": 4
 }
