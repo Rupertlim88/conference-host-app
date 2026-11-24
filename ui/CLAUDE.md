@@ -21,6 +21,3 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 3. **The UI has a developer console, for the user's own team.**
    - **Security:** OWASP ASVS Level 1 if it is a web app, or OWASP MASVS Level 1 if it is a mobile app.
-
-4. **The UI links to the conference API's public credential verification page.**
-   - **Security:** OWASP ASVS Level 1 if it is a web app, or OWASP MASVS Level 1 if it is a mobile app.
