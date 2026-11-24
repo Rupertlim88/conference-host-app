@@ -54,3 +54,5 @@ The store and backend database tests run only when `HOST_TEST_DATABASE_URL` and 
 `conference-api-contract` is a copy. When the conference API's contract changes, copy the new version here and run the checks. To confirm its generated JSON Schema and OpenAPI files still match its zod source, run `npm run emit --workspace=@repo/contracts`; `git diff` should show nothing.
 
 To put the apps online, follow `HOSTING.md`.
+
+`docs/parked-rules.md` holds rules deleted from the CLAUDE.md files that are not used in this version. Nothing in it is in force.
