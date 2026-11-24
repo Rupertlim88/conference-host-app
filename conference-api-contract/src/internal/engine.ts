@@ -6,7 +6,7 @@ import { text } from "../public/text";
 
 const InternalIdSchema = z.int().min(1).max(Number.MAX_SAFE_INTEGER);
 
-/** What an engine may read of a talk: id, title, abstract, units (tracks) and topics (keywords).
+/** What an engine may read of a talk: id, title, abstract, tracks and keywords, as the talk was sent.
  *  Author and presenter ids let the run driver drop talks the anchor's presenters wrote; engines never read
  *  them. Ids are the data layer's own. */
 export const EngineTalkSchema = z
@@ -14,8 +14,8 @@ export const EngineTalkSchema = z
     id: InternalIdSchema,
     title: text(1, 500),
     abstract: text(1, 10_000),
-    units: z.array(text(1, 100)).max(20),
-    topics: z.array(text(1, 100)).max(50),
+    tracks: z.array(text(1, 100)).max(20),
+    keywords: z.array(text(1, 100)).max(50),
     authorIds: z.array(InternalIdSchema).max(200),
     presenterIds: z.array(InternalIdSchema).max(200),
   })

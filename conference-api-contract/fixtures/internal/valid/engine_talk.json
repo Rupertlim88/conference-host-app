@@ -2,10 +2,10 @@
   "id": 1,
   "title": "Measuring heat transport",
   "abstract": "We measure heat.",
-  "units": [
+  "tracks": [
     "DCMP"
   ],
-  "topics": [
+  "keywords": [
     "thermal transport"
   ],
   "authorIds": [
