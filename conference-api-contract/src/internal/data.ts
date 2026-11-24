@@ -3,7 +3,6 @@ import { z } from "zod";
 import { PartnerIdSchema, RequestIdSchema } from "../public/ids";
 import { MatchesFromTextRequestSchema, MatchesSearchRequestSchema, MatchesSearchResponseSchema } from "../public/matches";
 import { TalkErrorSchema } from "../public/problem";
-import { MatchSettingsSchema } from "../public/settings";
 import { TalksWriteRequestSchema, TalksWriteResponseSchema } from "../public/talks";
 import { EngineIdSchema } from "./engine";
 
@@ -49,6 +48,3 @@ export const TextRequestCommandSchema = z.strictObject({
 });
 export type TextRequestCommand = z.infer<typeof TextRequestCommandSchema>;
 
-/** The organiser's new match settings, and whom the change acts for. */
-export const SetMatchSettingsCommandSchema = z.strictObject({ actor: ActorSchema, settings: MatchSettingsSchema });
-export type SetMatchSettingsCommand = z.infer<typeof SetMatchSettingsCommandSchema>;

@@ -8,7 +8,6 @@ import {
   MatchesSearchResponseSchema,
 } from "./matches";
 import { ProblemSchema } from "./problem";
-import { MatchSettingsSchema } from "./settings";
 import { TalksWriteRequestSchema, TalksWriteResponseSchema } from "./talks";
 
 export interface OperationLimits {
@@ -24,15 +23,12 @@ export interface OperationLimits {
   timeoutSeconds: number;
 }
 
-export type Method = "GET" | "POST" | "PUT";
-
 interface Operation {
-  method: Method;
+  method: "POST";
   path: string;
   summary: string;
   limits: OperationLimits;
-  /** Left out for reads, which send no body. */
-  request?: { name: string; schema: z.ZodType };
+  request: { name: string; schema: z.ZodType };
   response: { name: string; schema: z.ZodType };
   /** Set once the operation is retiring. It keeps every security fix until it is switched off. */
   retiring?: Retiring;
@@ -77,14 +73,17 @@ export const PROTECTIONS = {
   failedKeyChecksPerMinutePerAddress: 20,
 } as const;
 
-/** How much one conference may hold, counting everything kept. Reaching a limit refuses new data and
- *  never deletes any. The data layer enforces exactly these. */
+/** How much one conference may hold, counting everything kept, and how many talks it may add or change in a day.
+ *  Reaching a limit refuses new data and never deletes any. The data layer enforces exactly these. */
 export const BUSINESS_LIMITS = {
   talksPerConference: 50_000,
   /** Every past state of every talk is kept; each accepted change adds one. */
   keptTalkRevisionsPerConference: 2_000_000,
   /** Every accepted talks:write adds one. */
   programmeVersionsPerConference: 200_000,
+  /** Counted per UTC day. Each talk a talks:write adds, changes or withdraws counts once; a talk sent again
+   *  unchanged does not count. */
+  newOrChangedTalksPerConferencePerDay: 5_000,
 } as const;
 
 const KiB = 1024;
@@ -105,7 +104,7 @@ export const OPERATIONS = {
     method: "POST",
     path: "/v1/conferences/{conference}/talks:write",
     summary: "Send one talk, several, or the whole programme. All or nothing.",
-    limits: limits(10_000_000, 60, 10_000, 2, 25),
+    limits: limits(10_000_000, 60, 200, 2, 25),
     request: { name: "TalksWriteRequest", schema: TalksWriteRequestSchema },
     response: { name: "TalksWriteResponse", schema: TalksWriteResponseSchema },
   },
@@ -113,7 +112,7 @@ export const OPERATIONS = {
     method: "POST",
     path: "/v1/conferences/{conference}/matches:search",
     summary: "Get matches already worked out, by people or by liked talks.",
-    limits: limits(64 * KiB, 600, 200_000, 20, 10),
+    limits: limits(64 * KiB, 600, 100_000, 20, 10),
     request: { name: "MatchesSearchRequest", schema: MatchesSearchRequestSchema },
     response: { name: "MatchesSearchResponse", schema: MatchesSearchResponseSchema },
   },
@@ -121,24 +120,9 @@ export const OPERATIONS = {
     method: "POST",
     path: "/v1/conferences/{conference}/matches:fromText",
     summary: "Get matches for text a person enters, worked out on the spot.",
-    limits: limits(64 * KiB, 60, 20_000, 10, 20),
+    limits: limits(64 * KiB, 60, 500, 10, 20),
     request: { name: "MatchesFromTextRequest", schema: MatchesFromTextRequestSchema },
     response: { name: "MatchesFromTextResponse", schema: MatchesFromTextResponseSchema },
-  },
-  getMatchSettings: {
-    method: "GET",
-    path: "/v1/conferences/{conference}/matchSettings",
-    summary: "Which matches the conference's attendees get, as its organiser chose.",
-    limits: limits(0, 60, 10_000, 2, 10),
-    response: { name: "MatchSettings", schema: MatchSettingsSchema },
-  },
-  setMatchSettings: {
-    method: "PUT",
-    path: "/v1/conferences/{conference}/matchSettings",
-    summary: "Choose, for the organiser, which kinds of match attendees get, and how many each person gets at most.",
-    limits: limits(1 * KiB, 30, 1_000, 1, 10),
-    request: { name: "MatchSettingsRequest", schema: MatchSettingsSchema },
-    response: { name: "MatchSettings", schema: MatchSettingsSchema },
   },
 } as const satisfies Record<string, Operation>;
 
@@ -150,7 +134,10 @@ const REFUSALS: Record<string, string> = {
   "409": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
   "413": "The request body is larger than this request allows.",
   "415": "The body is not JSON in UTF-8, uncompressed.",
-  "429": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Retry after the time in Retry-After.",
+  "429":
+    "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. " +
+    "Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. " +
+    "Retry after the time in Retry-After.",
   "500": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
   "503": "The API cannot answer in time just now. Safe to retry.",
 };
@@ -223,9 +210,7 @@ function publishedOperation(operationId: string, operation: Operation): Record<s
     "x-limits": operation.limits,
     security: [{ partnerKey: [] }],
     ...(parameters.length > 0 ? { parameters } : {}),
-    ...(request
-      ? { requestBody: { required: true, content: { "application/json": { schema: refTo(request.name) } } } }
-      : {}),
+    requestBody: { required: true, content: { "application/json": { schema: refTo(request.name) } } },
     responses: {
       "200": { description: "Done.", content: { "application/json": { schema: refTo(response.name) } } },
       ...refusalResponses(),
@@ -245,7 +230,7 @@ export function buildOpenApi(): Record<string, unknown> {
   for (const [operationId, operation] of operations) {
     (paths[operation.path] ??= {})[operation.method.toLowerCase()] = publishedOperation(operationId, operation);
   }
-  const requests = operations.flatMap(([, operation]) => (operation.request ? [operation.request] : []));
+  const requests = operations.map(([, operation]) => operation.request);
   const responses = [...operations.map(([, operation]) => operation.response), { name: "Problem", schema: ProblemSchema }];
   return {
     openapi: "3.1.1",
@@ -285,8 +270,7 @@ function sizeLabel(bytes: number): string {
 
 function endpointRow(id: string, operation: Operation): string {
   const l = operation.limits;
-  const body = operation.request ? `${sizeLabel(l.maxBodyBytes)} body, ` : "";
-  const limitText = `${body}${l.requestsPerMinute}/min, ${l.requestsPerDay.toLocaleString("en-US")}/day, ${l.concurrentRequests} at once, ${l.timeoutSeconds} s`;
+  const limitText = `${sizeLabel(l.maxBodyBytes)} body, ${l.requestsPerMinute}/min, ${l.requestsPerDay.toLocaleString("en-US")}/day, ${l.concurrentRequests} at once, ${l.timeoutSeconds} s`;
   const status = operation.retiring === undefined ? "live" : `retiring, off ${operation.retiring.sunset}`;
   return `| ${operation.method} | \`${operation.path}\` | ${id} | ${OWNER} | ${limitText} | ${status} |`;
 }

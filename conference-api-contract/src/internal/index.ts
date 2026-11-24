@@ -4,7 +4,6 @@ import { KeyHolderSchema } from "./control";
 import {
   SearchMatchesOutcomeSchema,
   SearchMatchesQuerySchema,
-  SetMatchSettingsCommandSchema,
   TextRequestCommandSchema,
   WriteTalksCommandSchema,
   WriteTalksOutcomeSchema,
@@ -33,7 +32,6 @@ export const INTERNAL_SCHEMAS = {
   search_matches_query: SearchMatchesQuerySchema,
   search_matches_outcome: SearchMatchesOutcomeSchema,
   text_request_command: TextRequestCommandSchema,
-  set_match_settings_command: SetMatchSettingsCommandSchema,
   engine_talk: EngineTalkSchema,
   corpus: CorpusSchema,
   matching_job: MatchingJobSchema,
