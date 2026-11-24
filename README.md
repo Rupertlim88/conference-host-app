@@ -30,7 +30,6 @@ Set these in each app's `.env.local` (see the app's README for the full list):
 
 - `CONFERENCE_API_URL`: the API's address.
 - `CONFERENCE_API_KEY`: a partner token with `talks:write` and `matches:read` on the society's conference (`ams-2027` or `gsa-2026`).
-- `CONFERENCE_API_VERIFY_URL`: the API's public credential verification page.
 
 Then send the programme to the API:
 

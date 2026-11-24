@@ -71,7 +71,6 @@ In each project, open **Settings**, then **Environment Variables**, and add thes
 | `CONFERENCE_API_URL` | the conference API's address | no |
 | `CONFERENCE_API_KEY` | the conference API key | yes |
 | `CRON_SECRET` | the output of `openssl rand -hex 24`, a different value per project | yes |
-| `CONFERENCE_API_VERIFY_URL` | the conference API's credential verification page. Leave it out to hide the link. | no |
 
 The apps check every setting when they start and name each one that is wrong.
 

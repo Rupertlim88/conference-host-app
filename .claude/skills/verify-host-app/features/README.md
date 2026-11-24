@@ -36,4 +36,4 @@ Each feature file has an H1 title and one paragraph on what the user sees, then 
 - [Search](./search.md): finding a talk by its title.
 - [GSA notes and notifications](./gsa-notes.md): notes on an abstract, and the empty notifications page.
 - [Organiser console](./organiser-console.md): withdraw, move and retime talks, and send the programme to the conference API.
-- [Developer console](./developer-console.md): the API connection, test, send again, reset, and the verify link.
+- [Developer console](./developer-console.md): the API connection, test, send again and reset.

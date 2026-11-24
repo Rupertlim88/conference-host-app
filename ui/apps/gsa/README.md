@@ -16,7 +16,6 @@ The host app's GSA version. It imitates GSA Meetings Guide, the Guidebook app GS
 | `BETTER_AUTH_URL` | this app's address, such as http://localhost:3002 |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | Google sign-in; without them the sign-in page says it is not set up |
 | `CONFERENCE_API_URL`, `CONFERENCE_API_KEY` | the conference API's address, and a token from its `issue-token` command |
-| `CONFERENCE_API_VERIFY_URL` | optional: the conference API's credential verification page, linked from every page; without it, no link shows |
 | `CRON_SECRET` | optional locally: the secret Vercel's daily cron sends to `/api/keep-alive`; without it, the route answers 401 |
 
 The organiser console is at `/organiser` and the developer console at `/developer`. Any signed-in guest can use both. To put the app online, follow `HOSTING.md`.

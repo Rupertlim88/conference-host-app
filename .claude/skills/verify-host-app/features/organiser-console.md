@@ -12,7 +12,7 @@ Each app has an organiser console at `/organiser`, reached from **Organiser cons
 
 ## How to get to it (user POV)
 
-- Open the menu, then **Organiser console**. The console's own bar has the sections, **Attendee app**, **Verify a credential** when it is set up, and **Sign Out**.
+- Open the menu, then **Organiser console**. The console's own bar has the sections, **Attendee app** and **Sign Out**.
 - Open a talk from the list to withdraw or move it. Open a session from Sessions (AMS) or Manage Sessions (GSA) to change its time and room.
 
 ## Driving it with look.mts
