@@ -2,8 +2,7 @@
   "app": {
     "name": "Strata Guide (Demo)",
     "tagline": "A demo conference app showing the GSA Connects 2026 programme.",
-    "skip": "Skip to content",
-    "verify": "Verify a credential"
+    "skip": "Skip to content"
   },
   "nav": {
     "home": "Home",
@@ -254,7 +253,6 @@
     "status": "Status",
     "address": "Conference API address",
     "key": "API key",
-    "verify": "Credential verification page",
     "lastSend": "Last send",
     "set": "Set",
     "notSet": "Not set",

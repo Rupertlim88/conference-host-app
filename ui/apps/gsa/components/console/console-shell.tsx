@@ -1,20 +1,16 @@
 import Link from "next/link";
 import { useTranslations } from "next-intl";
 
-import { VerifyLink } from "@/components/verify-link";
-
-/** A console's frame: its name, its sections, the way back to the attendee app, the verify link when one is set,
- *  and sign-out. Plain, like the organiser tools it imitates. */
+/** A console's frame: its name, its sections, the way back to the attendee app, and sign-out. Plain, like the
+ *  organiser tools it imitates. */
 export function ConsoleShell({
   title,
   nav,
-  verifyUrl,
   signOut,
   children,
 }: {
   title: string;
   nav: { href: string; label: string }[];
-  verifyUrl: string | null;
   signOut: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -31,7 +27,6 @@ export function ConsoleShell({
             {title}
           </Link>
           <div className="flex items-center gap-4 text-xs">
-            <VerifyLink url={verifyUrl} />
             <span className="[&_button]:text-white">{signOut}</span>
           </div>
         </div>

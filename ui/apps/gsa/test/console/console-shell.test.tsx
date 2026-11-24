@@ -13,7 +13,7 @@ const nav = [
 
 test("names the console, lists its sections and leads back to the attendee app", () => {
   renderApp(
-    <ConsoleShell title="Strata Program Desk (Demo)" nav={nav} verifyUrl={null} signOut={<button type="button">Sign Out</button>}>
+    <ConsoleShell title="Strata Program Desk (Demo)" nav={nav} signOut={<button type="button">Sign Out</button>}>
       <p>page</p>
     </ConsoleShell>,
   );
@@ -26,23 +26,4 @@ test("names the console, lists its sections and leads back to the attendee app",
   ]);
   expect(within(screen.getByRole("main")).getByText("page")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
-});
-
-test("links to the credential verification page in a new tab when one is set, and not otherwise", () => {
-  const { unmount } = renderApp(
-    <ConsoleShell title="Console" nav={nav} verifyUrl="https://verify.example.org/" signOut={null}>
-      <p>page</p>
-    </ConsoleShell>,
-  );
-  const verify = screen.getByRole("link", { name: "Verify a credential" });
-  expect(verify).toHaveAttribute("href", "https://verify.example.org/");
-  expect(verify).toHaveAttribute("target", "_blank");
-  expect(verify).toHaveAttribute("rel", "noopener noreferrer");
-  unmount();
-  renderApp(
-    <ConsoleShell title="Console" nav={nav} verifyUrl={null} signOut={null}>
-      <p>page</p>
-    </ConsoleShell>,
-  );
-  expect(screen.queryByRole("link", { name: "Verify a credential" })).not.toBeInTheDocument();
 });

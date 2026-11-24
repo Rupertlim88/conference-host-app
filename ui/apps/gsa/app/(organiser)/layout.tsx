@@ -6,7 +6,7 @@ import { serverApi } from "@/lib/server-api";
 
 // Any signed-in guest may use the organiser console: this is a demo (CLAUDE.md rule 6).
 export default async function OrganiserLayout({ children }: { children: React.ReactNode }) {
-  const { verifyUrl } = await (await serverApi()).settings.get();
+  await serverApi(); // sends anyone not signed in to the sign-in page
   const t = await getTranslations("organiser");
   const nav = [
     { href: "/organiser", label: t("submissions") },
@@ -14,7 +14,7 @@ export default async function OrganiserLayout({ children }: { children: React.Re
     { href: "/organiser/send", label: t("send") },
   ];
   return (
-    <ConsoleShell title={t("name")} nav={nav} verifyUrl={verifyUrl} signOut={<SignOutButton />}>
+    <ConsoleShell title={t("name")} nav={nav} signOut={<SignOutButton />}>
       {children}
     </ConsoleShell>
   );
