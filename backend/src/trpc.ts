@@ -8,7 +8,6 @@ import type { ConferenceApi } from "./conference-api";
 export interface ApiSettings {
   apiAddress: string | null;
   keySet: boolean;
-  verifyUrl: string | null;
 }
 
 export interface Context {

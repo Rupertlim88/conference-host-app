@@ -25,7 +25,6 @@ import {
   SessionListInputSchema,
   SessionListSchema,
   SessionSummarySchema,
-  SettingsSchema,
   SyncRunSchema,
   TalkDetailSchema,
   TalkListInputSchema,
@@ -159,9 +158,6 @@ const developerRouter = router({
 export const appRouter = router({
   organiser: organiserRouter,
   developer: developerRouter,
-  settings: router({
-    get: viewerProcedure.output(SettingsSchema).query(({ ctx }) => ({ verifyUrl: ctx.settings.verifyUrl })),
-  }),
 
   viewer: router({
     get: publicProcedure.output(ViewerSchema.nullable()).query(({ ctx }) =>

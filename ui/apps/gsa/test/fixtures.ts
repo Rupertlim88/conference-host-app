@@ -181,7 +181,6 @@ export const apiStatus = (over: Partial<ApiStatus> = {}): ApiStatus =>
   ApiStatusSchema.parse({
     apiAddress: "https://api.example.org/",
     keySet: true,
-    verifyUrl: "https://verify.example.org/",
     lastRun: syncRun(),
     changes: { moved: 1, rescheduled: 2, withdrawn: 1, sessions: 1 },
     ...over,

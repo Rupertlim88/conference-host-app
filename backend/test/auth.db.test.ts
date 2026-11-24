@@ -14,7 +14,6 @@ const config: HostConfig = {
   databaseUrl: url ?? "",
   authSecret: "s".repeat(32),
   authUrl: "http://localhost:3001",
-  verifyUrl: null,
   cronSecret: null,
   google: null,
   api: null,
