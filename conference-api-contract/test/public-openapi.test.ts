@@ -2,7 +2,7 @@ import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
 
-import { BUSINESS_LIMITS, type Method, OPERATIONS, PROTECTIONS, buildOpenApi } from "../src/public/openapi";
+import { BUSINESS_LIMITS, OPERATIONS, PROTECTIONS, buildOpenApi } from "../src/public/openapi";
 
 type Json = Record<string, unknown>;
 const ROOT = join(import.meta.dirname, "..");
@@ -59,18 +59,19 @@ describe("the published specification", () => {
     for (const op of operations()) expect(op.security).toEqual([{ partnerKey: [] }]);
   });
 
-  test("a read sends no body, and every other operation states its body", () => {
-    for (const op of Object.values(OPERATIONS)) {
-      const published = paths[op.path]![op.method.toLowerCase()]!;
-      if ((op.method as Method) === "GET") expect(published.requestBody).toBeUndefined();
-      else expect(published.requestBody).toMatchObject({ required: true });
-    }
+  test("it lists sending talks and the two requests that get matches, each a POST with a body, and nothing else", () => {
+    expect(Object.fromEntries(Object.entries(paths).map(([path, methods]) => [path, Object.keys(methods)]))).toEqual({
+      "/v1/conferences/{conference}/talks:write": ["post"],
+      "/v1/conferences/{conference}/matches:search": ["post"],
+      "/v1/conferences/{conference}/matches:fromText": ["post"],
+    });
+    for (const op of operations()) expect(op.requestBody).toMatchObject({ required: true });
   });
 
   test("every operation states its limits and timing", () => {
     for (const op of operations()) {
       const limits = op["x-limits"] as Json;
-      expect(limits.maxBodyBytes).toBeGreaterThanOrEqual(op.requestBody === undefined ? 0 : 1);
+      expect(limits.maxBodyBytes).toBeGreaterThanOrEqual(1);
       expect(limits.requestsPerMinute).toBeGreaterThan(0);
       expect(limits.timeoutSeconds).toBeGreaterThan(0);
     }
@@ -150,6 +151,16 @@ test("the specification states the protections every request meets, before its o
   for (const limit of Object.values(PROTECTIONS)) expect(limit).toBeGreaterThanOrEqual(1);
 });
 
+test("each kind of request has its own exact daily allowance", () => {
+  const perDay = (spec: Json) =>
+    Object.fromEntries(
+      Object.values(spec.paths as Record<string, Record<string, Json>>).flatMap((methods) =>
+        Object.values(methods).map((op) => [op.operationId, (op["x-limits"] as Json).requestsPerDay]),
+      ),
+    );
+  expect(perDay(buildOpenApi())).toEqual({ writeTalks: 200, searchMatches: 100_000, matchesFromText: 500 });
+});
+
 test("the specification states every business limit, per conference and per organiser", () => {
   const spec = buildOpenApi() as { "x-business-limits": Record<string, number> };
   expect(spec["x-business-limits"]).toEqual(BUSINESS_LIMITS);
@@ -157,5 +168,15 @@ test("the specification states every business limit, per conference and per orga
     talksPerConference: 50_000,
     keptTalkRevisionsPerConference: 2_000_000,
     programmeVersionsPerConference: 200_000,
+    newOrChangedTalksPerConferencePerDay: 5_000,
   });
+});
+
+test("a talks:write past the day's limit on new or changed talks is a 429 that applied nothing, to retry after Retry-After", () => {
+  const spec = buildOpenApi() as { paths: Record<string, Record<string, { responses: Record<string, { description: string }> }>> };
+  const tooMany = spec.paths[OPERATIONS.writeTalks.path]!.post!.responses["429"]!.description;
+  expect(tooMany).toMatch(/day's limit on new or changed talks/);
+  expect(tooMany).toMatch(/nothing was applied/);
+  expect(tooMany).toMatch(/x-business-limits/);
+  expect(tooMany).toMatch(/Retry after the time in Retry-After/);
 });

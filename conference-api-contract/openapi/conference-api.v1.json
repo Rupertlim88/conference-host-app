@@ -21,7 +21,8 @@
   "x-business-limits": {
     "talksPerConference": 50000,
     "keptTalkRevisionsPerConference": 2000000,
-    "programmeVersionsPerConference": 200000
+    "programmeVersionsPerConference": 200000,
+    "newOrChangedTalksPerConferencePerDay": 5000
   },
   "paths": {
     "/v1/conferences/{conference}/talks:write": {
@@ -31,7 +32,7 @@
         "x-limits": {
           "maxBodyBytes": 10000000,
           "requestsPerMinute": 60,
-          "requestsPerDay": 10000,
+          "requestsPerDay": 200,
           "concurrentRequests": 2,
           "timeoutSeconds": 25
         },
@@ -133,7 +134,7 @@
             }
           },
           "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Retry after the time in Retry-After.",
+            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -172,7 +173,7 @@
         "x-limits": {
           "maxBodyBytes": 65536,
           "requestsPerMinute": 600,
-          "requestsPerDay": 200000,
+          "requestsPerDay": 100000,
           "concurrentRequests": 20,
           "timeoutSeconds": 10
         },
@@ -274,7 +275,7 @@
             }
           },
           "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Retry after the time in Retry-After.",
+            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -313,7 +314,7 @@
         "x-limits": {
           "maxBodyBytes": 65536,
           "requestsPerMinute": 60,
-          "requestsPerDay": 20000,
+          "requestsPerDay": 500,
           "concurrentRequests": 10,
           "timeoutSeconds": 20
         },
@@ -415,277 +416,7 @@
             }
           },
           "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Retry after the time in Retry-After.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "The API cannot answer in time just now. Safe to retry.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/v1/conferences/{conference}/matchSettings": {
-      "get": {
-        "operationId": "getMatchSettings",
-        "summary": "Which matches the conference's attendees get, as its organiser chose.",
-        "x-limits": {
-          "maxBodyBytes": 0,
-          "requestsPerMinute": 60,
-          "requestsPerDay": 10000,
-          "concurrentRequests": 2,
-          "timeoutSeconds": 10
-        },
-        "security": [
-          {
-            "partnerKey": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "conference",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "Done.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MatchSettings"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No valid API key: the Authorization header must carry this conference's live key, as Bearer <key>.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No such conference for this key. Asking for any conference but the key's own gets this same answer.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "The request body is larger than this request allows.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "The body is not JSON in UTF-8, uncompressed.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Retry after the time in Retry-After.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "500": {
-            "description": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "503": {
-            "description": "The API cannot answer in time just now. Safe to retry.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "operationId": "setMatchSettings",
-        "summary": "Choose, for the organiser, which kinds of match attendees get, and how many each person gets at most.",
-        "x-limits": {
-          "maxBodyBytes": 1024,
-          "requestsPerMinute": 30,
-          "requestsPerDay": 1000,
-          "concurrentRequests": 1,
-          "timeoutSeconds": 10
-        },
-        "security": [
-          {
-            "partnerKey": []
-          }
-        ],
-        "parameters": [
-          {
-            "name": "conference",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "pattern": "^[a-z0-9][a-z0-9-]{1,39}$"
-            }
-          }
-        ],
-        "requestBody": {
-          "required": true,
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/MatchSettingsRequest"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "Done.",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/MatchSettings"
-                }
-              }
-            }
-          },
-          "400": {
-            "description": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "401": {
-            "description": "No valid API key: the Authorization header must carry this conference's live key, as Bearer <key>.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "404": {
-            "description": "No such conference for this key. Asking for any conference but the key's own gets this same answer.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "409": {
-            "description": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "413": {
-            "description": "The request body is larger than this request allows.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "415": {
-            "description": "The body is not JSON in UTF-8, uncompressed.",
-            "content": {
-              "application/problem+json": {
-                "schema": {
-                  "$ref": "#/components/schemas/Problem"
-                }
-              }
-            }
-          },
-          "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Retry after the time in Retry-After.",
+            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -1005,33 +736,6 @@
         ],
         "additionalProperties": false
       },
-      "MatchSettingsRequest": {
-        "type": "object",
-        "properties": {
-          "kinds": {
-            "minItems": 1,
-            "maxItems": 2,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "core",
-                "unexpected"
-              ]
-            },
-            "uniqueItems": true
-          },
-          "maxPerPerson": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 1000
-          }
-        },
-        "required": [
-          "kinds"
-        ],
-        "additionalProperties": false
-      },
       "TalksWriteResponse": {
         "type": "object",
         "properties": {
@@ -1268,35 +972,6 @@
           "enoughInformation",
           "whatIsMissing",
           "matches"
-        ],
-        "additionalProperties": false
-      },
-      "MatchSettings": {
-        "type": "object",
-        "properties": {
-          "kinds": {
-            "minItems": 1,
-            "maxItems": 2,
-            "type": "array",
-            "items": {
-              "type": "string",
-              "enum": [
-                "core",
-                "unexpected"
-              ]
-            },
-            "uniqueItems": true,
-            "x-visibility": "public"
-          },
-          "maxPerPerson": {
-            "type": "integer",
-            "minimum": 1,
-            "maximum": 1000,
-            "x-visibility": "public"
-          }
-        },
-        "required": [
-          "kinds"
         ],
         "additionalProperties": false
       },

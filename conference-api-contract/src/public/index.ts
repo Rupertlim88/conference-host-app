@@ -4,4 +4,3 @@ export * from "./openapi";
 export * from "./problem";
 export * from "./talks";
 export * from "./text";
-export * from "./settings";
