@@ -1,6 +1,6 @@
 {
-  "run_id": "graph_v1-20260912T120000Z-a1b2c3",
-  "engine_id": "graph_v1",
+  "run_id": "commonkads_v1-20260912T120000Z-a1b2c3",
+  "engine_id": "commonkads_v1",
   "kind": "recommend",
   "engine_version": "8a53eac",
   "models": { "extract": "deepseek-chat", "pair_judge": "deepseek-chat", "rubric": "deepseek-reasoner" },
@@ -8,6 +8,6 @@
   "anchor_ids": [0],
   "started_at": "2026-09-12T12:00:00Z",
   "finished_at": "2026-09-12T12:00:34Z",
-  "index_path": "out/graph_v1/stage0/index",
+  "index_path": "out/commonkads_v1/stage0/index",
   "contract_version": 1
 }
