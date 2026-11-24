@@ -42,23 +42,21 @@ describe("the published specification", () => {
     );
   });
 
-  test("every operation states who may call it, what it acts on, and its daily quota", () => {
+  test("every operation acts on one conference named in its path, and states its daily quota", () => {
     for (const [name, op] of Object.entries(OPERATIONS)) {
-      expect(["partner", "public"]).toContain(op.audience);
-      expect(["conference", "account", "none"]).toContain(op.target);
+      expect(op.path, name).toMatch(/^\/v1\/conferences\/\{conference\}\//);
       expect(op.limits.requestsPerDay, name).toBeGreaterThanOrEqual(op.limits.requestsPerMinute);
       const published = paths[op.path]![op.method.toLowerCase()]!;
-      expect(published["x-audience"]).toBe(op.audience);
       expect((published["x-limits"] as Json).requestsPerDay).toBe(op.limits.requestsPerDay);
     }
   });
 
-  test("every partner operation states which kinds of partner may call it", () => {
-    for (const op of Object.values(OPERATIONS)) {
-      const published = paths[op.path]![op.method.toLowerCase()]!;
-      expect(published["x-partner-kinds"]).toEqual(op.partnerKinds);
-      if ((op.audience as string) === "partner") expect(op.partnerKinds.length).toBeGreaterThan(0);
-    }
+  test("every operation needs the API key for its conference, sent as a bearer token, and nothing else", () => {
+    const schemes = (spec.components as Json).securitySchemes as Record<string, Json>;
+    expect(Object.keys(schemes)).toEqual(["partnerKey"]);
+    expect(schemes.partnerKey).toMatchObject({ type: "http", scheme: "bearer" });
+    expect(spec.security).toEqual([{ partnerKey: [] }]);
+    for (const op of operations()) expect(op.security).toEqual([{ partnerKey: [] }]);
   });
 
   test("a read sends no body, and every other operation states its body", () => {
@@ -67,16 +65,6 @@ describe("the published specification", () => {
       if ((op.method as Method) === "GET") expect(published.requestBody).toBeUndefined();
       else expect(published.requestBody).toMatchObject({ required: true });
     }
-  });
-
-  test("every operation names the permission it needs, and only public ones need none", () => {
-    for (const [operationId, op] of Object.entries(OPERATIONS)) {
-      const published = operations().find((o) => o.operationId === operationId)!;
-      expect(published["x-permission"]).toBe(op.permission);
-      expect(op.permission === null).toBe((op.audience as string) === "public");
-    }
-    expect(OPERATIONS.writeTalks.permission).toBe("talks:write");
-    expect(OPERATIONS.searchMatches.permission).toBe("matches:read");
   });
 
   test("every operation states its limits and timing", () => {
@@ -110,9 +98,7 @@ describe("the published specification", () => {
         expect(param).toMatchObject({ required: true });
         expect(typeof (param.schema as Json).pattern).toBe("string");
       }
-      const others = params.filter((p) => p.in !== "path");
-      expect(others.map((p) => p.name)).toEqual(op["x-signed"] === true ? ["Signature-Input", "Signature", "Content-Digest"] : []);
-      for (const param of others) expect(param).toMatchObject({ in: "header", required: true });
+      expect(params.filter((p) => p.in !== "path")).toEqual([]);
     }
     const conference = (paths["/v1/conferences/{conference}/talks:write"]!.post!.parameters as Json[])[0]!;
     expect((conference.schema as Json).pattern).toBe("^[a-z0-9][a-z0-9-]{1,39}$");
@@ -134,20 +120,13 @@ describe("the published specification", () => {
     for (const op of operations()) {
       const responses = op.responses as Record<string, Json>;
       const refusals = Object.keys(responses).filter((code) => Number(code) >= 400);
-      expect(refusals).toEqual(expect.arrayContaining(["400", "401", "403", "404", "413", "415", "429", "500", "503"]));
+      expect(refusals.sort()).toEqual(["400", "401", "404", "409", "413", "415", "429", "500", "503"]);
       for (const code of refusals) {
         const content = responses[code]!.content as Json;
         expect(Object.keys(content)).toEqual(["application/problem+json"]);
         expect(refName((content["application/problem+json"] as Json).schema && ((content["application/problem+json"] as Json).schema as Json).$ref)).toBe("Problem");
       }
     }
-  });
-
-  test("author names and ORCID iDs are labelled personal data", () => {
-    const talk = (((schemas.TalksWriteRequest!.properties as Json).talks as Json).items as Json).properties as Json;
-    const author = ((talk.authors as Json).items as Json).properties as Json;
-    expect((author.name as Json)["x-data-kind"]).toBe("pii");
-    expect((author.orcid as Json)["x-data-kind"]).toBe("pii");
   });
 
   test("blank text is refused in the specification too", () => {
@@ -178,6 +157,5 @@ test("the specification states every business limit, per conference and per orga
     talksPerConference: 50_000,
     keptTalkRevisionsPerConference: 2_000_000,
     programmeVersionsPerConference: 200_000,
-    agreementsPerOrganiser: 1_000,
   });
 });

@@ -29,7 +29,7 @@ This repo began as a copy of the host app from ConferenceApp. These were added s
 Set these in each app's `.env.local` (see the app's README for the full list):
 
 - `CONFERENCE_API_URL`: the API's address.
-- `CONFERENCE_API_KEY`: a partner token with `talks:write` and `matches:read` on the society's conference (`ams-2027` or `gsa-2026`).
+- `CONFERENCE_API_KEY`: a key for the society's conference from the conference API's `issue-key` command (`ams-2027` or `gsa-2026`).
 
 Then send the programme to the API:
 

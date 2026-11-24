@@ -25,7 +25,7 @@ All commands below run from the repository root. `S` stands for `ams` or `gsa`.
 .claude/skills/verify-host-app/scripts/verify.sh launch S
 ```
 
-Launch migrates the database and loads the society's programme. When `CONFERENCE_API_URL` points at port 8787, it prepares the conference API (control database, the `host-demo` partner, both conferences, a 24-hour token kept in `.verify/run/conference-api.key`) and starts it if nothing listens there. It then sends the programme, seeds placeholder matches, builds the app and starts it with that token. Every step is safe to repeat. The app is ready when the script prints `READY S http://localhost:PORT`. A first launch takes about a minute, later ones about 20 seconds.
+Launch migrates the database and loads the society's programme. When `CONFERENCE_API_URL` points at port 8787, it prepares the conference API (control database, the `host-demo` partner, both conferences, a key for the society's conference that lasts a day, kept in `.verify/run/<society>-conference-api.key`) and starts it if nothing listens there. It then sends the programme, seeds placeholder matches, builds the app and starts it with that key. Every step is safe to repeat. The app is ready when the script prints `READY S http://localhost:PORT`. A first launch takes about a minute, later ones about 20 seconds.
 
 Launch refuses to start when another process holds the app's port. It never drives an app it did not start.
 
@@ -92,7 +92,7 @@ Stop ends the app's process group, and ends the conference API too once no app s
 
 ## Gotchas
 
-- Both apps share the conference API on port 8787 and the one host database. Stopping one app keeps the API while the other runs. The token lasts a day: after that, related talks show as unavailable until the next launch.
+- Both apps share the conference API on port 8787 and the one host database. Stopping one app keeps the API while the other runs. The key lasts a day: after that, related talks show as unavailable until the next launch.
 - `verify.sh launch` builds the app. After editing app code, stop and launch again before you drive it.
 - Talk numbers repeat in AMS (four talks are numbered J1.2), and 1,535 of its 2027 talks and posters have no number yet. Open talks by id, such as `/talks/493803`, not by number.
 - Times show in the meeting's time zone by default: Mountain for both. The AMS `MST` button or the GSA `MT` button in the top bar switches to the device's zone.

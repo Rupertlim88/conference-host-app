@@ -5,7 +5,7 @@ The host app's AMS version. It approximates the Confex Meeting App that AMS atte
 ## Run it locally
 
 1. Load the programme: `HOST_DATABASE_URL=... npm run load --workspace=@repo/host-store -- ams`
-2. Run the conference API, with a conference named `ams-2027` and a token for it (see the conference API's own README). Send it the programme with `npm run sync --workspace=@repo/host-backend`. Until a matching engine runs, fill the related-talks panels with placeholder matches: `npm run cli --workspace=@repo/conference-data -- seed-matches ams-2027 placeholder`, with the API's `MATCHING_ENGINE=placeholder`.
+2. Run the conference API, with a conference named `ams-2027` and a key for it from the conference API's `issue-key` command (see the conference API's own README). Send it the programme with `npm run sync --workspace=@repo/host-backend`. Until a matching engine runs, fill the related-talks panels with placeholder matches: `npm run cli --workspace=@repo/conference-data -- seed-matches ams-2027 placeholder`, with the API's `MATCHING_ENGINE=placeholder`.
 3. Put the settings in `ui/apps/ams/.env.local` (see the table), then `npm run dev --workspace=ams` and open http://localhost:3001.
 
 | Setting | Meaning |

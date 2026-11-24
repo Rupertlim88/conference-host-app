@@ -18,41 +18,35 @@
                 "type": "object",
                 "properties": {
                   "person": {
-                    "x-data-kind": "pii",
                     "type": "string",
                     "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
                   },
                   "talk": {
                     "type": "string",
-                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
-                    "x-data-kind": "programme"
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
                   },
                   "kind": {
                     "type": "string",
                     "enum": [
                       "core",
                       "unexpected"
-                    ],
-                    "x-data-kind": "operational"
+                    ]
                   },
                   "rank": {
                     "type": "integer",
                     "minimum": 1,
-                    "maximum": 1000000,
-                    "x-data-kind": "operational"
+                    "maximum": 1000000
                   },
                   "score": {
                     "type": "number",
                     "minimum": 0,
-                    "maximum": 1,
-                    "x-data-kind": "operational"
+                    "maximum": 1
                   },
                   "reason": {
                     "type": "string",
                     "minLength": 1,
                     "maxLength": 2000,
-                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-                    "x-data-kind": "programme"
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
                   },
                   "sharedMethods": {
                     "maxItems": 20,
@@ -62,13 +56,11 @@
                       "minLength": 1,
                       "maxLength": 200,
                       "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
-                    },
-                    "x-data-kind": "programme"
+                    }
                   },
                   "programmeVersion": {
                     "type": "string",
-                    "pattern": "^pv_[A-Za-z0-9_-]{22}$",
-                    "x-data-kind": "operational"
+                    "pattern": "^pv_[A-Za-z0-9_-]{22}$"
                   }
                 },
                 "required": [
@@ -81,11 +73,9 @@
                   "programmeVersion"
                 ],
                 "additionalProperties": false
-              },
-              "x-data-kind": "pii"
+              }
             },
             "nextPageToken": {
-              "x-data-kind": "operational",
               "type": "string",
               "pattern": "^[A-Za-z0-9_-]{22}$"
             }

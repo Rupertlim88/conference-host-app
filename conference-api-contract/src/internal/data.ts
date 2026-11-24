@@ -7,12 +7,12 @@ import { MatchSettingsSchema } from "../public/settings";
 import { TalksWriteRequestSchema, TalksWriteResponseSchema } from "../public/talks";
 import { EngineIdSchema } from "./engine";
 
-/** Who made a change: the partner that sent it and the organiser it acted for, which is the partner itself
- *  for an organiser. Stored with the change, in the same transaction. */
+/** Who made a change: the partner that sent it, and the organiser it acted for (the partner itself, for an
+ *  organiser). Stored with the change, in the same transaction. */
 export const ActorSchema = z.strictObject({ partner: PartnerIdSchema, organiser: PartnerIdSchema });
 export type Actor = z.infer<typeof ActorSchema>;
 
-/** What the backend asks the data layer to apply, after the request passed the public contract. */
+/** What the backend asks the data layer to apply, once the request has passed the public contract. */
 export const WriteTalksCommandSchema = z.strictObject({
   requestId: RequestIdSchema,
   actor: ActorSchema,
@@ -27,8 +27,8 @@ export const WriteTalksOutcomeSchema = z.discriminatedUnion("ok", [
 ]);
 export type WriteTalksOutcome = z.infer<typeof WriteTalksOutcomeSchema>;
 
-/** A search, with the engine whose matches it serves (set by configuration) and the partner it is for.
- *  Page tokens are bound to all three. */
+/** A search, with the engine whose matches it serves (set by configuration) and the partner it is for. Page tokens
+ *  are bound to all three. */
 export const SearchMatchesQuerySchema = z.strictObject({
   engine: EngineIdSchema,
   partner: PartnerIdSchema,
@@ -49,6 +49,6 @@ export const TextRequestCommandSchema = z.strictObject({
 });
 export type TextRequestCommand = z.infer<typeof TextRequestCommandSchema>;
 
-/** The organiser's new match settings, with whom the change acts for. */
+/** The organiser's new match settings, and whom the change acts for. */
 export const SetMatchSettingsCommandSchema = z.strictObject({ actor: ActorSchema, settings: MatchSettingsSchema });
 export type SetMatchSettingsCommand = z.infer<typeof SetMatchSettingsCommandSchema>;

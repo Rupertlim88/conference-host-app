@@ -1,4 +1,5 @@
 import { z } from "zod";
+
 import { AgendaResponseSchema, PicksResponseSchema, SubjectSchema } from "./api";
 import { RecommendationSchema } from "./recommendation";
 import { RunSchema } from "./run";
@@ -14,10 +15,8 @@ export const SCHEMAS = {
 } as const;
 export type SchemaKind = keyof typeof SCHEMAS;
 
-/** JSON Schema (draft 2020-12) for every contract kind, keyed by kind. */
+/** The JSON Schema (draft 2020-12) of every contract kind, by kind. */
 export function emitAll(): Record<SchemaKind, Record<string, unknown>> {
-  const opts = { target: "draft-2020-12" as const };
-  return Object.fromEntries(
-    Object.entries(SCHEMAS).map(([kind, schema]) => [kind, z.toJSONSchema(schema, opts)]),
-  ) as unknown as Record<SchemaKind, Record<string, unknown>>;
+  const entries = Object.entries(SCHEMAS).map(([kind, schema]) => [kind, z.toJSONSchema(schema, { target: "draft-2020-12" })]);
+  return Object.fromEntries(entries) as Record<SchemaKind, Record<string, unknown>>;
 }

@@ -24,19 +24,9 @@ describe("the organiser's match settings", () => {
     }
   });
 
-  test("anyone who reads matches can read them; only the organiser changes them", () => {
-    expect(OPERATIONS.getMatchSettings).toMatchObject({
-      method: "GET",
-      path: "/v1/conferences/{conference}/matchSettings",
-      permission: "matches:read",
-      partnerKinds: ["organiser", "provider"],
-    });
-    expect(OPERATIONS.setMatchSettings).toMatchObject({
-      method: "PUT",
-      path: "/v1/conferences/{conference}/matchSettings",
-      permission: "settings:write",
-      partnerKinds: ["organiser"],
-    });
+  test("they are read and changed at one address on the conference", () => {
+    expect(OPERATIONS.getMatchSettings).toMatchObject({ method: "GET", path: "/v1/conferences/{conference}/matchSettings" });
+    expect(OPERATIONS.setMatchSettings).toMatchObject({ method: "PUT", path: "/v1/conferences/{conference}/matchSettings" });
   });
 
   test("a change names whom it acts for", () => {

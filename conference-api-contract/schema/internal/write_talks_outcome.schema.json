@@ -13,32 +13,27 @@
           "properties": {
             "programmeVersion": {
               "type": "string",
-              "pattern": "^pv_[A-Za-z0-9_-]{22}$",
-              "x-data-kind": "operational"
+              "pattern": "^pv_[A-Za-z0-9_-]{22}$"
             },
             "added": {
               "type": "integer",
               "minimum": 0,
-              "maximum": 1000000,
-              "x-data-kind": "operational"
+              "maximum": 1000000
             },
             "changed": {
               "type": "integer",
               "minimum": 0,
-              "maximum": 1000000,
-              "x-data-kind": "operational"
+              "maximum": 1000000
             },
             "withdrawn": {
               "type": "integer",
               "minimum": 0,
-              "maximum": 1000000,
-              "x-data-kind": "operational"
+              "maximum": 1000000
             },
             "unchanged": {
               "type": "integer",
               "minimum": 0,
-              "maximum": 1000000,
-              "x-data-kind": "operational"
+              "maximum": 1000000
             },
             "matchingJob": {
               "anyOf": [
@@ -49,8 +44,7 @@
                 {
                   "type": "null"
                 }
-              ],
-              "x-data-kind": "operational"
+              ]
             }
           },
           "required": [
@@ -85,7 +79,6 @@
             "type": "object",
             "properties": {
               "talk": {
-                "x-data-kind": "programme",
                 "type": "string",
                 "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
               },
@@ -93,15 +86,13 @@
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 200,
-                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-                "x-data-kind": "operational"
+                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
               },
               "problem": {
                 "type": "string",
                 "minLength": 1,
                 "maxLength": 500,
-                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-                "x-data-kind": "pii"
+                "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
               }
             },
             "required": [

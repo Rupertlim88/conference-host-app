@@ -1,39 +1,20 @@
 import { z } from "zod";
 
-import { AgreementSchema } from "../public/agreements";
-import { PartnerIdSchema } from "../public/ids";
-import { TalkErrorSchema } from "../public/problem";
-import { PartnerKindSchema, ProviderScopeSchema, ScopeSchema } from "../public/scopes";
+import { ConferenceIdSchema, PartnerIdSchema } from "../public/ids";
 
-/** What a token stands for, as the control database returns it. A token a partner got by signing in through the
- *  sign-in service also brings back the signed token it stands for, still sealed with a key only the opaque token
- *  gives: AES-256-GCM's nonce, ciphertext and tag, in hex. A token our team issued by hand has none. */
-export const CallerRecordSchema = z.strictObject({
+/** A partner's API key: a fixed prefix, so a leaked key is easy to spot, then 32 random bytes in base64url. Only its
+ *  SHA-256 is ever stored. */
+export const ApiKeySchema = z.string().regex(/^cmapi_[A-Za-z0-9_-]{43}$/);
+
+/** An API key's public ID: a prefix, then 128 random bits. Logs and our team name a key by this, never by the key. */
+export const KeyIdSchema = z.string().regex(/^key_[A-Za-z0-9_-]{22}$/);
+
+/** A live key, as the control database finds it by its hash: its ID, the partner it was issued to, the one
+ *  conference it reaches, and that conference's organiser, for whom every action is recorded. */
+export const KeyHolderSchema = z.strictObject({
+  keyId: KeyIdSchema,
   partner: PartnerIdSchema,
-  kind: PartnerKindSchema,
-  scopes: z.array(ScopeSchema).min(1),
-  sealedSignedToken: z
-    .string()
-    .regex(/^(?:[0-9a-f]{2}){29,16384}$/)
-    .optional(),
-});
-export type CallerRecord = z.infer<typeof CallerRecordSchema>;
-
-/** What the access rulebook needs about a partner and a conference, read fresh for every request. */
-export const AccessFactsSchema = z.strictObject({
-  partnerKind: PartnerKindSchema,
+  conference: ConferenceIdSchema,
   organiser: PartnerIdSchema,
-  granted: z.array(ScopeSchema),
-  agreed: z.array(ProviderScopeSchema),
 });
-export type AccessFactsRecord = z.infer<typeof AccessFactsSchema>;
-
-/** Creating, changing or withdrawing an agreement: done, refused with every problem found, or not found. */
-export const AgreementOutcomeSchema = z.union([
-  z.strictObject({ ok: z.literal(true), agreement: AgreementSchema }),
-  z.strictObject({ ok: z.literal(false), errors: z.array(TalkErrorSchema).min(1).max(1000) }),
-  z.strictObject({ ok: z.literal(false), notFound: z.literal(true) }),
-]);
-export type AgreementOutcome = z.infer<typeof AgreementOutcomeSchema>;
-
-export const AgreementListSchema = z.array(AgreementSchema).max(1000);
+export type KeyHolder = z.infer<typeof KeyHolderSchema>;
