@@ -36,7 +36,7 @@
             "maxLength": 10000,
             "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
           },
-          "units": {
+          "tracks": {
             "maxItems": 20,
             "type": "array",
             "items": {
@@ -46,7 +46,7 @@
               "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
             }
           },
-          "topics": {
+          "keywords": {
             "maxItems": 50,
             "type": "array",
             "items": {
@@ -79,8 +79,8 @@
           "id",
           "title",
           "abstract",
-          "units",
-          "topics",
+          "tracks",
+          "keywords",
           "authorIds",
           "presenterIds"
         ],
