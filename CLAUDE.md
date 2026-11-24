@@ -241,7 +241,7 @@ Don't use `poteto-mode` or its playbooks. They assume Cursor, team PR fleets, ot
 
 24. **Code is written well, not only made to work.** Every rewritten part keeps all of the original's behaviour, and its code is clear and easy to follow: simple names, small functions, no needless cleverness or obscure tricks, and no more layers than the job needs; and it runs as fast as possible, once every requirement of the CLAUDE.md files is met: speed never comes from a shortcut, and never at a cost so high that it is out of all proportion; any claim that it is faster is measured first.
 
-26. **Only one version of everything: the latest.** The code keeps one version of each thing, its latest: when something is rewritten or replaced, the old version is deleted, never kept beside it, commented out, or left in a folder of old files; git keeps the history. This does not apply to the versions the app is built to offer side by side, such as the matching engines and the host app's UIs, which are kept elsewhere, in the host app's own repository, or to the versions of data the API keeps, such as programme versions.
+26. **Only one version of everything: the latest.** The code keeps one version of each thing, its latest: when something is rewritten or replaced, the old version is deleted, never kept beside it, commented out, or left in a folder of old files; git keeps the history. This does not apply to the versions the app is built to offer side by side, such as the matching engines, kept side by side in the matching folder, and the host app's UIs, kept in the host app's own repository, or to the versions of data the API keeps, such as programme versions.
 
 ## Working together
 
