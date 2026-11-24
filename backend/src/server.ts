@@ -21,7 +21,6 @@ function build(env: Record<string, string | undefined>) {
   const settings = {
     apiAddress: config.api ? safeApiAddress(config.api.url) : null,
     keySet: config.api !== null,
-    verifyUrl: config.verifyUrl,
   };
   const auth = betterAuth(authOptions(config, db));
   const viewer = (headers: Headers) => viewerFrom(auth, headers);

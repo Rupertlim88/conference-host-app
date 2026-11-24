@@ -10,7 +10,6 @@ import {
   PAGE_SIZE,
   SessionChangeInputSchema,
   SessionListInputSchema,
-  SettingsSchema,
   SyncRunSchema,
   TalkListInputSchema,
   TalkListSchema,
@@ -129,11 +128,10 @@ describe("sending the programme", () => {
 });
 
 describe("the developer console", () => {
-  test("status shows the address, whether a key is set, the verify link, the last run and the changes", () => {
+  test("status shows the address, whether a key is set, the last run and the changes", () => {
     const status = {
       apiAddress: "https://api.example.org/",
       keySet: true,
-      verifyUrl: null,
       lastRun: run,
       changes: { moved: 1, rescheduled: 2, withdrawn: 1, sessions: 1 },
     };
@@ -145,10 +143,5 @@ describe("the developer console", () => {
       expect(ConnectionTestSchema.safeParse({ status, httpStatus: null, ms: null }).success).toBe(true);
     }
     expect(ConnectionTestSchema.safeParse({ status: "slow", httpStatus: null, ms: null }).success).toBe(false);
-  });
-  test("the verify link, when set, is a web address", () => {
-    expect(SettingsSchema.safeParse({ verifyUrl: "https://verify.example.org/" }).success).toBe(true);
-    expect(SettingsSchema.safeParse({ verifyUrl: null }).success).toBe(true);
-    expect(SettingsSchema.safeParse({ verifyUrl: "javascript:alert(1)" }).success).toBe(false);
   });
 });

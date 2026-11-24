@@ -17,7 +17,7 @@ EVIDENCE="$ROOT/.verify/evidence/$SOCIETY"
 APP_PID="$RUN/app-$SOCIETY.pid"
 API_PID="$RUN/conference-api.pid"
 API_PORT=8787
-KEY_FILE="$RUN/conference-api.key"
+KEY_FILE="$RUN/$SOCIETY-conference-api.key"
 mkdir -p "$RUN" "$EVIDENCE"
 
 fail() { echo "FAIL: $*"; exit 1; }
@@ -64,10 +64,10 @@ api_env() {
   export CONFERENCE_ADMIN_URL="$base" CONFERENCE_DATABASE_URL="$base"
   export CONTROL_DATABASE_URL="${base%/*}/host_app_api_control"
 }
-# The API's commands name who runs them, and test mode lets one operator grant access without a second one approving.
-api_cli() { (cd "$ROOT" && CONFERENCE_OPERATOR=verify-host-app APP_MODE=test npm run -s cli --workspace=@repo/conference-data -- "$@"); }
+api_cli() { (cd "$ROOT" && npm run -s cli --workspace=@repo/conference-data -- "$@"); }
 
-# Every setup command upserts, so a rerun changes nothing; the token is new on each launch and lasts a day.
+# Every setup command upserts, so a rerun changes nothing. The society's key is new on each launch and lasts a day;
+# the old ones are cancelled first, since a partner may hold at most two live keys for a conference.
 prepare_api() {
   api_env
   (cd "$ROOT" && node --input-type=module -e "
@@ -77,13 +77,16 @@ prepare_api() {
     if (!row) await sql.unsafe('create database host_app_api_control');
     await sql.end();") || fail "cannot create the conference API's control database"
   api_cli migrate-control >/dev/null
-  api_cli add-partner host-demo organiser Host app demo >/dev/null
-  local conference
+  api_cli add-partner host-demo Host app demo >/dev/null
+  local conference key_id
   for conference in ams-2027 gsa-2026; do
     api_cli create-conference "$conference" host-demo >/dev/null
-    api_cli grant host-demo "$conference" talks:write,matches:read >/dev/null
   done
-  (umask 077 && api_cli issue-token host-demo talks:write,matches:read 1440 >"$KEY_FILE")
+  conference="$(field conference)"
+  for key_id in $(api_cli list-keys | awk -v c="$conference" '$2 == "host-demo" && $3 == c && $NF == "live" { print $1 }'); do
+    api_cli cancel-key "$key_id" >/dev/null
+  done
+  (umask 077 && api_cli issue-key host-demo "$conference" 1 >"$KEY_FILE")
 }
 
 api_key() { [ -f "$KEY_FILE" ] && cat "$KEY_FILE" || echo "$CONFERENCE_API_KEY"; }
@@ -107,12 +110,12 @@ launch() {
     { tail -20 "$RUN/load-$SOCIETY.log"; fail "load failed; is Postgres up at HOST_DATABASE_URL?"; }
 
   if api_wanted; then
-    echo "preparing the local conference API (control database, partner, conferences, a token)"
+    echo "preparing the local conference API (control database, partner, conferences, a key)"
     prepare_api
     if [ -z "$(listener "$API_PORT")" ]; then
       echo "starting the conference API on port $API_PORT"
-      PORT="$API_PORT" MATCHING_ENGINE=placeholder APP_MODE=test KEY_PROVIDER=local TIMESTAMP_AUTHORITY=local \
-        LOCAL_KEY_FILE="$RUN/conference-api-master.key" start_group "$API_PID" "$RUN/conference-api.log" "$ROOT" npm run start --workspace=@repo/conference-api-backend
+      PORT="$API_PORT" MATCHING_ENGINE=placeholder APP_MODE=test \
+        start_group "$API_PID" "$RUN/conference-api.log" "$ROOT" npm run start --workspace=@repo/conference-api-backend
       for _ in $(seq 1 60); do [ "$(http_code "http://127.0.0.1:$API_PORT/")" != "000" ] && break; sleep 0.5; done
       [ "$(http_code "http://127.0.0.1:$API_PORT/")" != "000" ] || { tail -20 "$RUN/conference-api.log"; fail "the conference API did not start"; }
     fi

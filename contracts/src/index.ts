@@ -264,17 +264,11 @@ export const ConnectionTestSchema = z.strictObject({
 });
 export type ConnectionTest = z.infer<typeof ConnectionTestSchema>;
 
-const WebAddress = z.url({ protocol: /^https?$/ });
-
 export const ApiStatusSchema = z.strictObject({
   /** The API's address without credentials, query or fragment. */
   apiAddress: z.string().nullable(),
   keySet: z.boolean(),
-  verifyUrl: WebAddress.nullable(),
   lastRun: SyncRunSchema.nullable(),
   changes: ChangesSchema,
 });
 export type ApiStatus = z.infer<typeof ApiStatusSchema>;
-
-export const SettingsSchema = z.strictObject({ verifyUrl: WebAddress.nullable() });
-export type Settings = z.infer<typeof SettingsSchema>;

@@ -1,8 +1,8 @@
 {
   "extends": "@repo/typescript-config/base.json",
   "compilerOptions": {
-    // Bundler resolution, not NodeNext: the host apps (Turbopack) consume this package as raw TS
-    // and cannot resolve ".js"-suffixed imports to .ts files. Keep relative imports extensionless.
+    // The host apps' bundler reads this package as raw TypeScript and cannot map ".js" imports to ".ts" files,
+    // so imports stay extensionless and resolution is Bundler, not NodeNext.
     "module": "ESNext",
     "moduleResolution": "Bundler",
     "noEmit": true,

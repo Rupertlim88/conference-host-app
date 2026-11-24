@@ -2,7 +2,7 @@ import { z } from "zod";
 
 export const CONTRACT_VERSION = 1;
 
-/** One engine judgment: anchor talk -> candidate talk. Ids only; the data layer joins Talk fields. */
+/** One engine judgment from an anchor talk to a candidate talk. IDs only: the data layer joins the talks' fields. */
 export const RecommendationSchema = z
   .strictObject({
     for_talk_id: z.int().min(0),

@@ -29,20 +29,18 @@ describe("versions and retirement", () => {
 });
 
 describe("the endpoint list", () => {
-  test("lists every endpoint with who may call it, its permission, owner and limits", () => {
+  test("lists every endpoint with its owner and limits", () => {
     const list = endpointList();
     for (const op of Object.values(OPERATIONS)) {
       const row = list.split("\n").find((line) => line.startsWith(`| ${op.method} | \`${op.path}\` |`));
       expect(row, `${op.method} ${op.path}`).toBeDefined();
-      expect(row).toContain(op.permission ?? "none");
       expect(row).toContain(`${op.limits.requestsPerMinute}/min`);
     }
   });
 
-  test("states body sizes in the units they are set in: decimal megabytes, or binary kibibytes and mebibytes", () => {
+  test("states body sizes in the units they are set in: decimal megabytes, or binary kibibytes", () => {
     const row = (name: keyof typeof OPERATIONS) => endpointList().split("\n").find((line) => line.includes(` | ${name} | `))!;
     expect(row("writeTalks")).toContain("| 10 MB body,");
-    expect(row("reportAttendance")).toContain("| 2 MiB body,");
     expect(row("searchMatches")).toContain("| 64 KiB body,");
   });
 

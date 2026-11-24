@@ -30,7 +30,7 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
       organiser: createOrganiserStore(db, "ams"),
       log: createSyncLog(db, "ams"),
       api: api({ status: "unavailable" }),
-      settings: { apiAddress: null, keySet: false, verifyUrl: null },
+      settings: { apiAddress: null, keySet: false },
       viewer,
       ...ctx,
     });

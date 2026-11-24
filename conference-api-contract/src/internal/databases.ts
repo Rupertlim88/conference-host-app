@@ -2,8 +2,8 @@ import { z } from "zod";
 
 import { ConferenceIdSchema } from "../public/ids";
 
-/** Each conference has its own database, named from its checked id. Conference ids hold no underscores,
- *  so no two ids share a name. */
+/** Each conference has its own database, named from its checked ID. Conference IDs never hold underscores, so two
+ *  IDs can never map to the same name. */
 export function conferenceDatabaseName(conferenceId: string): string {
   const id = ConferenceIdSchema.parse(conferenceId);
   return `conf_${id.replaceAll("-", "_")}`;

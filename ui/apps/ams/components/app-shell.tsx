@@ -5,17 +5,14 @@ import { useTranslations } from "next-intl";
 import { Logo } from "./logo";
 import { NavLinks } from "./nav-links";
 import { TopBar } from "./top-bar";
-import { VerifyLink } from "./verify-link";
 
 /** The meeting app's frame: grey top bar, a banner, and on computers a left-hand menu. */
 export function AppShell({
   meeting,
-  verifyUrl,
   signOut,
   children,
 }: {
   meeting: Meeting;
-  verifyUrl: string | null;
   signOut: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -35,11 +32,6 @@ export function AppShell({
         </span>
       </Link>
       <div className="h-1 bg-linear-to-r from-brand-navy via-brand-sky to-brand-mountain" aria-hidden />
-      {verifyUrl && (
-        <div className="border-b px-4 py-1 text-right text-xs text-heading">
-          <VerifyLink url={verifyUrl} />
-        </div>
-      )}
       <div className="mx-auto flex max-w-6xl">
         <aside className="hidden w-64 shrink-0 border-r lg:block">
           <NavLinks />

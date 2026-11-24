@@ -11,7 +11,7 @@ You need these:
 - the conference API's HTTPS address, and a key that can write talks and read matches for `ams-2027` and `gsa-2026`
 - this repository on your machine, with `npm install` done, for the one-off load
 
-The conference API's `issue-token` command makes keys that last at most 1,440 minutes. When the key expires, the related-talks panels and the programme sends stop until someone sets a new key. The hosted apps need a key that lasts longer, and that change belongs to the conference API.
+The conference API's `issue-key` command makes keys that last the number of days it is given, at most a year. When the key expires, the related-talks panels and the programme sends stop until someone sets a new key. The hosted apps need a key that lasts longer, and that change belongs to the conference API.
 
 ## 1. Create the database
 
@@ -71,7 +71,6 @@ In each project, open **Settings**, then **Environment Variables**, and add thes
 | `CONFERENCE_API_URL` | the conference API's address | no |
 | `CONFERENCE_API_KEY` | the conference API key | yes |
 | `CRON_SECRET` | the output of `openssl rand -hex 24`, a different value per project | yes |
-| `CONFERENCE_API_VERIFY_URL` | the conference API's credential verification page. Leave it out to hide the link. | no |
 
 The apps check every setting when they start and name each one that is wrong.
 

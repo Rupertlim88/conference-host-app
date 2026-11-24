@@ -4,6 +4,7 @@ import { describe, expect, test } from "vitest";
 import type { z } from "zod";
 
 import {
+  ApiKeySchema,
   CompleteMatchingJobSchema,
   CorpusSchema,
   EngineTalkSchema,
@@ -30,6 +31,16 @@ describe("every internal kind has a valid example that parses", () => {
   for (const [kind, schema] of Object.entries(INTERNAL_SCHEMAS)) {
     test(kind, () => expect(schema.safeParse(valid(kind)).success).toBe(true));
   }
+});
+
+describe("API keys", () => {
+  test("a key is the fixed prefix, then 32 random bytes in base64url; anything else is not a key", () => {
+    const key = `cmapi_${"A1b2-_".repeat(7)}x`;
+    expect(ApiKeySchema.safeParse(key).success).toBe(true);
+    for (const notAKey of [key.slice(0, -1), `${key}x`, key.replace("cmapi_", "cmapx_"), key.replace("cmapi_", ""), `${key.slice(0, -1)}=`]) {
+      expect(ApiKeySchema.safeParse(notAKey).success, notAKey).toBe(false);
+    }
+  });
 });
 
 describe("internal rules", () => {

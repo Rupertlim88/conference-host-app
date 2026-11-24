@@ -34,11 +34,9 @@
               "unexpected"
             ]
           },
-          "uniqueItems": true,
-          "x-data-kind": "operational"
+          "uniqueItems": true
         },
         "maxPerPerson": {
-          "x-data-kind": "operational",
           "type": "integer",
           "minimum": 1,
           "maximum": 1000

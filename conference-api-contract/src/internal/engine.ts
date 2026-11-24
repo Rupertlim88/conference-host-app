@@ -4,11 +4,12 @@ import { JobIdSchema, ProgrammeVersionSchema } from "../public/ids";
 import { MatchKindSchema } from "../public/matches";
 import { text } from "../public/text";
 
+/** The data layer's own ID for a talk. */
 const InternalIdSchema = z.int().min(1).max(Number.MAX_SAFE_INTEGER);
 
-/** What an engine may read of a talk: id, title, abstract, tracks and keywords, as the talk was sent.
- *  Author and presenter ids let the run driver drop talks the anchor's presenters wrote; engines never read
- *  them. Ids are the data layer's own. */
+/** What an engine may read of a talk: id, title, abstract, tracks and keywords, as the talk was sent. The author and
+ *  presenter IDs let the run driver drop talks the anchor's presenters wrote; engines never read them. IDs are the
+ *  data layer's own. */
 export const EngineTalkSchema = z
   .strictObject({
     id: InternalIdSchema,
@@ -19,14 +20,14 @@ export const EngineTalkSchema = z
     authorIds: z.array(InternalIdSchema).max(200),
     presenterIds: z.array(InternalIdSchema).max(200),
   })
-  .refine((t) => t.presenterIds.every((id) => t.authorIds.includes(id)), {
+  .refine((talk) => talk.presenterIds.every((id) => talk.authorIds.includes(id)), {
     path: ["presenterIds"],
     message: "every presenter is among the authors",
   });
 export type EngineTalk = z.infer<typeof EngineTalkSchema>;
 
-/** Every talk that can be recommended (not withdrawn or cancelled), as of one programme version.
- *  The version is null only before the conference has sent any talks. */
+/** Every talk that can be recommended (not withdrawn or cancelled), as of one programme version. The version is
+ *  null only before the conference has sent any talks. */
 export const CorpusSchema = z.strictObject({
   programmeVersion: ProgrammeVersionSchema.nullable(),
   talks: z.array(EngineTalkSchema).max(100_000),
@@ -69,24 +70,25 @@ export const EngineMatchSchema = z.strictObject(matchFields);
 export type EngineMatch = z.infer<typeof EngineMatchSchema>;
 
 /** A match from one talk, the anchor, to another. */
-export const MatchPairSchema = z.strictObject({ anchor: InternalIdSchema, ...matchFields }).refine(
-  (m) => m.anchor !== m.candidate,
-  { path: ["candidate"], message: "a talk is never matched with itself" },
-);
+export const MatchPairSchema = z
+  .strictObject({ anchor: InternalIdSchema, ...matchFields })
+  .refine((match) => match.anchor !== match.candidate, { path: ["candidate"], message: "a talk is never matched with itself" });
 export type MatchPair = z.infer<typeof MatchPairSchema>;
 
-function eachOnce<T>(key: (item: T) => string, message: string) {
+/** A check that no two items in a list share a key; each repeat is reported at its own index. */
+function noRepeatedKeys<T>(keyOf: (item: T) => string, message: string) {
   return (items: T[], ctx: z.RefinementCtx) => {
     const seen = new Set<string>();
-    items.forEach((item, i) => {
-      if (seen.has(key(item))) ctx.addIssue({ code: "custom", path: [i], message });
-      seen.add(key(item));
+    items.forEach((item, index) => {
+      const key = keyOf(item);
+      if (seen.has(key)) ctx.addIssue({ code: "custom", path: [index], message });
+      seen.add(key);
     });
   };
 }
 
-/** A finished matching job: every match involving the job's talks, which replace their old ones all at once.
- *  The programme version is the one the engine read; it is never older than the job's. */
+/** A finished matching job: every match involving the job's talks, which replace their old matches all at once.
+ *  The programme version is the one the engine read, which is never older than the job's. */
 export const CompleteMatchingJobSchema = z.strictObject({
   job: JobIdSchema,
   programmeVersion: ProgrammeVersionSchema,
@@ -94,7 +96,7 @@ export const CompleteMatchingJobSchema = z.strictObject({
   matches: z
     .array(MatchPairSchema)
     .max(1_000_000)
-    .superRefine(eachOnce((m) => `${m.anchor}>${m.candidate}`, "this pair of talks is already listed")),
+    .superRefine(noRepeatedKeys((match) => `${match.anchor}>${match.candidate}`, "this pair of talks is already listed")),
 });
 export type CompleteMatchingJob = z.infer<typeof CompleteMatchingJobSchema>;
 
@@ -120,16 +122,16 @@ export const TextMatchResultSchema = z
     matches: z
       .array(EngineMatchSchema)
       .max(1000)
-      .superRefine(eachOnce((m) => String(m.candidate), "this talk is already listed")),
+      .superRefine(noRepeatedKeys((match) => String(match.candidate), "this talk is already listed")),
   })
-  .superRefine((res, ctx) => {
-    if (!res.enoughInformation && res.whatIsMissing === null) {
+  .superRefine((result, ctx) => {
+    if (!result.enoughInformation && result.whatIsMissing === null) {
       ctx.addIssue({ code: "custom", path: ["whatIsMissing"], message: "must say what the text lacks" });
     }
-    if (!res.enoughInformation && res.matches.length > 0) {
+    if (!result.enoughInformation && result.matches.length > 0) {
       ctx.addIssue({ code: "custom", path: ["matches"], message: "must be empty when there is not enough information" });
     }
-    if (res.enoughInformation && res.whatIsMissing !== null) {
+    if (result.enoughInformation && result.whatIsMissing !== null) {
       ctx.addIssue({ code: "custom", path: ["whatIsMissing"], message: "must be null when there is enough information" });
     }
   });

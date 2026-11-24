@@ -40,7 +40,7 @@ const api: ConferenceApi = {
   },
   check: async () => ({ outcome: { kind: "answered", httpStatus: 200, validBody: true }, ms: 12 }),
 };
-const settings = { apiAddress: "http://127.0.0.1:8787/", keySet: true, verifyUrl: "https://verify.example.org/" };
+const settings = { apiAddress: "http://127.0.0.1:8787/", keySet: true };
 
 describe.skipIf(!url)("organiser and developer procedures", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
@@ -71,7 +71,6 @@ describe.skipIf(!url)("organiser and developer procedures", { timeout: 60_000 },
     await expect(anon.organiser.talks.list({})).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(anon.organiser.programme.send()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
     await expect(anon.developer.reset()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
-    await expect(anon.settings.get()).rejects.toMatchObject({ code: "UNAUTHORIZED" });
   });
 
   test("lists talks with search and status, and gets one", async () => {
@@ -191,18 +190,16 @@ describe.skipIf(!url)("organiser and developer procedures", { timeout: 60_000 },
     expect(await caller({ api: refusing }).organiser.programme.send()).toMatchObject({ state: "failed", error: "403 Forbidden" });
   });
 
-  test("developer status shows the address, the key, the verify link, the last run and the changes", async () => {
+  test("developer status shows the address, the key, the last run and the changes", async () => {
     const c = caller();
     await c.organiser.talks.withdraw({ id: "T2" });
     const run = await c.organiser.programme.send();
     expect(await c.developer.status()).toEqual({
       apiAddress: "http://127.0.0.1:8787/",
       keySet: true,
-      verifyUrl: "https://verify.example.org/",
       lastRun: run,
       changes: { moved: 0, rescheduled: 0, withdrawn: 1, sessions: 0 },
     });
-    expect(await caller({ settings: { apiAddress: null, keySet: false, verifyUrl: null } }).settings.get()).toEqual({ verifyUrl: null });
   });
 
   test("test connection names the outcome and how long it took", async () => {

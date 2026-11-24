@@ -10,7 +10,6 @@
       "type": "object",
       "properties": {
         "title": {
-          "x-data-kind": "programme",
           "type": "string",
           "minLength": 1,
           "maxLength": 500,
@@ -20,11 +19,9 @@
           "type": "string",
           "minLength": 1,
           "maxLength": 10000,
-          "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-          "x-data-kind": "programme"
+          "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
         },
         "kind": {
-          "x-data-kind": "operational",
           "type": "string",
           "enum": [
             "core",
@@ -32,13 +29,11 @@
           ]
         },
         "minScore": {
-          "x-data-kind": "operational",
           "type": "number",
           "minimum": 0,
           "maximum": 1
         },
         "top": {
-          "x-data-kind": "operational",
           "type": "integer",
           "minimum": 1,
           "maximum": 1000

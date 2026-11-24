@@ -25,7 +25,6 @@ const EnvSchema = z
     CONFERENCE_API_URL: optionalAddress,
     CONFERENCE_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(16).optional()),
     CRON_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(16).optional()),
-    CONFERENCE_API_VERIFY_URL: optionalAddress,
   })
   .superRefine((e, ctx) => {
     if (e.CONFERENCE_API_URL && !e.CONFERENCE_API_KEY) {
@@ -43,8 +42,6 @@ export interface HostConfig {
   authUrl: string;
   google: { clientId: string; clientSecret: string } | null;
   api: { url: string; key: string } | null;
-  /** The conference API's page for checking a credential, linked from every shell. */
-  verifyUrl: string | null;
   /** The secret Vercel's cron sends to the keep-alive route. */
   cronSecret: string | null;
 }
@@ -67,7 +64,6 @@ export function readConfig(env: Record<string, string | undefined>): HostConfig 
         ? { clientId: e.GOOGLE_CLIENT_ID, clientSecret: e.GOOGLE_CLIENT_SECRET }
         : null,
     api: e.CONFERENCE_API_URL && e.CONFERENCE_API_KEY ? { url: e.CONFERENCE_API_URL, key: e.CONFERENCE_API_KEY } : null,
-    verifyUrl: e.CONFERENCE_API_VERIFY_URL ?? null,
     cronSecret: e.CRON_SECRET ?? null,
   };
 }

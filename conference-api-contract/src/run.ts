@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { CONTRACT_VERSION } from "./recommendation";
 
-/** Provenance for one index build or one recommend batch. */
+/** Where one index build or one recommend batch came from. */
 export const RunSchema = z
   .strictObject({
     run_id: z.string().min(1),

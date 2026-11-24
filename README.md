@@ -29,8 +29,7 @@ This repo began as a copy of the host app from ConferenceApp. These were added s
 Set these in each app's `.env.local` (see the app's README for the full list):
 
 - `CONFERENCE_API_URL`: the API's address.
-- `CONFERENCE_API_KEY`: a partner token with `talks:write` and `matches:read` on the society's conference (`ams-2027` or `gsa-2026`).
-- `CONFERENCE_API_VERIFY_URL`: the API's public credential verification page.
+- `CONFERENCE_API_KEY`: a key for the society's conference from the conference API's `issue-key` command (`ams-2027` or `gsa-2026`).
 
 Then send the programme to the API:
 
@@ -55,3 +54,5 @@ The store and backend database tests run only when `HOST_TEST_DATABASE_URL` and 
 `conference-api-contract` is a copy. When the conference API's contract changes, copy the new version here and run the checks. To confirm its generated JSON Schema and OpenAPI files still match its zod source, run `npm run emit --workspace=@repo/contracts`; `git diff` should show nothing.
 
 To put the apps online, follow `HOSTING.md`.
+
+`docs/parked-rules.md` holds rules deleted from the CLAUDE.md files that are not used in this version. Nothing in it is in force.

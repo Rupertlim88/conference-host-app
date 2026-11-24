@@ -76,15 +76,6 @@ test.describe("signed in", () => {
     await expect(page.getByText("You have not starred anything yet.")).toBeVisible();
   });
 
-  test("the attendee app and both consoles link to the credential verification page", async ({ page }) => {
-    const url = process.env.CONFERENCE_API_VERIFY_URL;
-    test.skip(!url, "CONFERENCE_API_VERIFY_URL is not set");
-    for (const route of ["/", "/organiser", "/developer"]) {
-      await page.goto(route);
-      await expect(page.getByRole("link", { name: "Verify a credential" }), route).toHaveAttribute("href", url!);
-    }
-  });
-
   test("a signed-in guest who opens the sign-in page goes home", async ({ page }) => {
     await page.goto("/sign-in");
     await expect(page).toHaveURL(/\/$/);
