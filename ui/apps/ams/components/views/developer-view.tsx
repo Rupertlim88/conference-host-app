@@ -21,16 +21,6 @@ export function DeveloperView({ status, actions }: { status: ApiStatus; actions:
         <dd className="break-all">{status.apiAddress ?? t("notSet")}</dd>
         <dt className="font-semibold">{t("key")}</dt>
         <dd>{status.keySet ? t("set") : t("notSet")}</dd>
-        <dt className="font-semibold">{t("verify")}</dt>
-        <dd className="break-all">
-          {status.verifyUrl ? (
-            <a href={status.verifyUrl} target="_blank" rel="noopener noreferrer" className="text-primary underline">
-              {status.verifyUrl}
-            </a>
-          ) : (
-            t("notSet")
-          )}
-        </dd>
         <dt className="font-semibold">{t("lastSend")}</dt>
         <dd>{run ? t("lastRun", { state: c(`runState.${run.state}`), at: at(run.startedAt) }) : t("noneYet")}</dd>
       </dl>

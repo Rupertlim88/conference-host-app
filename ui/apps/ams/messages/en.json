@@ -2,8 +2,7 @@
   "app": {
     "name": "Isobar Meetings 2027 (Demo)",
     "tagline": "A demo conference app showing the AMS 107th Annual Meeting programme.",
-    "skip": "Skip to content",
-    "verify": "Verify a credential"
+    "skip": "Skip to content"
   },
   "nav": {
     "home": "Home",
@@ -227,7 +226,6 @@
     "status": "Status",
     "address": "Conference API address",
     "key": "API key",
-    "verify": "Credential verification page",
     "lastSend": "Last send",
     "set": "Set",
     "notSet": "Not set",

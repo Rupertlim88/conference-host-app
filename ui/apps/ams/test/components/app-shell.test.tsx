@@ -9,7 +9,7 @@ import { renderApp } from "../render";
 
 const shell = () =>
   renderApp(
-    <AppShell meeting={meeting()} verifyUrl={null} signOut={<button type="button">Sign Out</button>}>
+    <AppShell meeting={meeting()} signOut={<button type="button">Sign Out</button>}>
       <h1>Page</h1>
     </AppShell>,
   );
@@ -30,19 +30,4 @@ test("the frame carries the top bar with sign-out, and the side menu for compute
   shell();
   expect(screen.getByRole("button", { name: "Sign Out" })).toBeInTheDocument();
   expect(within(screen.getByRole("complementary")).getAllByRole("link")).toHaveLength(8);
-});
-
-test("links to the credential verification page in a new tab when one is set, and not otherwise", () => {
-  const { unmount } = renderApp(
-    <AppShell meeting={meeting()} verifyUrl="https://verify.example.org/" signOut={null}>
-      <h1>Page</h1>
-    </AppShell>,
-  );
-  const verify = screen.getByRole("link", { name: "Verify a credential" });
-  expect(verify).toHaveAttribute("href", "https://verify.example.org/");
-  expect(verify).toHaveAttribute("target", "_blank");
-  expect(verify).toHaveAttribute("rel", "noopener noreferrer");
-  unmount();
-  shell();
-  expect(screen.queryByRole("link", { name: "Verify a credential" })).not.toBeInTheDocument();
 });

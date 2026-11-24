@@ -50,28 +50,25 @@ describe("the send page", () => {
 });
 
 describe("the developer console", () => {
-  test("shows the API address, whether a key is set, the verify page, the last send and the changes", () => {
+  test("shows the API address, whether a key is set, the last send and the changes", () => {
     renderApp(<DeveloperView status={apiStatus()} actions={<button type="button">Test connection</button>} />);
     expect(screen.getByRole("heading", { level: 1, name: "Developer console" })).toBeInTheDocument();
     expect(screen.getAllByRole("term").map((d) => d.textContent)).toEqual([
       "Conference API address",
       "API key",
-      "Credential verification page",
       "Last send",
     ]);
     expect(screen.getAllByRole("definition").map((d) => d.textContent)).toEqual([
       "https://api.example.org/",
       "Set",
-      "https://verify.example.org/",
       "Sent, Tue, Dec 1, 10:00 AM",
     ]);
-    expect(screen.getByRole("link", { name: "https://verify.example.org/" })).toHaveAttribute("href", "https://verify.example.org/");
     expect(within(section("Changes from the published programme")).getAllByRole("listitem")).toHaveLength(4);
     expect(screen.getByRole("button", { name: "Test connection" })).toBeInTheDocument();
   });
 
   test("says what is not set, and that nothing was sent yet", () => {
-    renderApp(<DeveloperView status={apiStatus({ apiAddress: null, keySet: false, verifyUrl: null, lastRun: null })} actions={null} />);
-    expect(screen.getAllByRole("definition").map((d) => d.textContent)).toEqual(["Not set", "Not set", "Not set", "None yet"]);
+    renderApp(<DeveloperView status={apiStatus({ apiAddress: null, keySet: false, lastRun: null })} actions={null} />);
+    expect(screen.getAllByRole("definition").map((d) => d.textContent)).toEqual(["Not set", "Not set", "None yet"]);
   });
 });
