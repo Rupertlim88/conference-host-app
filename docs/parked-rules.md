@@ -1,12 +1,11 @@
-# Parked rules
+# Deleted rules
 
-> **Not in force.** Nothing in this file is a rule. Only the CLAUDE.md files are rules. A rule here comes back only
-> when the owner says so, by writing it back into its CLAUDE.md.
+> **Not used in this version.** This rule was deleted from the host app's CLAUDE.md files on 24 November 2026,
+> together with the conference API's security rules that are not used in this version of the API. Nothing in this file
+> is a rule: only the CLAUDE.md files are rules. A rule here comes back only when the owner says so, by writing it back
+> into its CLAUDE.md.
 
-On 24 November 2026 the conference API's attendance credentials were parked, when its security was right-sized for the
-AMS demo. The rule below was taken out of the host app's CLAUDE.md files at that point, and is kept here word for word,
-under the number and category it had then. The conference API keeps its own parked rules, and the code that carried
-them out, in its own repository.
+The conference API keeps its own deleted rules, and the code that carried them out, in its own repository.
 
 ## Rules taken out
 
