@@ -154,7 +154,8 @@ function failure(error: unknown, deadline: AbortSignal): string {
   if (error instanceof ApiRefusedError) return `${error.status} ${error.title}`;
   if (error instanceof RequestNotSent || error instanceof ApiNotSet) return error.message;
   if (error instanceof DOMException && error.name === "TimeoutError") return "The conference API did not answer in time";
-  if (error instanceof TypeError) return "Could not reach the conference API";
+  // fetch reports a network failure, such as a refused connection, as TypeError("fetch failed").
+  if (error instanceof TypeError && error.message === "fetch failed") return "Could not reach the conference API";
   return "Unexpected error";
 }
 

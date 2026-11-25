@@ -151,7 +151,9 @@ export function ChangesSummary({ changes }: { changes: Changes }) {
 
 type Param = string | string[] | undefined;
 
-const Page = z.coerce.number().int().min(1).max(10_000).catch(1);
+// A page past the highest allowed asks for the highest, which the store then shows as the last page; any other bad
+// page is the first.
+const Page = z.coerce.number().int().min(1).transform((page) => Math.min(page, 10_000)).catch(1);
 
 /** A console list's search, status filter and page from the address. Each bad value falls back on its own, so a
  *  hand-edited address still shows a list. */

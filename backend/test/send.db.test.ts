@@ -102,6 +102,28 @@ describe.skipIf(!url)("sendProgramme", { timeout: 60_000 }, () => {
     });
   });
 
+  test("a fault in the code is recorded as unexpected, not as an API that could not be reached", async () => {
+    const api: ConferenceApi = {
+      ...taking([]),
+      writeTalks: async () => {
+        throw new TypeError("Cannot read properties of undefined (reading 'talks')");
+      },
+    };
+    const failed = await sendProgramme({ store, log, api }).catch((e: unknown) => e);
+    expect((failed as SendFailed).run).toMatchObject({ state: "failed", error: "Unexpected error" });
+  });
+
+  test("a network failure is recorded as an API that could not be reached", async () => {
+    const api: ConferenceApi = {
+      ...taking([]),
+      writeTalks: async () => {
+        throw new TypeError("fetch failed", { cause: new Error("connect ECONNREFUSED 127.0.0.1:9") });
+      },
+    };
+    const failed = await sendProgramme({ store, log, api }).catch((e: unknown) => e);
+    expect((failed as SendFailed).run).toMatchObject({ state: "failed", error: "Could not reach the conference API" });
+  });
+
   test("a programme with nothing to send is recorded as failed, and writes nothing", async () => {
     const organiser = createOrganiserStore(db, "ams");
     const sent: TalksWriteRequest[] = [];
