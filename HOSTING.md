@@ -17,7 +17,7 @@ The conference API's `issue-key` command makes keys that last the number of days
 
 1. In Supabase, create a project on the free plan. Pick the region closest to your Vercel functions. Vercel's default region is Washington, D.C. (`iad1`).
 2. Open **Connect** and copy two connection strings, each with the database password filled in:
-   - the **transaction pooler** string (port 6543), which the apps use
+   - the **transaction pooler** string (port 6543), which the app uses
    - the **session pooler** string (port 5432), which you use from your machine
 
 The store's `connect()` requires TLS for any database off your machine, and refuses an address that turns TLS off with `sslmode=disable`, `allow` or `prefer`.
