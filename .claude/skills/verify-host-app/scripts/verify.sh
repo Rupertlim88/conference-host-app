@@ -65,16 +65,16 @@ api_env() {
   export CONTROL_DATABASE_URL="${base%/*}/host_app_api_control"
 }
 # The conference API lives in its own repository; set CONFERENCE_API_REPO, or keep a checkout beside this one.
-api_repo() {
-  local repo="${CONFERENCE_API_REPO:-$ROOT/../Conference-Matching-API}"
-  [ -d "$repo/conference-api/data" ] || fail "no conference API checkout at $repo; set CONFERENCE_API_REPO, then run npm ci there"
-  (cd "$repo" && pwd)
+API_REPO="${CONFERENCE_API_REPO:-$ROOT/../Conference-Matching-API}"
+need_api_repo() {
+  [ -d "$API_REPO/conference-api/data" ] || fail "no conference API checkout at $API_REPO; set CONFERENCE_API_REPO, then run npm ci there"
 }
-api_cli() { (cd "$(api_repo)" && npm run -s cli --workspace=@repo/conference-data -- "$@"); }
+api_cli() { (cd "$API_REPO" && npm run -s cli --workspace=@repo/conference-data -- "$@"); }
 
 # Every setup command upserts, so a rerun changes nothing. The society's key is new on each launch and lasts a day;
 # the old ones are cancelled first, since a partner may hold at most two live keys for a conference.
 prepare_api() {
+  need_api_repo
   api_env
   (cd "$ROOT" && node --input-type=module -e "
     import postgres from 'postgres';
@@ -119,7 +119,7 @@ launch() {
     if [ -z "$(listener "$API_PORT")" ]; then
       echo "starting the conference API on port $API_PORT"
       PORT="$API_PORT" MATCHING_ENGINE=placeholder APP_MODE=test \
-        start_group "$API_PID" "$RUN/conference-api.log" "$(api_repo)" npm run start --workspace=@repo/conference-api-backend
+        start_group "$API_PID" "$RUN/conference-api.log" "$API_REPO" npm run start --workspace=@repo/conference-api-backend
       for _ in $(seq 1 60); do [ "$(http_code "http://127.0.0.1:$API_PORT/")" != "000" ] && break; sleep 0.5; done
       [ "$(http_code "http://127.0.0.1:$API_PORT/")" != "000" ] || { tail -20 "$RUN/conference-api.log"; fail "the conference API did not start"; }
     fi

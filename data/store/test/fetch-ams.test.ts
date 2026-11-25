@@ -137,6 +137,18 @@ describe("publicProgramme", () => {
     expect(out.Paper[0]!.Abstract).toBe("<div>Results</div><p>More</p>");
   });
 
+  test("text full of unclosed tags is cleaned quickly, not by scanning to the end from every one", () => {
+    const abstract = '<a b="x" '.repeat(5000);
+    const started = performance.now();
+    publicProgramme(
+      files({
+        Paper: [paper("487641", "76096", { Abstract: abstract }), paper("496187", "76096")],
+        Session: [session("76096", ["487641", "496187"])],
+      }),
+    );
+    expect(performance.now() - started).toBeLessThan(250);
+  });
+
   test("keeps a paper that belongs to no session", () => {
     const keynote = paper("498894", "none", { ParentList_ParentEntries: ["Program/1976"] });
     const out = publicProgramme(files({ Paper: [paper("487641", "76096"), keynote] }));

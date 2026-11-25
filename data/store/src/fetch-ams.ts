@@ -35,10 +35,11 @@ const shown = (row: Row) => row.Withdrawn !== "w" && String(row.WebprogramExclud
  * shows, and one 2027 abstract carried its author's email in 453 of them. Confex's own TopDisplay keeps its classes,
  * which the loader reads.
  */
-/** An opening tag whose attributes are well quoted, so a ">" inside a quoted value does not end it. */
-const QUOTED_TAG = /<([a-zA-Z][\w:-]*)(?:\s+[^\s"'>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'>]+))?)*\s*\/?>/g;
+/** An opening tag whose attributes are well quoted, so a ">" inside a quoted value does not end it. Outside quotes a
+ *  tag never runs past the next "<", so text full of unclosed tags is cleaned in one pass. */
+const QUOTED_TAG = /<([a-zA-Z][\w:-]*)(?:\s+[^\s"'<>/=]+(?:\s*=\s*(?:"[^"]*"|'[^']*'|[^\s"'<>]+))?)*\s*\/?>/g;
 /** Any other opening tag with attributes, such as one whose quotes an editor left unbalanced. */
-const LOOSE_TAG = /<([a-zA-Z][\w:-]*)[^>]*>/g;
+const LOOSE_TAG = /<([a-zA-Z][\w:-]*)[^<>]*>/g;
 const bareTags = (value: unknown) =>
   typeof value === "string" ? value.replace(QUOTED_TAG, "<$1>").replace(LOOSE_TAG, "<$1>") : value;
 const withBareTags = (row: Row, field: string): Row => (field in row ? { ...row, [field]: bareTags(row[field]) } : row);

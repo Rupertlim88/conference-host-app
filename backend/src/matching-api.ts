@@ -59,6 +59,11 @@ export class ApiNotSet extends Error {
   }
 }
 
+/** Throws RequestNotSent unless a talks write fits the contract; a send checks every part with it before writing any. */
+export function checkTalksWrite(req: TalksWriteRequest): void {
+  checked(TalksWriteRequestSchema, req);
+}
+
 /** Used when no API address is set: every related-talks request is unavailable. */
 export const unconfiguredApi: ConferenceApi = {
   related: async () => ({ status: "unavailable" }),

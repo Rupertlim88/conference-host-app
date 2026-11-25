@@ -1,9 +1,9 @@
 // The programme is sent as one run at a time, in parts of a thousand talks, and stops at a five-minute deadline.
-import type { TalkInput } from "@repo/contracts";
+import type { TalkInput, TalksWriteRequest } from "@repo/contracts";
 import type { SyncRun } from "@repo/host-contracts";
 import type { SyncLog } from "@repo/host-store";
 
-import { ApiNotSet, ApiRefusedError, RequestNotSent, type ConferenceApi } from "./matching-api";
+import { ApiNotSet, ApiRefusedError, checkTalksWrite, RequestNotSent, type ConferenceApi } from "./matching-api";
 
 /** What the store's talksForSync returns, narrowed to what the upload needs. */
 export interface SyncTalk {
@@ -102,12 +102,17 @@ export async function syncProgramme(
 ): Promise<SyncResult> {
   const talks = (await store.talksForSync()).map(toPartnerTalk).filter((t): t is TalkInput => t !== null);
   if (talks.length === 0) throw new NothingToSend();
-  const result: SyncResult = { sent: 0, added: 0, changed: 0, withdrawn: 0, unchanged: 0, programmeVersion: "" };
+  const parts: TalksWriteRequest[] = [];
   for (let i = 0; i < talks.length; i += PART) {
-    const part = talks.slice(i, i + PART);
     const last = i + PART >= talks.length;
-    const answer = await api.writeTalks({ talks: part, sync: syncName, ...(last ? { complete: true } : {}) }, signal);
-    result.sent += part.length;
+    parts.push({ talks: talks.slice(i, i + PART), sync: syncName, ...(last ? { complete: true } : {}) });
+  }
+  // Every part is checked before the first is written, so a talk that breaks the contract leaves nothing half sent.
+  for (const part of parts) checkTalksWrite(part);
+  const result: SyncResult = { sent: 0, added: 0, changed: 0, withdrawn: 0, unchanged: 0, programmeVersion: "" };
+  for (const part of parts) {
+    const answer = await api.writeTalks(part, signal);
+    result.sent += part.talks.length;
     result.added += answer.added;
     result.changed += answer.changed;
     result.withdrawn += answer.withdrawn;

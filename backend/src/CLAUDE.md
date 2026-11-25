@@ -103,8 +103,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
      control characters other than tabs and line breaks become spaces, and each field is cut, never inside a character, to the contract's limits
      (abstract 10,000, title 500, number 64, session title 500, presenter's name 300; at most 20 tracks). An end is
      sent only when it is after the start, or when there is no start. The presenter is sent as an author and a presenter.
-   - **How it is sent:** in parts of 1,000 under one sync name. The last part completes the sync, so the API withdraws
-     talks no longer in the programme. The counts of added, changed, withdrawn and unchanged talks are added up.
+   - **How it is sent:** in parts of 1,000 under one sync name. Every part is checked against the conference API's
+     contract before the first is written, so a talk that breaks it leaves nothing half sent. The last part completes
+     the sync, so the API withdraws talks no longer in the programme. The counts of added, changed, withdrawn and unchanged talks are added up.
    - **One at a time:** each send is a run in the run log, which lets only one run at a time; a send that finds another
      running writes nothing. The five-minute deadline starts before the run does, bounds every write to the API, and
      stays shorter than the time after which a stuck run is taken over.

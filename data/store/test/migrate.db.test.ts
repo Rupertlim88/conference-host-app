@@ -12,7 +12,8 @@ describe.skipIf(!url)("migrating a hosted database", { timeout: 60_000 }, () => 
   const db = (conn?.db ?? null) as Db;
 
   beforeAll(async () => {
-    for (const schema of ["ams2027", "sign_in", "auth"]) await db.execute(sql.raw(`drop schema if exists ${schema} cascade`));
+    // gsa2026 too: a database used before GSA was removed still has it, and migration 0000 would create it again.
+    for (const schema of ["ams2027", "gsa2026", "sign_in", "auth"]) await db.execute(sql.raw(`drop schema if exists ${schema} cascade`));
     await db.execute(sql`drop table if exists drizzle.__host_store_migrations`);
     // Every Supabase project already has an auth schema of its own, for Supabase Auth.
     await db.execute(sql`create schema auth`);

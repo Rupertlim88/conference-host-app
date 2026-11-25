@@ -26,6 +26,8 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
 
   beforeAll(async () => {
     await db.execute(sql`drop schema if exists ams2027 cascade`);
+    // A database used before GSA was removed still has its schema, which migration 0000 would create again.
+    await db.execute(sql`drop schema if exists gsa2026 cascade`);
     await db.execute(sql`drop schema if exists sign_in cascade`);
     await db.execute(sql`drop table if exists drizzle.__host_store_migrations`);
     await migrateStore(db);

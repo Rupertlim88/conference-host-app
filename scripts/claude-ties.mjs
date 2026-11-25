@@ -152,7 +152,8 @@ export function check({ files, read }) {
       tied.set(path, { claude, sentence: rule.sentence });
       if (path.endsWith("/")) {
         const note = path + NOTE;
-        if (!known.has(note)) fail(claude, rule.sentence, path, "is a folder of data with no note naming its rule");
+        if (closest(note) !== claude) fail(claude, rule.sentence, path, "is not in the folder of the CLAUDE.md that names it");
+        else if (!known.has(note)) fail(claude, rule.sentence, path, "is a folder of data with no note naming its rule");
         else if (heading(note, read(note)) !== rule.sentence)
           fail(claude, rule.sentence, path, "its note does not state the bold sentence of the rule that names it");
       } else if (!known.has(path)) fail(claude, rule.sentence, path, "names a file that does not exist");
@@ -163,6 +164,12 @@ export function check({ files, read }) {
   }
 
   const tiedFolders = [...tied.keys()].filter((p) => p.endsWith("/"));
+  // A file or folder inside a folder another rule names is tied twice.
+  for (const [path, owner] of tied) {
+    if (tiedFolders.some((folder) => folder !== path && path.startsWith(folder))) {
+      fail(owner.claude, owner.sentence, path, "is named by two rules");
+    }
+  }
   const untiedFiles = [];
   for (const file of files.filter((f) => !notCounted(f) && !onlyGathers(f, read(f))).sort()) {
     if (tied.has(file) || tiedFolders.some((d) => file.startsWith(d))) continue;

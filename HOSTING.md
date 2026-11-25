@@ -69,7 +69,7 @@ In the project, open **Settings**, then **Environment Variables**, and add these
 | `CONFERENCE_API_KEY` | the conference API key | yes |
 | `CRON_SECRET` | the output of `openssl rand -hex 24` | yes |
 
-The app checks every setting when they start and name each one that is wrong.
+The app checks every setting when it starts and names each one that is wrong. Settings that go in pairs must be set together: `CONFERENCE_API_URL` with `CONFERENCE_API_KEY`, and `GOOGLE_CLIENT_ID` with `GOOGLE_CLIENT_SECRET`. A key or secret set alone stops the app at start-up, so check an existing project's settings before deploying this version.
 
 ## 6. Deploy and send the programme
 

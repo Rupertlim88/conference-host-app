@@ -74,6 +74,24 @@ test("a file named by two rules is a broken tie", () => {
   assert.ok(r.broken.some((b) => b.problem === "is named by two rules"));
 });
 
+test("a file tied by its own rule and again through a folder another rule names is tied to two rules", () => {
+  const r = check(repo({
+    "part/CLAUDE.md": lowest([rule(2, "Every answer is kept.", "`d/`"), rule(3, "Steps run in order.", "`d/x.ts`")]),
+    "part/d/RULE.md": "# Every answer is kept.\n",
+    "part/d/x.ts": "// Steps run in order.\n",
+  }));
+  assert.ok(r.broken.some((b) => b.problem === "is named by two rules"));
+});
+
+test("a folder tie that reaches outside its CLAUDE.md's folder is broken, and ties nothing there", () => {
+  const r = check(repo({
+    "a/CLAUDE.md": lowest([rule(2, "Every answer is kept.", "`../b/`")]),
+    "b/RULE.md": "# Every answer is kept.\n",
+    "b/x.ts": "// x\n",
+  }));
+  assert.ok(r.broken.some((b) => b.problem === "is not in the folder of the CLAUDE.md that names it"));
+});
+
 test("a file whose heading claims a rule that does not name it is a broken tie", () => {
   const r = check(repo({
     "part/CLAUDE.md": lowest([rule(2, "Steps run in order.", "needed")]),

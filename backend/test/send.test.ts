@@ -1,7 +1,7 @@
 import { TalkInputSchema, type TalksWriteRequest } from "@repo/contracts";
 import { describe, expect, test } from "vitest";
 
-import type { ConferenceApi } from "../src/matching-api";
+import { RequestNotSent, type ConferenceApi } from "../src/matching-api";
 import { syncProgramme, toPartnerTalk, type SyncTalk } from "../src/send";
 
 const row = (id: string, over: Partial<SyncTalk> = {}): SyncTalk => ({
@@ -99,5 +99,21 @@ describe("syncProgramme", () => {
     expect(sent.map((r) => r.sync)).toEqual(["full-test", "full-test", "full-test"]);
     expect(sent.map((r) => r.complete ?? false)).toEqual([false, false, true]);
     expect(result).toEqual({ sent: 2500, added: 2500, changed: 0, withdrawn: 0, unchanged: 0, programmeVersion: "pv_3" });
+  });
+
+  test("a talk that breaks the contract in a later part stops the send before any part is written", async () => {
+    const sent: TalksWriteRequest[] = [];
+    const api: ConferenceApi = {
+      related: async () => ({ status: "unavailable" }),
+      check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
+      writeTalks: async (req) => {
+        sent.push(req);
+        return { programmeVersion: "pv_x", added: req.talks.length, changed: 0, withdrawn: 0, unchanged: 0, matchingJob: null };
+      },
+    };
+    // An id may start with a hyphen in the host app, but not at the conference API.
+    const rows = [...Array.from({ length: 1500 }, (_, i) => row(String(i))), row("-1500")];
+    await expect(syncProgramme({ talksForSync: async () => rows }, api, "checked-first")).rejects.toBeInstanceOf(RequestNotSent);
+    expect(sent).toEqual([]);
   });
 });

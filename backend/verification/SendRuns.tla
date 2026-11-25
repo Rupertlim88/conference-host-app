@@ -6,7 +6,7 @@
 (* Code: backend/src/send.ts (sendProgramme) and                  *)
 (* data/store/src/sync-log.ts (createSyncLog: start, finish,      *)
 (* fail) over the table sync_runs and its partial unique index             *)
-(* sync_runs_one_running (data/store/src/schema.ts).              *)
+(* sync_runs_one_running (data/store/src/tables.ts).              *)
 (*                                                                         *)
 (* One step per SQL statement or per phase of send.ts. Time passes in      *)
 (* whole minutes (Tick). Ages are counted only up to the stale threshold,  *)
