@@ -10,10 +10,10 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 
 | Tool | Declared | Used |
 | --- | --- | --- |
-| Node.js | >=24 (package.json engines) | not pinned (CI) |
+| Node.js | >=24 (package.json engines) | 24 (CI) |
 | npm | 10.9.3 (package.json packageManager) | 10.9.3 |
 | Python | >=3.12 (pyproject.toml) | not pinned (CI) |
-| uv | not used (CI) | latest uv at CI time (not pinned) |
+| uv | setup-uv@v6 (CI) | latest uv at CI time (not pinned) |
 | Java | >=11 (backend/verification/pinned-tools.json) | not pinned (the machine's own install) |
 | TLA+ tools (tla2tools.jar, the TLC model checker) | 1.7.4 (backend/verification/pinned-tools.json) | 1.7.4, SHA-256 936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88 |
 
@@ -31,7 +31,6 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 | ams | @trpc/server | ^11.18.0 | 11.18.0 | runtime |
 | ams | better-auth | 1.7.1 | 1.7.1 | runtime |
 | ams | class-variance-authority | ^0.7.1 | 0.7.1 | runtime |
-| ams | clsx | ^2.1.1 | 2.1.1 | runtime |
 | ams | cn | ^0.5.2 | 0.5.2 | runtime |
 | ams | lucide-react | ^1.34.0 | 1.34.0 | runtime |
 | ams | next | 16.3.2 | 16.3.2 | runtime |
@@ -40,7 +39,6 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 | ams | react-dom | 19.2.8 | 19.2.8 | runtime |
 | ams | server-only | ^0.0.1 | 0.0.1 | runtime |
 | ams | shadcn | ^4.19.0 | 4.19.0 | runtime |
-| ams | tailwind-merge | ^3.6.0 | 3.6.0 | runtime |
 | ams | tw-animate-css | ^1.4.0 | 1.4.0 | runtime |
 | ams | zod | ^4.4.3 | 4.6.7 | runtime |
 | ams | @next/env | ^16.3.2 | 16.3.2 | dev |

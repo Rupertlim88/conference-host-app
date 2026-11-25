@@ -1,5 +1,7 @@
 "use client";
 
+// A guest stars talks and sessions, and My Schedule lists what they starred.
+
 import type { Schedule, Target } from "@repo/host-contracts";
 import { Star } from "lucide-react";
 import { useTranslations } from "next-intl";

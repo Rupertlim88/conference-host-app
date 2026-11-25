@@ -22,3 +22,9 @@ test("the menu opens on the app's sections and closes when one is chosen", async
   fireEvent.click(within(menu).getByRole("link", { name: "My Schedule" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
 });
+
+test("the open menu's close button is named in the app's own words", async () => {
+  renderApp(<TopBar signOut={null} />);
+  fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+  expect(await screen.findByRole("button", { name: "Close menu" })).toBeInTheDocument();
+});

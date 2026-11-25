@@ -1,5 +1,6 @@
 import type { SessionSummary, TalkSummary } from "@repo/host-contracts";
 import { CalendarDays, Clock, MapPin } from "lucide-react";
+import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { When } from "@/features/meeting-time";
@@ -96,21 +97,26 @@ export function cardLabel(kind: string, number: string): string {
   return [shownKind, number].filter(Boolean).join(" ");
 }
 
-/** The day, time and place of a session or talk, as the meeting app shows them under the title. */
+/** The day, time and place of a session or talk, as the meeting app shows them under the title. Lines with nothing
+ *  to show are left out, and with nothing at all there is no box. */
 export function InfoBox({ start, end, room, building }: { start: string | null; end: string | null; room: string; building: string }) {
+  const t = useTranslations("info");
   const place = placeOf(room, building);
+  if (!start && !place) return null;
   return (
     <dl className="my-4 divide-y rounded-md border bg-neutral-50 text-sm">
       {start && (
         <>
           <div className="flex items-center gap-2 px-3 py-2">
             <CalendarDays className="size-4 text-heading" aria-hidden />
+            <dt className="sr-only">{t("day")}</dt>
             <dd>
               <When start={start} mode="day" />
             </dd>
           </div>
           <div className="flex items-center gap-2 px-3 py-2">
             <Clock className="size-4 text-heading" aria-hidden />
+            <dt className="sr-only">{t("time")}</dt>
             <dd>
               <When start={start} end={end} mode="range" />
             </dd>
@@ -120,6 +126,7 @@ export function InfoBox({ start, end, room, building }: { start: string | null; 
       {place && (
         <div className="flex items-center gap-2 px-3 py-2 italic">
           <MapPin className="size-4 text-heading" aria-hidden />
+          <dt className="sr-only">{t("place")}</dt>
           <dd>{place}</dd>
         </div>
       )}

@@ -21,9 +21,9 @@ test.each([
 test.each([
   ["organiser", OrganiserError],
   ["developer", DeveloperError],
-])("a failed %s page can try again", (_, PageError) => {
+])("a failed %s page can try again, asking the server afresh", (_, PageError) => {
   const tries: string[] = [];
-  renderApp(<PageError reset={() => tries.push("again")} />);
+  renderApp(<PageError reset={() => tries.push("redraw only")} retry={() => tries.push("ask the server again")} />);
   fireEvent.click(screen.getByRole("button", { name: "Try again" }));
-  expect(tries).toEqual(["again"]);
+  expect(tries).toEqual(["ask the server again"]);
 });

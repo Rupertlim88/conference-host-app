@@ -1,3 +1,4 @@
+// Conferences and Symposia lists every track, and each track lists its sessions by day.
 import type { SessionSummary, Track, TrackDetail } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";

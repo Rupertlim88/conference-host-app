@@ -6,8 +6,8 @@ import { httpBatchLink } from "@trpc/client";
 import { createTRPCReact } from "@trpc/react-query";
 import { useState } from "react";
 
-import { TimeZoneProvider } from "@/features/meeting-time";
-
+/** The browser's one connection to the backend, around every page: requests are batched, a failed read is tried once
+ *  more, and nothing is read again just because the window regains focus. */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
     () => new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } }),
@@ -16,7 +16,7 @@ export function Providers({ children }: { children: React.ReactNode }) {
   return (
     <trpc.Provider client={trpcClient} queryClient={queryClient}>
       <QueryClientProvider client={queryClient}>
-        <TimeZoneProvider>{children}</TimeZoneProvider>
+        {children}
       </QueryClientProvider>
     </trpc.Provider>
   );

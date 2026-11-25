@@ -4,6 +4,7 @@ import { type OrganiserSession, type OrganiserTalk, type SessionList, type TalkL
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { trpc } from "@/features/connection";
 import { Cell, ConsoleTime, Pager, PaperStatus, Table } from "@/features/console-frame";
@@ -180,15 +181,22 @@ export function WithdrawControl({
   );
 }
 
-/** The withdraw control, wired to the backend. The page reloads its data once the change is saved. */
+/** The withdraw control, wired to the backend. Once a change saves, the button shows the new state at once, and the
+ *  page reloads its data. */
 export function WithdrawButton({ talkId, withdrawn }: { talkId: string; withdrawn: boolean }) {
   const router = useRouter();
-  const done = { onSuccess: () => router.refresh() };
-  const withdraw = trpc.organiser.talks.withdraw.useMutation(done);
-  const restore = trpc.organiser.talks.restore.useMutation(done);
+  const [saved, setSaved] = useState(withdrawn);
+  const done = (now: boolean) => ({
+    onSuccess: () => {
+      setSaved(now);
+      router.refresh();
+    },
+  });
+  const withdraw = trpc.organiser.talks.withdraw.useMutation(done(true));
+  const restore = trpc.organiser.talks.restore.useMutation(done(false));
   return (
     <WithdrawControl
-      withdrawn={withdrawn}
+      withdrawn={saved}
       busy={withdraw.isPending || restore.isPending}
       failed={withdraw.isError || restore.isError}
       onWithdraw={() => withdraw.mutate({ id: talkId })}

@@ -36,8 +36,8 @@ export function RootLayout({ children }: { children: React.ReactNode }) {
 export function manifest(): MetadataRoute.Manifest {
   return {
     name: text.app.name,
-    short_name: "Isobar 2027",
-    description: "A demo conference app showing the AMS 107th Annual Meeting programme.",
+    short_name: text.app.shortName,
+    description: text.app.tagline,
     start_url: "/",
     display: "standalone",
     background_color: "#ffffff",

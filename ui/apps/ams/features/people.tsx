@@ -1,3 +1,4 @@
+// People are listed A to Z by surname, and each person shows their talks.
 import type { Person, PersonDetail } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Link from "next/link";

@@ -4,6 +4,7 @@ import { createAuthClient } from "better-auth/react";
 import { LogOut } from "lucide-react";
 import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 import { Logo } from "@/features/frame";
 import { Button } from "@/features/ui/button";
@@ -26,13 +27,27 @@ export function SignInView({ failed, googleReady, signIn }: { failed: boolean; g
   );
 }
 
-/** Starts Google sign-in. A sign-in that does not finish comes back to /sign-in?error=1. */
+/** Starts Google sign-in. A sign-in that does not finish at Google comes back to /sign-in?error=1; one that cannot
+ *  start says so here. */
 export function SignInButton() {
   const t = useTranslations("auth");
+  const [failed, setFailed] = useState(false);
+  const start = async () => {
+    setFailed(false);
+    const result = await authClient.signIn.social({ provider: "google", callbackURL: "/", errorCallbackURL: "/sign-in?error=1" });
+    if (result.error) setFailed(true);
+  };
   return (
-    <Button size="lg" onClick={() => authClient.signIn.social({ provider: "google", callbackURL: "/", errorCallbackURL: "/sign-in?error=1" })}>
-      {t("withGoogle")}
-    </Button>
+    <>
+      <Button size="lg" onClick={start}>
+        {t("withGoogle")}
+      </Button>
+      {failed && (
+        <p role="alert" className="text-sm text-destructive">
+          {t("failed")}
+        </p>
+      )}
+    </>
   );
 }
 

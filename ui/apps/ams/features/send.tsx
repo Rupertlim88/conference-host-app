@@ -1,5 +1,7 @@
 "use client";
 
+// Organisers send the programme to the matching API, after confirming, and see the last ten sends.
+
 import type { Changes, SyncRun } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";

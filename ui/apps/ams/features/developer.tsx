@@ -1,5 +1,7 @@
 "use client";
 
+// The developer console shows the matching API's settings, tests the connection, and can put the published programme back.
+
 import type { ApiStatus, ConnectionTest, ResetResult, SyncRun } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";

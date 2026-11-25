@@ -1,5 +1,7 @@
 "use client";
 
+// Organisers change a session's date, times and room, and are told by name why a change is refused.
+
 import type { OrganiserSessionDetail, SessionList } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Link from "next/link";

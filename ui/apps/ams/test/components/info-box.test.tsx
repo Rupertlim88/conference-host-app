@@ -25,3 +25,13 @@ test("with no time, only the place is shown", () => {
   renderApp(<InfoBox start={null} end={null} room="Hall A" building="" />);
   expect(definitions()).toEqual(["Hall A"]);
 });
+
+test("each line is named for screen readers, as valid list markup", () => {
+  renderApp(<InfoBox start="2027-01-11T15:45:00.000Z" end="2027-01-11T16:00:00.000Z" room="403" building="" />);
+  expect(screen.getAllByRole("term").map((t) => t.textContent)).toEqual(["Day", "Time", "Place"]);
+});
+
+test("with no time and no room, there is no box at all", () => {
+  const { container } = renderApp(<InfoBox start={null} end={null} room="" building="" />);
+  expect(container).toBeEmptyDOMElement();
+});

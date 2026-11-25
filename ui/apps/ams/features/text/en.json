@@ -1,6 +1,7 @@
 {
   "app": {
     "name": "Isobar Meetings 2027 (Demo)",
+    "shortName": "Isobar 2027",
     "tagline": "A demo conference app showing the AMS 107th Annual Meeting programme.",
     "skip": "Skip to content"
   },
@@ -17,7 +18,6 @@
     "developer": "Developer console"
   },
   "auth": {
-    "signIn": "Sign In",
     "signOut": "Sign Out",
     "withGoogle": "Sign in with Google",
     "title": "Sign in to the demo",
@@ -37,7 +37,6 @@
     "where": "The meeting is held at the {venue}, {city}, and online. A session held elsewhere names its building."
   },
   "calendar": {
-    "title": "Meeting Calendar",
     "empty": "No sessions on this day."
   },
   "programs": {
@@ -84,7 +83,8 @@
     "sessions": "Sessions",
     "people": "People",
     "nothing": "Nothing matches “{q}”.",
-    "hint": "Type at least two characters."
+    "hint": "Type at least two characters.",
+    "tooLong": "Type at most 100 characters."
   },
   "schedule": {
     "title": "My Schedule",
@@ -248,5 +248,10 @@
     "resetNow": "Reset now",
     "resetting": "Resetting the programme…",
     "resetDone": "Programme reset: {talks, plural, one {# paper} other {# papers}} and {sessions, plural, one {# session} other {# sessions}} put back."
+  },
+  "info": {
+    "day": "Day",
+    "time": "Time",
+    "place": "Place"
   }
 }

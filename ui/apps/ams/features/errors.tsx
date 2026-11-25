@@ -36,15 +36,35 @@ export function FramedNotFound() {
   );
 }
 
-/** Shown when a signed-in page fails. Trying again renders the page afresh. */
-export function PageError({ reset }: { reset: () => void }) {
+/** What Next.js hands an error page: reset only redraws in the browser; retry asks the server for the page again. */
+type ErrorPageProps = { reset: () => void; retry: () => void };
+
+function TryAgain({ retry }: { retry: () => void }) {
   const t = useTranslations("errors");
   return (
-    <div className="py-16 text-center">
+    <>
       <p className="text-heading">{t("generic")}</p>
-      <Button className="mt-4" onClick={reset}>
+      <Button className="mt-4" onClick={retry}>
         {t("retry")}
       </Button>
+    </>
+  );
+}
+
+/** Shown in the frame when a signed-in page fails. Trying again asks the server for the page afresh. */
+export function PageError({ retry }: ErrorPageProps) {
+  return (
+    <div className="py-16 text-center">
+      <TryAgain retry={retry} />
     </div>
+  );
+}
+
+/** Shown when a failure happens outside any frame, such as in a layout or on the sign-in page: the page's main region. */
+export function RootError({ retry }: ErrorPageProps) {
+  return (
+    <main className="mx-auto max-w-md px-6 py-16 text-center">
+      <TryAgain retry={retry} />
+    </main>
   );
 }

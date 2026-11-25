@@ -9,14 +9,15 @@ import { Button } from "@/features/ui/button";
 // The guest's choice lives in localStorage. useSyncExternalStore reads it, so the server render and the first client render agree on meeting time.
 const KEY = "isobar-local-time";
 const listeners = new Set<() => void>();
-// The choice for this page when the browser refuses storage.
-let unstored = false;
+// The choice for this page once the browser has refused to store it; null while storage holds the choice.
+let pageChoice: boolean | null = null;
 
 function readLocal(): boolean {
+  if (pageChoice !== null) return pageChoice;
   try {
     return localStorage.getItem(KEY) === "1";
   } catch {
-    return unstored;
+    return false;
   }
 }
 
@@ -24,8 +25,9 @@ function writeLocal(local: boolean): void {
   try {
     if (local) localStorage.setItem(KEY, "1");
     else localStorage.removeItem(KEY);
+    pageChoice = null;
   } catch {
-    unstored = local;
+    pageChoice = local;
   }
   for (const listener of listeners) listener();
 }

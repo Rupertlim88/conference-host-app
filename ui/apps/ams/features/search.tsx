@@ -8,7 +8,7 @@ import { PageTitle } from "@/features/frame";
 import { Button } from "@/features/ui/button";
 import { Input } from "@/features/ui/input";
 
-/** Search: the box, then people, sessions and presentations that match. results is null when the query was too short to run. */
+/** Search: the box, then people, sessions and presentations that match. results is null when the query was too short or too long to run. */
 export function SearchView({ q, results }: { q: string; results: SearchResults | null }) {
   const t = useTranslations("search");
   const nothing = results !== null && results.people.length + results.sessions.length + results.talks.length === 0;
@@ -16,7 +16,7 @@ export function SearchView({ q, results }: { q: string; results: SearchResults |
     <>
       <PageTitle>{t("title")}</PageTitle>
       <SearchBox initial={q} />
-      {q && results === null && <p className="text-sm text-muted-foreground">{t("hint")}</p>}
+      {q && results === null && <p className="text-sm text-muted-foreground">{t(q.trim().length > 100 ? "tooLong" : "hint")}</p>}
       {nothing && <p className="text-sm">{t("nothing", { q })}</p>}
       {results && results.people.length > 0 && (
         <section className="mb-5">
