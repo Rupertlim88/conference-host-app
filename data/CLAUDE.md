@@ -23,7 +23,5 @@ Everything else is a lower level, written by Claude to carry out these specifica
 3. **The meeting's data holds only what the public programme shows.** Fields the public programme does not show, such as reviewers' ratings, submitters' comments or internal notes, are removed before the data is stored anywhere, including the repository, and are never kept or shown. Withdrawn entries are left out.
 
 5. **The host app holds every talk of the AMS 2027 Annual Meeting.** Every talk and poster of the AMS 107th Annual Meeting, with its abstract and everything else the public programme shows, is stored in the data layer, so that the host app runs on the whole meeting and can send all of it to a matching API. Where the host app does not yet have part of the meeting, it may copy it from the conference matching tester's snapshot of the same meeting, which was read from the same public programme.
-   *How:* code alone: it reads AMS's public programme, keeps only the public fields, and loads every talk into the database; a check counts the talks stored against the talks the programme lists.
-   *File:* needed
 
 4. **Data is gathered gently.** Where a society offers a public download, it is used; where pages must be read one by one, they are read slowly enough never to burden the society's site, and each page is read once and kept.

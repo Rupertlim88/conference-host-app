@@ -24,3 +24,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### Organisers
 
 4. **The organiser side approximates the Confex tools AMS uses to collect abstracts and build its programme**, from what is publicly known about them.
+
+### This UI's further CLAUDE.md
+
+5. **This UI has one further CLAUDE.md, in its features folder, holding one rule for each feature.** Each feature of this UI is one file in that folder, tied to its rule there; the files the web framework needs in its own folders only hand over to a feature.
