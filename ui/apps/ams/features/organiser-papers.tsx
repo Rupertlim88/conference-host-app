@@ -187,7 +187,13 @@ export function WithdrawControl({
  *  page reloads its data. */
 export function WithdrawButton({ talkId, withdrawn }: { talkId: string; withdrawn: boolean }) {
   const router = useRouter();
+  // The saved state shows at once; when the page's own data changes, the button follows it again.
   const [saved, setSaved] = useState(withdrawn);
+  const [lastProp, setLastProp] = useState(withdrawn);
+  if (lastProp !== withdrawn) {
+    setLastProp(withdrawn);
+    setSaved(withdrawn);
+  }
   const done = (now: boolean) => ({
     onSuccess: () => {
       setSaved(now);

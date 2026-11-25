@@ -36,8 +36,13 @@ export function SignInButton() {
   const [failed, setFailed] = useState(false);
   const start = async () => {
     setFailed(false);
-    const result = await authClient.signIn.social({ provider: "google", callbackURL: "/", errorCallbackURL: "/sign-in?error=1" });
-    if (result.error) setFailed(true);
+    try {
+      const result = await authClient.signIn.social({ provider: "google", callbackURL: "/", errorCallbackURL: "/sign-in?error=1" });
+      if (result.error) setFailed(true);
+    } catch {
+      // The request itself failed, for example with no network.
+      setFailed(true);
+    }
   };
   return (
     <>

@@ -27,3 +27,13 @@ test("a saved withdrawal shows Restore at once, and a second press restores", ()
   fireEvent.click(screen.getByRole("button", { name: "Restore paper" }));
   expect(sent).toEqual(["withdraw", "restore"]);
 });
+
+test("when the page's data changes, the button follows it again", () => {
+  const { rerender } = renderApp(<WithdrawButton talkId="498161" withdrawn={false} />);
+  fireEvent.click(screen.getByRole("button", { name: "Withdraw paper" }));
+  expect(screen.getByRole("button", { name: "Restore paper" })).toBeInTheDocument();
+  // Someone else restores it, and the refreshed page says so: the button must offer Withdraw again.
+  rerender(<WithdrawButton talkId="498161" withdrawn={true} />);
+  rerender(<WithdrawButton talkId="498161" withdrawn={false} />);
+  expect(screen.getByRole("button", { name: "Withdraw paper" })).toBeInTheDocument();
+});

@@ -21,3 +21,10 @@ test("a sign-in that cannot start says it did not finish", async () => {
   fireEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
   expect(await screen.findByRole("alert")).toHaveTextContent("Sign-in did not finish. Please try again.");
 });
+
+test("a sign-in whose request fails, such as with no network, says it did not finish", async () => {
+  social.mockRejectedValueOnce(new TypeError("Failed to fetch"));
+  renderApp(<SignInButton />);
+  fireEvent.click(screen.getByRole("button", { name: "Sign in with Google" }));
+  expect(await screen.findByRole("alert")).toHaveTextContent("Sign-in did not finish. Please try again.");
+});
