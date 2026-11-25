@@ -1,6 +1,6 @@
 # AMS 107th Annual Meeting programme (2027)
 
-The public programme of the 107th AMS Annual Meeting, 10 to 14 January 2027 at the Colorado Convention Center in Denver and online, as published so far. AMS is still building it: on the day of this download, 263 of the 886 sessions kept had no number yet. The host app's AMS version is built from these files.
+The public programme of the 107th AMS Annual Meeting, 10 to 14 January 2027 at the Colorado Convention Center in Denver and online, as published so far. On the day of this download, every one of the 922 sessions kept had its number. The host app's AMS version is built from these files.
 
 ## Source and refresh
 
@@ -12,13 +12,13 @@ https://ams.confex.com/ams/107ANNUAL/meetingapi.cgi/<Type>
 
 `<Type>` is `Paper`, `Session`, `SlotData` or `Program`. To refresh all four files, run `npm run fetch:ams --workspace=@repo/host-store` from the repository root. It makes one request per type, two seconds apart, and writes nothing until all four have arrived. Then `npm run load --workspace=@repo/host-store -- ams` loads the new files.
 
-## Files (fetched 2026-11-16T23:06Z)
+## Files (fetched 2026-11-25)
 
 | File | Rows | Contents |
 |---|---|---|
-| `107ANNUAL-Paper.json` | 4,521 | Talks, posters and breaks |
-| `107ANNUAL-Session.json` | 886 | Sessions, panels, town halls and events, with chairs in `TopDisplay` |
-| `107ANNUAL-SlotData.json` | 5,420 | Schedule slots: date, start and end time, room and building |
+| `107ANNUAL-Paper.json` | 4,531 | Talks, posters and breaks |
+| `107ANNUAL-Session.json` | 922 | Sessions, panels, town halls and events, with chairs in `TopDisplay` |
+| `107ANNUAL-SlotData.json` | 5,472 | Schedule slots: date, start and end time, room and building |
 | `107ANNUAL-Program.json` | 49 | The conferences and symposia inside the meeting |
 
 Rows link by Confex id, as in the 2026 files the loader was first written for. A paper's `ParentList_ParentEntries` holds `Session/<id>` and `Program/<id>`. Its `ParentList_SlotData` holds the id of its row in `107ANNUAL-SlotData.json`, where `Room_Name` and `Property_Name` give the room.
@@ -46,9 +46,9 @@ The unfiltered downloads were never written to disk. Their SHA-256 hashes let yo
 
 | Unfiltered download | SHA-256 |
 |---|---|
-| `Paper` | `97cbc09c245bee77a434fecdc324909fc954edbc582964c57e4dd05c594e25a9` |
-| `Session` | `b7dcf9d5b0e455960630baedea6d245af646a7a5b17b926c60dd44d37dcea7db` |
-| `SlotData` | `d70d5c2ba99c2f75c0f4dfd15e2ef61c4612fb6e009cd82cde79ced3707e5fa7` |
-| `Program` | `ba70782efc0b68ba8309a54bd98bdb3adf9a0e61ac74d0cfc3c07f2141077def` |
+| `Paper` | `24ad112b441c52d973d7ed8a37bfc9594a0f9bfc28e5241a38b66c4cd8b95d35` |
+| `Session` | `818b78a32f67afb9ae20d90b37aaa10ef3783ea3b8a3516c5bfd86eb2081597e` |
+| `SlotData` | `ad5cf0c8926cc56790aa5d697c5f8094cc003df70b95034ce82b1a8043f03a10` |
+| `Program` | `068a9ba227a163162524b56499192ca02d8ceba24b4f6251f89b5eb6a40f4f2b` |
 
 The abstracts belong to their authors and AMS. Use them only inside the private demo.
