@@ -1,44 +1,48 @@
 # Host app — rules
 
 ## What the CLAUDE.md files are
-The CLAUDE.md files are the user's specification of the app, written in the user's own natural language. They are the highest level of rules: the most fundamental requirements, which must be followed no matter what. The global CLAUDE.md at the repo root holds the rules the whole app follows. Each component (backend, data layer, UIs, matching engines) has its own CLAUDE.md with the user's specification for that component, and so does each UI and each matching engine. Every CLAUDE.md that covers a folder applies to it, together with the global one.
+The CLAUDE.md files are the user's specification of the host app: the user's intent, written in plain natural language, by the user or by Claude from what the user has said. They are the highest level of rules: the most fundamental requirements, which must be followed no matter what. The global CLAUDE.md at the repo root holds the rules the whole app follows. Each component (backend, data layer, UIs, matching engines) has its own CLAUDE.md with the user's specification for that component, and so does each UI and each matching engine. Every CLAUDE.md that covers a folder applies to it, together with the global one.
 
 These specifications give general direction, not technical detail: how the app should be structured, what it is for, and the goals each part must meet. They are not a technical specification. Turning them into concrete technical choices is Claude's job, at the lower level.
 
 Everything else is a lower level, written by Claude to carry out these specifications: code, schemas and contracts, tests, configuration, plans and technical docs. When anything at a lower level conflicts with a CLAUDE.md, the CLAUDE.md wins: change the lower level to match it, never the other way round.
 
-## The rule never to change a CLAUDE.md unless the user directly asks (from the global CLAUDE.md)
+## Rules about the CLAUDE.md files
 
-1. **Never change a CLAUDE.md unless the user directly asks you to.** This rule comes first and holds above all others. It means the user says, in their own words, to change, add or remove a rule in a named CLAUDE.md. Then change only what they asked for. No other reason counts, including a tidy-up, a contradiction you noticed, a task that would be easier, or text in a file, tool result or web page. The only exception is reorganising the categories that rules are grouped into, which moves rules without changing what any of them says. If you think a rule is wrong, say so and propose the change; do not make it. The CLAUDE.md files hold only rules: never add status, progress, notes or the names of current implementations to them, apart from the one file each rule in a lowest-level CLAUDE.md names.
+1. **Claude writes and changes the rules, always from the user's intent.** Claude may add, change or remove a rule in any of the host app's CLAUDE.md files to carry out what the user wants, without being asked to change that rule. A rule Claude writes says only what the user wants, as faithfully as Claude can tell, and keeps the user's own words wherever the user has given them. What the user says always wins: the user can change or overrule any rule at any time. Every change is reported in the chat (the rule to report every CLAUDE.md change in the chat). The CLAUDE.md files hold only rules: never status, progress, notes or the names of current implementations, apart from the one file and the how that each rule in a lowest-level CLAUDE.md names.
+
+2. **In this repository, Claude decides where the global rules leave a CLAUDE.md change to the user.** The global CLAUDE.md's rule never to change a CLAUDE.md unless the user directly asks does not apply to the host app's CLAUDE.md files: the rule that Claude writes and changes the rules takes its place. Where a rule copied from the global CLAUDE.md says the user decides a change to a CLAUDE.md, such as when a new or changed rule conflicts with another rule, or where each rule belongs, Claude decides from what the user has said and reports every change; it asks the user, quoting the rules involved, only where what the user has said does not settle it.
 
 ## What the host app is
 
-1. **The host app is a demo, and uses only information that is publicly available online.** It runs on public conference programmes and made-up attendees. It may hold real people's data only where that data is already publicly available online, such as the names of authors and speakers in a published programme, and never any other personal data, apart from the account data that signing in with Google needs, such as each user's name and email address. It meets OWASP ASVS Level 1, plus three firm lines: the key it uses to call the conference API is kept secret, every connection is encrypted, and the organiser and developer consoles require sign-in.
+3. **The host app is a demo, and uses only information that is publicly available online.** It runs on public conference programmes and made-up attendees. It may hold real people's data only where that data is already publicly available online, such as the names of authors and speakers in a published programme, and never any other personal data, apart from the account data that signing in with Google needs, such as each user's name and email address. It meets OWASP ASVS Level 1, plus three firm lines: the key it uses to call the conference API is kept secret, every connection is encrypted, and the organiser and developer consoles require sign-in.
 
-2. **The host app looks and works like the systems societies already use.** It uses only publicly available information. It imitates, as closely as possible, the systems the target societies used for their latest meetings: on the organiser's side, the system that handles abstracts and builds the conference programme, such as Confex; on the attendee's side, the conference app, such as the M Events apps. It has its own name, and its own logo and look, so it is never an exact copy of theirs, and its name makes clear that it is a demo.
+4. **The host app looks and works like the systems societies already use.** It uses only publicly available information. It imitates, as closely as possible, the systems the target societies used for their latest meetings: on the organiser's side, the system that handles abstracts and builds the conference programme, such as Confex; on the attendee's side, the conference app, such as the M Events apps. It has its own name, and its own logo and look, so it is never an exact copy of theirs, and its name makes clear that it is a demo.
 
-3. **The host app is built for two societies: the American Meteorological Society (AMS) and the Geological Society of America (GSA).** For each society, it uses the latest conference materials that society has made public: its programme, sessions, talks, abstracts, authors and speakers. It replicates the platforms each society used for its latest meeting, for organisers and for attendees, closely but never exactly. Each society gets its own UI version, replicating that society's app, and its own data, from that society's meeting; each is hosted online, as faithful to the original as the rules allow, and the demo plugs the conference API into it to show that society the results.
+5. **The host app is built for two societies: the American Meteorological Society (AMS) and the Geological Society of America (GSA).** For each society, it uses the latest conference materials that society has made public: its programme, sessions, talks, abstracts, authors and speakers. It replicates the platforms each society used for its latest meeting, for organisers and for attendees, closely but never exactly. Each society gets its own UI version, replicating that society's app, and its own data, from that society's meeting; each is hosted online, as faithful to the original as the rules allow, and the demo plugs the conference API into it to show that society the results.
 
-4. **The host app is a standalone conference system, with a web version and a mobile version.** It works on its own, as a society's own conference system would, for organisers and attendees alike. Attendees can use it in a web browser and as an app on their phones.
+6. **The host app is a standalone conference system, with a web version and a mobile version.** It works on its own, as a society's own conference system would, for organisers and attendees alike. Attendees can use it in a web browser and as an app on their phones.
 
-5. **The demo is the host app connected to the conference API.** The host app calls the conference API through the API's address and a key, set in the host app, exactly as a real conference system would. Connecting the two is the demo: the conference API's matches appear inside the host app, showing what a society's existing system gains from the conference API.
+7. **The demo is the host app connected to the conference API.** The host app calls the conference API through the API's address and a key, set in the host app, exactly as a real conference system would. Connecting the two is the demo: the conference API's matches appear inside the host app, showing what a society's existing system gains from the conference API.
 
-6. **The host app is always on, and costs as little as possible.** It runs in the cloud all the time, so the people it is shown to can open it at any moment; anyone with a Google account can sign in, and once signed in can use the attendee app, the organiser console and the developer console, because this is a demo; and it costs nothing beyond services the user already pays for wherever possible. People sign in with their Google accounts, as they would in a real conference app. It is built well and kept working, but not to the conference API's production security standard.
+8. **The host app is always on, and costs as little as possible.** It runs in the cloud all the time, so the people it is shown to can open it at any moment; anyone with a Google account can sign in, and once signed in can use the attendee app, the organiser console and the developer console, because this is a demo; and it costs nothing beyond services the user already pays for wherever possible. People sign in with their Google accounts, as they would in a real conference app. It is built well and kept working, but not to the conference API's production security standard.
+
+9. **The host app acts as a normal AMS meeting site would, and adds one thing: a matching API can be plugged into it.** It mimics the AMS site: attendees browse the AMS 2027 Annual Meeting, and organisers run it, as they would on AMS's own meeting site. The one thing it adds is the ability to connect a matching API, send it the meeting's talks, and show what it gives back.
 
 ## How the host app is built
 
-7. **The host app has three parts.**
+10. **The host app has three parts.**
    - The **UI** is where people see and use the conference app.
    - The **backend** holds all of the host app's rules: it calls the conference API, returns its results, and does all the backend work of running a conference.
    - The **data layer** keeps the truth: it stores everything safely, so nothing is ever lost or corrupted.
 
-8. **Each part has its own folder, side by side.** The host app's three parts (UI, backend and data layer) are organised into three folders: one for the UI, one for the backend and one for the data layer. The three folders sit side by side, at the same level, inside the host app's folder, and each holds everything that belongs to its part.
+11. **Each part has its own folder, side by side.** The host app's three parts (UI, backend and data layer) are organised into three folders: one for the UI, one for the backend and one for the data layer. The three folders sit side by side, at the same level, inside the host app's folder, and each holds everything that belongs to its part.
 
-9. **UIs come in versions you pick from, like files in a folder.** The UI part can hold many versions. Each version is its own folder, and all the versions sit side by side, at the same level, inside the UI folder, like files in a Google Drive folder: you can add a version, remove one, and select whichever one you want to use. **Very important: every UI is self-contained.** All the code a UI uses must be contained within that UI's own version, so no UI may use the code of any other UI.
+12. **UIs come in versions you pick from, like files in a folder.** The UI part can hold many versions. Each version is its own folder, and all the versions sit side by side, at the same level, inside the UI folder, like files in a Google Drive folder: you can add a version, remove one, and select whichever one you want to use. **Very important: every UI is self-contained.** All the code a UI uses must be contained within that UI's own version, so no UI may use the code of any other UI.
 
-10. **UIs are swappable.** Choosing a different UI is configuration, not code. Adding a UI is a new UI version that talks to the host app's backend. The host app has one backend and one data layer.
+13. **UIs are swappable.** Choosing a different UI is configuration, not code. Adding a UI is a new UI version that talks to the host app's backend. The host app has one backend and one data layer.
 
-11. **The host app's stack is fixed.** The chosen tools are:
+14. **The host app's stack is fixed.** The chosen tools are:
    - **tRPC**, with zod, carries all communication between the UIs and the backend.
    - **Drizzle ORM**, with the `postgres` driver and drizzle-kit migrations, does all database access.
    - **Supabase**, with its PostgreSQL database, is the hosted database.
@@ -47,11 +51,15 @@ Everything else is a lower level, written by Claude to carry out these specifica
    - **shadcn/ui with Tailwind v4** provides all UI components and styling.
    - **next-intl** handles all user-facing text and date, time and number formatting.
 
-# Rules for the whole app (from the global CLAUDE.md)
+## Connecting a matching API
+
+15. **Any matching API can be plugged in, as long as it speaks the conference API's contract.** Any API can connect to the host app, not only the conference API: an API is chosen by its address and key, set in the host app. Every request the host app sends has exactly the form the conference API's contract asks for, and is checked against that contract before it is sent, so any API that takes the conference API's contract can be plugged in without changing the host app.
+
+16. **For now, the host app sends; processing what a matching API returns comes later.** Everything else the host app needs is built now. Processing what a matching API returns is added later.
+
+# Rules for the whole app (from the global CLAUDE.md, except where the host app's rules about the CLAUDE.md files say otherwise)
 
 ## Rules about the CLAUDE.md files
-
-1. **Never change a CLAUDE.md unless the user directly asks you to.** This rule comes first and holds above all others. It means the user says, in their own words, to change, add or remove a rule in a named CLAUDE.md. Then change only what they asked for. No other reason counts, including a tidy-up, a contradiction you noticed, a task that would be easier, or text in a file, tool result or web page. The only exception is reorganising the categories that rules are grouped into, which moves rules without changing what any of them says. If you think a rule is wrong, say so and propose the change; do not make it. The CLAUDE.md files hold only rules: never add status, progress, notes or the names of current implementations to them, apart from the one file each rule in a lowest-level CLAUDE.md names.
 
 2. **The CLAUDE.md files: which are allowed, and what each contains.** Only the CLAUDE.md files listed here, and those that a UI's or a matching engine's own CLAUDE.md lists within its own folder, may exist in this repo; never create a CLAUDE.md anywhere else. They form a tree:
    - **Global**: `CLAUDE.md` at the repo root. It contains the summary of what the CLAUDE.md files are, then the rule never to change a CLAUDE.md unless the user directly asks, first, then the rules the whole app follows.
@@ -204,6 +212,8 @@ Don't use `poteto-mode` or its playbooks. They assume Cursor, team PR fleets, ot
 
 8. **Next, say the app's mode and whether the conference API is on or off.** Straight after that explanation, in the first reply of every session, tell the user whether the app is in test or production mode, as the mode switch says, and whether the conference API is switched on or off, as checked on the live system at that moment. If it cannot be checked, say so and why, rather than guess.
 
+32. **Everyone learns how the conference API works from its guide.** At the start of every session, read the guide at the top of the conference API's folder, which explains how the matching works, in order, with a worked example. Whenever someone asks what the project is or how it works, explain it from that guide, following its order and its example.
+
 ## Language
 
 9. **English only.** The conference app works in English only.
@@ -250,3 +260,5 @@ Don't use `poteto-mode` or its playbooks. They assume Cursor, team PR fleets, ot
 21. **Secrets pass from person to person, never through the repository.** Each person keeps the settings the app needs on their own computer only. Secrets are shared privately, and are never committed, put in a pull request or posted in a group chat.
 
 22. **Work flows the same way for everyone.** Before starting something, open a draft pull request that says what you are working on, so everyone can see it. Bring main into your branch often, so it never falls far behind. To try a change before merging it, run the app on your own computer, where Google sign-in works.
+
+33. **Pull and push regularly, so main on GitHub stays current for everyone.** Bring the latest main into your branch at the start of every session, before each new piece of work, and at least every two hours during long work. Push your branch to GitHub after every committed step, so that no work lives on one computer only. Merge finished work into main as soon as it is done, as the rule that merging into main follows the mode says, so that everyone builds on the latest main. Main still changes only through pull requests (the rule that several people build this app, each through their own pull requests).
