@@ -73,8 +73,8 @@ where the global rules leave a change to the user), plus:
 **`backend/`:** today's security rule (OWASP ASVS 5.0 Level 1), and: **The backend holds all of the host app's rules,
 and the UIs reach the data only through it.**
 
-**`data/`:** today's rules: Supabase's PostgreSQL, always on; security level; each society's data kept separately,
-public fields only; data gathered gently. (The rule that each society's data is kept separately stays, for a future society.) Rule 5 from PR #11 (every AMS 2027 talk) moves down to `data/programmes/`
+**`data/`:** today's rules: Supabase's PostgreSQL, always on; security level; the meeting's data holds only what the
+public programme shows; data gathered gently. Rule 5 from PR #11 (every AMS 2027 talk) moves down to `data/programmes/`
 and `data/store/src/`, split into its two ideas: the files kept, and the talks loaded.
 
 **`ui/`:** today's three rules (attendee app, organiser console, developer console, with their security level).
@@ -191,12 +191,12 @@ one rule per feature.**
 
 ### The database
 
-1. **Each society has its own schema, with the same tables, and sign-in has a schema of its own.** Each society's
-   schema holds its meeting, tracks, sessions, talks, people, who gives which talk, stars, notes and send runs. Sessions
+1. **The meeting has its own schema in the database, and sign-in has a schema of its own.** The meeting's schema
+   holds its meeting, tracks, sessions, talks, people, who gives which talk, stars, notes and send runs. Sessions
    and talks keep the published programme beside the live one, so that every organiser's change can be shown and undone.
    Sign-in's tables (users, sessions, accounts, verifications) sit in their own schema, and an account is unique by
    issuer and account id.
-   *How:* code alone: Drizzle table definitions, one function building the same tables for each society.
+   *How:* code alone: Drizzle table definitions.
    *File (planned):* `tables.ts` (today's `schema.ts` and `auth-schema.ts`)
 
 2. **The database's form changes only by adding a migration, never by editing one.** The migrations are applied in
@@ -236,7 +236,7 @@ one rule per feature.**
    *How:* code alone, with the platform's time-zone data.
    *File (planned):* `time.ts`
 
-8. **Loading a society puts back its published programme in one step, and keeps stars, notes and sign-ins.** The
+8. **Loading puts back the published programme in one step, and keeps stars, notes and sign-ins.** The
    meeting, tracks, sessions, talks and people are written as both the live and the published programme, and anything
    no longer in the files is removed. It all happens in one transaction, so a failed load changes nothing. It undoes
    organisers' edits.
