@@ -54,7 +54,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    match to a talk this programme does not show is left out. When the API cannot answer, the panel says so; when
    nothing is left, it says there are none.
    *How:* code alone: one matches search per talk, joined to the store's talk summaries by talk id.
-   *File:* needed
+   *File:* `related.ts`
 
 ### The consoles
 
