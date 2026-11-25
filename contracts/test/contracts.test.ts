@@ -6,7 +6,7 @@ import {
   NoteInputSchema,
   RelatedTalksSchema,
   SearchInputSchema,
-  TalkDetailSchema, SocietySchema } from "../src/index";
+  TalkDetailSchema, SavedNoteSchema, SocietySchema } from "../src/index";
 
 const summary = {
   id: "464598",
@@ -68,5 +68,13 @@ describe("societies", () => {
   test("the host app carries AMS only", () => {
     expect(SocietySchema.options).toEqual(["ams"]);
     expect(SocietySchema.safeParse("gsa").success).toBe(false);
+  });
+});
+
+describe("a guest's saved note", () => {
+  test("is its body and when it was saved, or nothing", () => {
+    expect(SavedNoteSchema.parse({ body: "Ask about it.", updatedAt: "2027-01-11T15:00:00.000Z" })?.body).toBe("Ask about it.");
+    expect(SavedNoteSchema.parse(null)).toBeNull();
+    expect(SavedNoteSchema.safeParse({ body: "x" }).success).toBe(false);
   });
 });

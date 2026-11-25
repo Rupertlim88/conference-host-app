@@ -42,6 +42,12 @@ const EnvSchema = z
     if (e.GOOGLE_CLIENT_ID && !e.GOOGLE_CLIENT_SECRET) {
       ctx.addIssue({ code: "custom", path: ["GOOGLE_CLIENT_SECRET"], message: "required when GOOGLE_CLIENT_ID is set" });
     }
+    if (e.CONFERENCE_API_KEY && !e.CONFERENCE_API_URL) {
+      ctx.addIssue({ code: "custom", path: ["CONFERENCE_API_URL"], message: "required when CONFERENCE_API_KEY is set" });
+    }
+    if (e.GOOGLE_CLIENT_SECRET && !e.GOOGLE_CLIENT_ID) {
+      ctx.addIssue({ code: "custom", path: ["GOOGLE_CLIENT_ID"], message: "required when GOOGLE_CLIENT_SECRET is set" });
+    }
   });
 
 export interface HostConfig {

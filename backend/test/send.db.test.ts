@@ -4,7 +4,7 @@ import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
-import { ApiRefusedError, RequestNotSent, type ConferenceApi } from "../src/matching-api";
+import { ApiRefusedError, RequestNotSent, unconfiguredApi, type ConferenceApi } from "../src/matching-api";
 import { SendFailed, SendRunning, sendProgramme } from "../src/send";
 import { rows } from "./programme";
 
@@ -91,6 +91,14 @@ describe.skipIf(!url)("sendProgramme", { timeout: 60_000 }, () => {
     expect((failed as SendFailed).run).toMatchObject({
       state: "failed",
       error: "The request did not fit the conference API's contract, so it was not sent: talk 1 is sent twice",
+    });
+  });
+
+  test("with no API address set, the send is recorded as failed, saying what to set", async () => {
+    const failed = await sendProgramme({ store, log, api: unconfiguredApi }).catch((e: unknown) => e);
+    expect((failed as SendFailed).run).toMatchObject({
+      state: "failed",
+      error: "Set CONFERENCE_API_URL and CONFERENCE_API_KEY to send the programme.",
     });
   });
 

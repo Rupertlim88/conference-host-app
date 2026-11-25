@@ -32,6 +32,7 @@ describe("readConfig", () => {
     const api = { CONFERENCE_API_URL: "http://127.0.0.1:4010", CONFERENCE_API_KEY: "k".repeat(16) };
     expect(readConfig({ ...base, ...api }).api).toEqual({ url: "http://127.0.0.1:4010", key: "k".repeat(16) });
     expect(() => readConfig({ ...base, CONFERENCE_API_URL: api.CONFERENCE_API_URL })).toThrow(/CONFERENCE_API_KEY/);
+    expect(() => readConfig({ ...base, CONFERENCE_API_KEY: api.CONFERENCE_API_KEY })).toThrow(/CONFERENCE_API_URL/);
   });
   test("web addresses off this machine must use HTTPS, so the API key never travels in the clear", () => {
     const key = { CONFERENCE_API_KEY: "k".repeat(16) };
@@ -49,6 +50,7 @@ describe("readConfig", () => {
     const google = { GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret" };
     expect(readConfig({ ...base, ...google }).google).toEqual({ clientId: "id", clientSecret: "secret" });
     expect(() => readConfig({ ...base, GOOGLE_CLIENT_ID: "id" })).toThrow(/GOOGLE_CLIENT_SECRET/);
+    expect(() => readConfig({ ...base, GOOGLE_CLIENT_SECRET: "secret" })).toThrow(/GOOGLE_CLIENT_ID/);
   });
 });
 

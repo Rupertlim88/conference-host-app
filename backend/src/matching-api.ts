@@ -50,11 +50,19 @@ function checked(schema: { safeParse(body: unknown): { success: boolean; error?:
   return body;
 }
 
+/** No API address is set, so nothing can be sent; the message says what to set. */
+export class ApiNotSet extends Error {
+  constructor() {
+    super("Set CONFERENCE_API_URL and CONFERENCE_API_KEY to send the programme.");
+    this.name = "ApiNotSet";
+  }
+}
+
 /** Used when no API address is set: every related-talks request is unavailable. */
 export const unconfiguredApi: ConferenceApi = {
   related: async () => ({ status: "unavailable" }),
   writeTalks: async () => {
-    throw new Error("Set CONFERENCE_API_URL and CONFERENCE_API_KEY to send the programme.");
+    throw new ApiNotSet();
   },
   check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
 };

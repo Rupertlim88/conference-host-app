@@ -9,6 +9,7 @@ import {
   PersonDetailSchema,
   PersonSchema,
   RelatedTalksSchema,
+  SavedNoteSchema,
   ScheduleSchema,
   SearchInputSchema,
   SearchResultsSchema,
@@ -110,7 +111,7 @@ export const attendeeRoutes = {
     list: viewerProcedure.output(z.array(NoteSchema)).query(({ ctx }) => ctx.store.notes(ctx.viewer.id)),
     get: viewerProcedure
       .input(TargetSchema)
-      .output(z.strictObject({ body: z.string(), updatedAt: z.iso.datetime() }).nullable())
+      .output(SavedNoteSchema)
       .query(({ ctx, input }) => ctx.store.note(ctx.viewer.id, input)),
     save: viewerProcedure.input(NoteInputSchema).mutation(({ ctx, input }) => {
       const { body, ...target } = input;

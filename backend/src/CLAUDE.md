@@ -16,30 +16,37 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### Starting up
 
 2. **The backend is built once per process, from settings checked when it starts.** Every setting is read and checked
-   at once, and every wrong one is named in a single error. A blank setting counts as unset. Web addresses must be
-   encrypted (https) unless they stay on this machine. The matching API's address and key come together or not at
-   all, as do Google's client id and secret; the key has at least 16 characters, the sign-in secret at least 32. The
-   developer console is told only the API's address, without any query or credentials, and whether a key is set:
-   never the key.
-   *How:* code alone: the settings are parsed with zod into typed values once, and one backend is built from them per
-   process.
+   at once, and every wrong one is named in a single error. A blank optional setting counts as unset. Web addresses
+   must be encrypted (https) unless they stay on this machine. The matching API's address and key come together or not
+   at all, as do Google's client id and secret; the key has at least 16 characters, the sign-in secret at least 32, and
+   the keep-alive's secret, when set, at least 16. From the settings it builds one backend: the store, the matching API
+   for the meeting's conference (or none, when no address is set), sign-in, the keep-alive, and one router joining the
+   attendee app's and the consoles' requests. The developer console is told only the API's address, without any query
+   or credentials, and whether a key is set: never the key. An unexpected error is logged on the server.
+   *How:* code alone: the settings are parsed with zod into typed values once, and one backend is built from them on
+   first use, once per process.
    *File:* needed
 
-3. **Every request passes one gate: only a signed-in guest gets in, and errors never show their insides.** People sign
-   in with Google, through Better Auth, when Google is set up. Every request except "who is signed in" is refused
-   without a signed-in guest, with "Sign in to see the programme." An unexpected error tells the browser only
-   "Something went wrong", with no stack, except while developing on one's own computer.
-   *How:* code alone: Better Auth reads the session from the request's cookies; one tRPC middleware refuses requests
-   with no guest; tRPC's error formatter strips internal errors.
+3. **Every request passes one gate: only a signed-in guest gets in, and errors never show their insides.** Anyone with
+   a Google account may sign in, through Better Auth, choosing their account each time, when Google is set up. Every
+   request for the programme or the consoles is refused without a signed-in guest, with "Sign in to see the
+   programme."; only the question of who is signed in is open to everyone. An unexpected error tells the browser only
+   "Something went wrong", with no stack, unless the app runs in development mode. The gate also fixes what every
+   request carries: the store, the organiser's store, the run log, the matching API, the API's settings without the key,
+   and the signed-in guest.
+   *How:* code alone: Better Auth reads the session from the request's cookies; every request but "who is signed in" is
+   built on one tRPC middleware that refuses a request with no guest; tRPC's error formatter strips internal errors.
    *File:* needed
 
 ### The attendee app
 
-4. **The attendee app's requests read the programme through the store, and a missing item is "not found".** Meeting,
-   days, tracks, session kinds, sessions, talks, people, search, stars and notes, each with its input and its answer
-   checked against the host app's contract. An item that does not exist, or is withdrawn, answers "not found" with
-   what was missing. Related talks are asked for only for a talk the attendee can see.
-   *How:* code alone: tRPC procedures, each a single call to the store with zod input and output schemas.
+4. **The attendee app's requests read the programme through the store, and a missing item is "not found".** Who is
+   signed in, the meeting, days, tracks, session kinds, sessions, talks, related talks, people, search, the guest's
+   schedule, stars and notes. Every input, and every answer that carries data, is checked against the host app's
+   contract. A talk, session, track or person that does not exist, or a talk that is withdrawn, answers "not found",
+   naming what kind of item was missing. Related talks are asked for only for a talk the attendee can see.
+   *How:* code alone: tRPC procedures calling the store, with zod schemas from the host app's contract; related talks
+   are handed to the related-talks file.
    *File:* needed
 
 5. **A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.** Up
@@ -53,20 +60,23 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 6. **The consoles' requests carry out the organiser's and developer's actions, and name every refusal.** Organisers
    list, open, move, withdraw and restore papers, and list, open and change sessions; they see the changes since the
-   published programme and the last ten sends, and start a send. A send that is already running is refused as a
-   conflict; a send that fails answers with its failed run, not an error. The developer sees the API settings, the
-   last send and the changes, tests the connection (or is told there is no programme to test with), and resets the
-   programme to the published one. Every input and answer is checked against the host app's contract.
+   published programme and the last ten sends, and start a send. A session's new times are given in the meeting's time
+   zone, on the meeting's days widened to the published programme's days, and checked by the organiser's rules before
+   anything is saved. A send that is already running is refused as a conflict; a send that fails answers with its
+   failed run, not an error. The developer sees the API settings, the last send and the changes, tests the connection
+   (or is told there is no programme to test with), and resets the programme to the published one. Every input and
+   answer is checked against the host app's contract.
    *How:* code alone: tRPC procedures calling the organiser store, the send and the matching API.
    *File:* needed
 
-7. **An organiser's edit keeps a talk's length and keeps a session's times inside the meeting.** A talk moved into a
-   session takes the session's room and goes after its last talk; it starts when the session starts or when the last
-   talk ends, whichever is later, and keeps its length. A poster, or a talk with no length, takes the session's times;
-   in a session with no time, it has none. Changing a session's start moves its talks by the same amount. A session's
-   new times are refused, by name, when only part of a time is given, when the end is not after the start, or when the
-   day is more than a day outside the meeting.
-   *How:* code alone: pure functions the console router calls inside the store's locked edit.
+7. **An organiser's edit keeps a talk's length and keeps a session's times close to the meeting's days.** A talk moved
+   into a session takes the session's room and building and goes after its last shown talk; it starts when the session
+   starts or when the last talk ends, whichever is later, and keeps its length. A poster, or a talk with no length,
+   takes the session's times; in a session with no time, it has none. Changing a session's start moves its talks by the
+   same amount. A session's new times are refused, by name, when only part of a time is given, when the end is not
+   after the start, or when the day is more than a day outside the days it is given.
+   *How:* code alone: pure functions. The console router checks new times before it edits; the store calls the
+   placement and the shift inside its locked edit.
    *File:* needed
 
 ### The matching API
@@ -88,25 +98,27 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* needed
 
 9. **The programme is sent as one run at a time, in parts of a thousand talks, and stops at a five-minute deadline.**
-   - **What is sent:** every talk the programme shows, except breaks and talks with no abstract. Text is made plain:
-     control characters become spaces, and each field is cut, never inside a character, to the contract's limits
+   - **What is sent:** every talk the store shows, except breaks and talks with no abstract. Text is made plain:
+     control characters other than tabs and line breaks become spaces, and each field is cut, never inside a character, to the contract's limits
      (abstract 10,000, title 500, number 64, session title 500, presenter's name 300; at most 20 tracks). An end is
-     sent only when it is after the start. The presenter is sent as an author and a presenter.
+     sent only when it is after the start, or when there is no start. The presenter is sent as an author and a presenter.
    - **How it is sent:** in parts of 1,000 under one sync name. The last part completes the sync, so the API withdraws
      talks no longer in the programme. The counts of added, changed, withdrawn and unchanged talks are added up.
-   - **One at a time:** each send is a run in the run log. A send that finds another running writes nothing. The
-     five-minute deadline starts before the run does, and stays shorter than the time after which a stuck run is taken
-     over.
-   - **Failures:** a failed send is recorded with a short reason (the deadline, nothing to send, the API's status and
-     title, a timeout, or unreachable), never the API's body or the key.
+   - **One at a time:** each send is a run in the run log, which lets only one run at a time; a send that finds another
+     running writes nothing. The five-minute deadline starts before the run does, bounds every write to the API, and
+     stays shorter than the time after which a stuck run is taken over.
+   - **Failures:** a failed send is recorded with a short reason (the deadline, nothing to send, no API address set, a
+     request that does not fit the contract, the API's status and title, a timeout, unreachable, or an unexpected error), never the API's body or the key.
    - The `sync` command does the same from the command line.
-   *How:* code alone. The rule "two sends never write at once" is model-checked with TLA+ (the verify-send-runs skill).
+   *How:* code alone; the store's run log lets only one run start. The rule "two sends never write at once" is
+   model-checked with TLA+ (the verify-send-runs skill).
    *File:* needed
 
 ### Staying on
 
 10. **The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.** A
-   request without the secret, or with the wrong one, is refused and touches nothing. A failure answers with no
-   detail.
-   *How:* code alone: Vercel's daily cron calls it; the secret is compared in constant time; it runs one trivial query.
-   *File:* needed
+    request without the secret, or with the wrong one, or when no secret is set, is refused and touches nothing. A
+    failure answers only "The database read failed", and the error is logged on the server.
+    *How:* code alone: Vercel's daily cron calls it with the secret; the secret is compared in constant time; it runs
+    the one trivial read the store gives it.
+    *File:* needed

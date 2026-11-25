@@ -2,7 +2,7 @@ import type { TalkInput } from "@repo/contracts";
 import type { SyncRun } from "@repo/host-contracts";
 import type { SyncLog } from "@repo/host-store";
 
-import { ApiRefusedError, RequestNotSent, type ConferenceApi } from "./matching-api";
+import { ApiNotSet, ApiRefusedError, RequestNotSent, type ConferenceApi } from "./matching-api";
 
 /** What the store's talksForSync returns, narrowed to what the upload needs. */
 export interface SyncTalk {
@@ -146,7 +146,7 @@ function failure(error: unknown, deadline: AbortSignal): string {
   if (deadline.aborted) return "Stopped at the send's deadline";
   if (error instanceof NothingToSend) return error.message;
   if (error instanceof ApiRefusedError) return `${error.status} ${error.title}`;
-  if (error instanceof RequestNotSent) return error.message;
+  if (error instanceof RequestNotSent || error instanceof ApiNotSet) return error.message;
   if (error instanceof DOMException && error.name === "TimeoutError") return "The conference API did not answer in time";
   if (error instanceof TypeError) return "Could not reach the conference API";
   return "Unexpected error";
