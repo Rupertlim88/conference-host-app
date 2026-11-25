@@ -1,9 +1,4 @@
-import type { Day, Meeting, SessionSummary } from "@repo/host-contracts";
-
-/** The day the calendar opens on: the first day with sessions from the meeting's start, else the earliest day with sessions. */
-export function firstDay(days: Day[], meeting: Meeting): Day | undefined {
-  return days.find((d) => d.date >= meeting.startsOn) ?? days[0];
-}
+import type { SessionSummary } from "@repo/host-contracts";
 
 /** Sessions grouped by the day they start on in the meeting's zone, earliest day first; sessions with no time come last. */
 export function byMeetingDay(sessions: SessionSummary[], timeZone: string): { date: string | null; sessions: SessionSummary[] }[] {

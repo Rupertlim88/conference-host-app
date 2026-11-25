@@ -3,7 +3,7 @@ import { useFormatter, useTranslations } from "next-intl";
 
 import { PageTitle } from "@/components/page-title";
 import { SessionCard } from "@/components/session-card";
-import { byMeetingDay } from "@/lib/days";
+import { byMeetingDay } from "@/lib/by-meeting-day";
 import { MEETING_ZONE } from "@/lib/meeting";
 
 /** One conference's programme: its sessions under the day they start on. */

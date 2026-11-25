@@ -1,6 +1,6 @@
 import { redirect } from "next/navigation";
 
-import { firstDay } from "@/lib/days";
+import { firstDay } from "@/lib/first-day";
 import { serverApi } from "@/lib/server-api";
 
 export default async function CalendarIndexPage() {
