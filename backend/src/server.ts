@@ -1,5 +1,5 @@
 import { SocietySchema, type Society } from "@repo/host-contracts";
-import { connect, createOrganiserStore, createStore, createSyncLog } from "@repo/host-store";
+import { connect, createGuestData, createOrganiserStore, createProgramme, createSyncLog } from "@repo/host-store";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { betterAuth } from "better-auth";
 import { z } from "zod";
@@ -94,7 +94,7 @@ export type HostCaller = ReturnType<typeof createHostCaller>;
 function build(env: Record<string, string | undefined>) {
   const config = readConfig(env);
   const { db } = connect(config.databaseUrl);
-  const store = createStore(db, config.society);
+  const store = { ...createProgramme(db, config.society), ...createGuestData(db, config.society) };
   const api = config.api
     ? conferenceApi({ url: config.api.url, key: config.api.key, conference: CONFERENCE_IDS[config.society] })
     : unconfiguredApi;

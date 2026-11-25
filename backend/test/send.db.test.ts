@@ -1,5 +1,5 @@
 import type { TalksWriteRequest } from "@repo/contracts";
-import { amsTables, connect, createOrganiserStore, createStore, createSyncLog, loadRows, type Db } from "@repo/host-store";
+import { amsTables, connect, createOrganiserStore, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
 import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
@@ -37,7 +37,7 @@ function neverAnswering(): ConferenceApi {
 describe.skipIf(!url)("sendProgramme", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
-  const store = createStore(db, "ams");
+  const store = createProgramme(db, "ams");
   const log = createSyncLog(db, "ams");
 
   beforeAll(async () => {

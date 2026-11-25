@@ -2,7 +2,7 @@ import { SyncRunSchema } from "@repo/host-contracts";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
-import { connect, type Db } from "../src/db";
+import { connect, type Db } from "../src/connect";
 import { migrateStore } from "../src/migrate";
 import { createSyncLog, STALE_AFTER_MINUTES } from "../src/sync-log";
 

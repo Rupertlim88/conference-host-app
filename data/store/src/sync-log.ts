@@ -2,8 +2,8 @@ import { randomUUID } from "node:crypto";
 import type { SyncRun, SyncRunState } from "@repo/host-contracts";
 import { and, desc, eq, sql } from "drizzle-orm";
 
-import type { Db } from "./db";
-import { SOCIETY_TABLES, type Society, type SocietyTables } from "./schema";
+import type { Db } from "./connect";
+import { SOCIETY_TABLES, type Society, type SocietyTables } from "./tables";
 
 // The rule "two sends never run at once" is model-checked: .claude/skills/verify-send-runs. Change start, finish
 // or fail, or this number, only with that check.

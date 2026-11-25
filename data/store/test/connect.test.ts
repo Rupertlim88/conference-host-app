@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { sslFor } from "../src/db";
+import { sslFor } from "../src/connect";
 
 describe("sslFor", () => {
   test("a database off this machine is always reached over TLS", () => {

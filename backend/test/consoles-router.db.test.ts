@@ -1,4 +1,4 @@
-import { amsTables, connect, createOrganiserStore, createStore, createSyncLog, loadRows, type Db } from "@repo/host-store";
+import { amsTables, connect, createOrganiserStore, createGuestData, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
 import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
@@ -46,7 +46,7 @@ describe.skipIf(!url)("organiser and developer procedures", { timeout: 60_000 },
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
   const ctx = (over: Partial<Context> = {}): Context => ({
-    store: createStore(db, "ams"),
+    store: { ...createProgramme(db, "ams"), ...createGuestData(db, "ams") },
     organiser: createOrganiserStore(db, "ams"),
     log: createSyncLog(db, "ams"),
     api,

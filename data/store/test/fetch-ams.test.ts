@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { publicProgramme, type AmsFiles } from "../src/ams-public";
+import { publicProgramme, type AmsFiles } from "../src/fetch-ams";
 
 // Shapes from AMS's 107th Annual Meeting API, cut down to the fields each test needs.
 const paper = (id: string, session: string, over: Record<string, unknown> = {}) => ({

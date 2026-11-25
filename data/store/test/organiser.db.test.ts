@@ -3,13 +3,13 @@ import { join } from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
-import { AmsFilesSchema, amsRows } from "../src/ams";
-import { connect, type Db } from "../src/db";
-import { loadRows } from "../src/load-rows";
+import { AmsFilesSchema, amsRows } from "../src/ams-rows";
+import { connect, type Db } from "../src/connect";
+import { loadRows } from "../src/load";
 import { migrateStore } from "../src/migrate";
 import { createOrganiserStore, type Placement, type PlacementFacts } from "../src/organiser";
-import { createStore } from "../src/queries";
-import { amsTables } from "../src/schema";
+import { createStore } from "./store";
+import { amsTables } from "../src/tables";
 
 const url = process.env.HOST_TEST_DATABASE_URL;
 const fixture = (name: string) => JSON.parse(readFileSync(join(import.meta.dirname, "fixtures", name), "utf8"));

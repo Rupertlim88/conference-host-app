@@ -11,9 +11,9 @@ import {
 } from "@repo/host-contracts";
 import { and, asc, eq, ilike, inArray, isNull, ne, or, sql, type SQL } from "drizzle-orm";
 
-import type { Db } from "./db";
-import { likeText, toSessionSummary, toTalkSummary } from "./queries";
-import { SOCIETY_TABLES, type Society, type SocietyTables } from "./schema";
+import type { Db } from "./connect";
+import { likeText, toSessionSummary, toTalkSummary } from "./programme";
+import { SOCIETY_TABLES, type Society, type SocietyTables } from "./tables";
 
 /** Where a talk goes in a session: worked out by the backend's programme rules, written here. */
 export interface Placement {

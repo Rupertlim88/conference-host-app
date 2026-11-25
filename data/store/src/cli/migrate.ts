@@ -1,5 +1,5 @@
-import { connect } from "./db";
-import { migrateStore } from "./migrate";
+import { connect } from "../connect";
+import { migrateStore } from "../migrate";
 
 // npm run migrate --workspace=@repo/host-store: applies new migrations and loads nothing, so organiser edits,
 // stars, notes and sign-ins stay. A first setup uses `npm run load`, which migrates too.

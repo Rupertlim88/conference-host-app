@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { connect, type Db } from "../src/db";
+import { connect, type Db } from "../src/connect";
 import { migrateStore } from "../src/migrate";
 
 const url = process.env.HOST_TEST_DATABASE_URL;

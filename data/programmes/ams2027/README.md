@@ -25,7 +25,7 @@ Rows link by Confex id, as in the 2026 files the loader was first written for. A
 
 ## What was removed
 
-The API returns more than the published programme shows. `data/store/src/ams-public.ts` keeps only the fields the programme shows, per type, and drops any field it does not list. The removed fields include:
+The API returns more than the published programme shows. `data/store/src/fetch-ams.ts` keeps only the fields the programme shows, per type, and drops any field it does not list. The removed fields include:
 
 - reviewer ratings and comments;
 - submitters' notes to organisers;

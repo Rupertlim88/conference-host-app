@@ -1,5 +1,5 @@
 import type { Viewer } from "@repo/host-contracts";
-import { authTables, type Db, type HostStore, type OrganiserStore, type SyncLog } from "@repo/host-store";
+import { authTables, type Db, type GuestData, type OrganiserStore, type ProgrammeStore, type SyncLog } from "@repo/host-store";
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -38,7 +38,7 @@ export interface ApiSettings {
 }
 
 export interface Context {
-  store: HostStore;
+  store: ProgrammeStore & GuestData;
   organiser: OrganiserStore;
   log: SyncLog;
   api: ConferenceApi;

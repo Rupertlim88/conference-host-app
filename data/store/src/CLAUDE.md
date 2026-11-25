@@ -54,8 +54,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *How:* code alone: the files are checked with zod, then mapped.
    *File:* needed
 
-8. **A time in the meeting's own zone is turned into an exact instant, through daylight saving.** A 12-hour clock is
-   read as 24-hour; anything else is refused.
+8. **A time in the meeting's own zone is turned into an exact instant, through daylight saving.** A date and a
+   24-hour clock time on the meeting's wall clock give the one instant they name there, in summer and in winter.
    *How:* code alone, with the platform's time-zone data.
    *File:* needed
 
@@ -95,6 +95,3 @@ Everything else is a lower level, written by Claude to carry out these specifica
     characters. The last ten runs are listed.
     *How:* code alone: a partial unique index allows one running row; the model check in verify-send-runs covers it.
     *File:* needed
-
-(The organiser rule keeps reading and editing in one file, because both use the same "changed since published" test; if it grows
-past about 300 lines, it splits into two rules.)

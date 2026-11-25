@@ -15,7 +15,7 @@ Organisers press Send programme, and the CLI runs `npm run sync`. Each send writ
 | `backend/src/send.ts` | `syncProgramme` passing the signal to every write, and `NothingToSend`, thrown before any write when no talk can be sent (one of the failures `ApiDone` covers) |
 | `backend/src/matching-api.ts` | `writeTalks` aborting on the caller's signal |
 | `data/store/src/sync-log.ts` | `start` (mark stale runs interrupted, then insert ... on conflict do nothing), `finish` and `fail` (update only `where state = 'running'`); `STALE_AFTER_MINUTES` |
-| `data/store/src/schema.ts`, `data/store/drizzle/0004_send_runs.sql` | table `sync_runs` and the partial unique index `sync_runs_one_running` |
+| `data/store/src/tables.ts`, `data/store/src/migrations/0004_send_runs.sql` | table `sync_runs` and the partial unique index `sync_runs_one_running` |
 
 Any later migration that changes `sync_runs` or its indexes is covered code too.
 
@@ -24,7 +24,7 @@ Any later migration that changes `sync_runs` or its indexes is covered code too.
 ## 1. Check whether your change touches the verified code
 
 ```sh
-git diff bdc0f7f52ad90cb8988798af476fc117581ea2b7 -- backend/src/send.ts backend/src/matching-api.ts data/store/src/sync-log.ts data/store/src/schema.ts data/store/drizzle/
+git diff bdc0f7f52ad90cb8988798af476fc117581ea2b7 -- backend/src/send.ts backend/src/matching-api.ts data/store/src/sync-log.ts data/store/src/tables.ts data/store/src/migrations/
 rg -n "sync_runs|syncRuns|createSyncLog|sendProgramme|SEND_DEADLINE_MS|STALE_AFTER_MINUTES" host-app --glob '!**/node_modules/**'
 ```
 

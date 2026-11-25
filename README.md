@@ -18,7 +18,7 @@ This repo began as a copy of the host app from ConferenceApp. These were added s
 | `ui/apps/ams` | The AMS app, in Next.js |
 | `backend` | `@repo/host-backend`: the tRPC routers, and the client that calls the conference API |
 | `data/store` | `@repo/host-store`: the Postgres schema, migrations and the programme loader |
-| `data/ams2027` | AMS's published programme, public fields only |
+| `data/programmes/ams2027` | AMS's published programme, public fields only |
 | `contracts` | `@repo/host-contracts`: what passes between the host app's parts |
 | `conference-api-contract` | `@repo/contracts`: a copy of the conference API's contract, which the backend uses to build and check its calls |
 | `tooling` | Shared ESLint and TypeScript settings |

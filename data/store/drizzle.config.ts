@@ -2,8 +2,8 @@ import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
   dialect: "postgresql",
-  schema: "./src/schema.ts",
-  out: "./drizzle",
+  schema: "./src/tables.ts",
+  out: "./src/migrations",
   // Own tracking table, so these migrations never mix with another package's in a shared database.
   migrations: { table: "__host_store_migrations", schema: "drizzle" },
   dbCredentials: {
