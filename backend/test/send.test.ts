@@ -1,8 +1,8 @@
 import { TalkInputSchema, type TalksWriteRequest } from "@repo/contracts";
 import { describe, expect, test } from "vitest";
 
-import type { ConferenceApi } from "../src/conference-api";
-import { syncProgramme, toPartnerTalk, type SyncTalk } from "../src/sync";
+import type { ConferenceApi } from "../src/matching-api";
+import { syncProgramme, toPartnerTalk, type SyncTalk } from "../src/send";
 
 const row = (id: string, over: Partial<SyncTalk> = {}): SyncTalk => ({
   id,

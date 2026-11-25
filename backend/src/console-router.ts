@@ -2,52 +2,27 @@ import {
   ApiStatusSchema,
   ChangesSchema,
   ConnectionTestSchema,
-  DateInputSchema,
-  DaySchema,
   IdInputSchema,
-  KindInputSchema,
-  MeetingSchema,
   MoveTalkInputSchema,
-  NoteInputSchema,
-  NoteSchema,
   OrganiserSessionDetailSchema,
   OrganiserTalkSchema,
-  PersonDetailSchema,
-  PersonSchema,
-  RelatedTalksSchema,
   ResetResultSchema,
-  ScheduleSchema,
-  SearchInputSchema,
-  SearchResultsSchema,
   SessionChangeInputSchema,
-  SessionDetailSchema,
-  SessionKindSchema,
   SessionListInputSchema,
   SessionListSchema,
-  SessionSummarySchema,
   SyncRunSchema,
-  TalkDetailSchema,
   TalkListInputSchema,
   TalkListSchema,
-  TargetSchema,
-  TrackDetailSchema,
-  TrackSchema,
-  ViewerSchema,
 } from "@repo/host-contracts";
+import { zonedInstant } from "@repo/host-store";
 import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
-import { zonedInstant } from "@repo/host-store";
-
-import { connectionStatus, placeInSession, sessionShift, sessionTimesProblem } from "./programme-rules";
-import { relatedTalks } from "./related";
+import { found } from "./attendee-router";
+import { router, viewerProcedure, type Context } from "./gate";
+import { connectionStatus } from "./matching-api";
+import { placeInSession, sessionShift, sessionTimesProblem } from "./organiser-rules";
 import { SendFailed, SendRunning, sendProgramme } from "./send";
-import { createCallerFactory, publicProcedure, router, viewerProcedure, type Context } from "./trpc";
-
-function found<T>(value: T | null, what: string): T {
-  if (value === null) throw new TRPCError({ code: "NOT_FOUND", message: `${what} not found` });
-  return value;
-}
 
 /** The talk as the organiser sees it after an edit; NOT_FOUND when the edit found no talk. */
 async function editedTalk(ctx: Context, id: string, wrote: boolean) {
@@ -55,7 +30,7 @@ async function editedTalk(ctx: Context, id: string, wrote: boolean) {
   return found(await ctx.organiser.talk(id), "Talk");
 }
 
-const organiserRouter = router({
+export const organiserRouter = router({
   talks: router({
     list: viewerProcedure
       .input(TalkListInputSchema)
@@ -65,7 +40,7 @@ const organiserRouter = router({
       .input(IdInputSchema)
       .output(OrganiserTalkSchema)
       .query(async ({ ctx, input }) => found(await ctx.organiser.talk(input.id), "Talk")),
-    /** Into another session: the session's room, after its last shown talk (programme-rules placeInSession).
+    /** Into another session: the session's room, after its last shown talk (organiser-rules placeInSession).
      *  A move into the talk's own session changes nothing. */
     move: viewerProcedure
       .input(MoveTalkInputSchema)
@@ -135,7 +110,7 @@ const organiserRouter = router({
   }),
 });
 
-const developerRouter = router({
+export const developerRouter = router({
   status: viewerProcedure.output(ApiStatusSchema).query(async ({ ctx }) => ({
     ...ctx.settings,
     lastRun: (await ctx.log.runs())[0] ?? null,
@@ -154,100 +129,3 @@ const developerRouter = router({
   }),
   reset: viewerProcedure.output(ResetResultSchema).mutation(({ ctx }) => ctx.organiser.resetToPublished()),
 });
-
-export const appRouter = router({
-  organiser: organiserRouter,
-  developer: developerRouter,
-
-  viewer: router({
-    get: publicProcedure.output(ViewerSchema.nullable()).query(({ ctx }) =>
-      ctx.viewer ? { name: ctx.viewer.name, email: ctx.viewer.email, image: ctx.viewer.image } : null,
-    ),
-  }),
-
-  meeting: router({
-    get: viewerProcedure.output(MeetingSchema).query(({ ctx }) => ctx.store.meeting()),
-  }),
-
-  days: router({
-    list: viewerProcedure.output(z.array(DaySchema)).query(({ ctx }) => ctx.store.days()),
-    sessions: viewerProcedure
-      .input(DateInputSchema)
-      .output(z.array(SessionSummarySchema))
-      .query(({ ctx, input }) => ctx.store.sessionsOn(input.date)),
-  }),
-
-  tracks: router({
-    list: viewerProcedure.output(z.array(TrackSchema)).query(({ ctx }) => ctx.store.tracks()),
-    get: viewerProcedure
-      .input(IdInputSchema)
-      .output(TrackDetailSchema)
-      .query(async ({ ctx, input }) => found(await ctx.store.track(input.id), "Track")),
-  }),
-
-  sessions: router({
-    kinds: viewerProcedure.output(z.array(SessionKindSchema)).query(({ ctx }) => ctx.store.sessionKinds()),
-    ofKind: viewerProcedure
-      .input(KindInputSchema)
-      .output(z.array(SessionSummarySchema))
-      .query(({ ctx, input }) => ctx.store.sessionsOfKind(input.kind)),
-    get: viewerProcedure
-      .input(IdInputSchema)
-      .output(SessionDetailSchema)
-      .query(async ({ ctx, input }) => found(await ctx.store.session(input.id), "Session")),
-  }),
-
-  talks: router({
-    get: viewerProcedure
-      .input(IdInputSchema)
-      .output(TalkDetailSchema)
-      .query(async ({ ctx, input }) => found(await ctx.store.talk(input.id), "Talk")),
-    /** The conference API's matches for a shown talk; NOT_FOUND for a withdrawn or unknown one. */
-    related: viewerProcedure
-      .input(IdInputSchema)
-      .output(RelatedTalksSchema)
-      .query(async ({ ctx, input }) => {
-        if ((await ctx.store.talkSummaries([input.id])).length === 0) found(null, "Talk");
-        return relatedTalks(ctx.store, ctx.api, input.id);
-      }),
-  }),
-
-  people: router({
-    list: viewerProcedure.output(z.array(PersonSchema)).query(({ ctx }) => ctx.store.people()),
-    get: viewerProcedure
-      .input(IdInputSchema)
-      .output(PersonDetailSchema)
-      .query(async ({ ctx, input }) => found(await ctx.store.person(input.id), "Person")),
-  }),
-
-  search: viewerProcedure
-    .input(SearchInputSchema)
-    .output(SearchResultsSchema)
-    .query(({ ctx, input }) => ctx.store.search(input.q)),
-
-  schedule: router({
-    get: viewerProcedure.output(ScheduleSchema).query(({ ctx }) => ctx.store.schedule(ctx.viewer.id)),
-    starred: viewerProcedure.output(z.array(TargetSchema)).query(({ ctx }) => ctx.store.starred(ctx.viewer.id)),
-    star: viewerProcedure.input(TargetSchema).mutation(({ ctx, input }) => ctx.store.star(ctx.viewer.id, input)),
-    unstar: viewerProcedure.input(TargetSchema).mutation(({ ctx, input }) => ctx.store.unstar(ctx.viewer.id, input)),
-  }),
-
-  notes: router({
-    list: viewerProcedure.output(z.array(NoteSchema)).query(({ ctx }) => ctx.store.notes(ctx.viewer.id)),
-    get: viewerProcedure
-      .input(TargetSchema)
-      .output(z.strictObject({ body: z.string(), updatedAt: z.iso.datetime() }).nullable())
-      .query(({ ctx, input }) => ctx.store.note(ctx.viewer.id, input)),
-    save: viewerProcedure.input(NoteInputSchema).mutation(({ ctx, input }) => {
-      const { body, ...target } = input;
-      return ctx.store.saveNote(ctx.viewer.id, target, body);
-    }),
-    remove: viewerProcedure.input(TargetSchema).mutation(({ ctx, input }) => ctx.store.deleteNote(ctx.viewer.id, input)),
-  }),
-});
-
-export type AppRouter = typeof appRouter;
-
-export const createHostCaller = createCallerFactory(appRouter);
-/** The router called directly, as server components use it. */
-export type HostCaller = ReturnType<typeof createHostCaller>;

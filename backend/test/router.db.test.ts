@@ -3,9 +3,9 @@ import { amsTables, connect, createOrganiserStore, createStore, createSyncLog, l
 import { TRPCError } from "@trpc/server";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import type { ConferenceApi, RelatedAnswer } from "../src/conference-api";
-import { appRouter } from "../src/router";
-import { createCallerFactory, type Context } from "../src/trpc";
+import type { ConferenceApi, RelatedAnswer } from "../src/matching-api";
+import { appRouter } from "../src/server";
+import { createCallerFactory, type Context } from "../src/gate";
 import { rows } from "./programme";
 
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;

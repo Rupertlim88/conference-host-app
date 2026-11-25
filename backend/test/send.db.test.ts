@@ -4,7 +4,7 @@ import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
-import { ApiRefusedError, type ConferenceApi } from "../src/conference-api";
+import { ApiRefusedError, type ConferenceApi } from "../src/matching-api";
 import { SendFailed, SendRunning, sendProgramme } from "../src/send";
 import { rows } from "./programme";
 

@@ -6,9 +6,7 @@ import {
   type TalksWriteRequest,
   type TalksWriteResponse,
 } from "@repo/contracts";
-import type { Society } from "@repo/host-contracts";
-
-import type { ConnectionOutcome } from "./programme-rules";
+import type { ConnectionStatus, Society } from "@repo/host-contracts";
 
 /** The conference id each society's programme is filed under at the conference API. */
 export const CONFERENCE_IDS: Record<Society, string> = { ams: "ams-2027" };
@@ -94,4 +92,17 @@ export function conferenceApi(opts: {
       return TalksWriteResponseSchema.parse(await res.json());
     },
   };
+}
+
+export type ConnectionOutcome =
+  | { kind: "not-set" }
+  | { kind: "unreachable" }
+  | { kind: "answered"; httpStatus: number; validBody: boolean };
+
+export function connectionStatus(outcome: ConnectionOutcome): ConnectionStatus {
+  if (outcome.kind !== "answered") return outcome.kind;
+  const { httpStatus, validBody } = outcome;
+  if (httpStatus === 401 || httpStatus === 403) return "refused-key";
+  if (httpStatus === 404) return "no-programme";
+  return httpStatus >= 200 && httpStatus < 300 && validBody ? "ok" : "unexpected-answer";
 }

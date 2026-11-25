@@ -1,5 +1,3 @@
-import type { ConnectionStatus } from "@repo/host-contracts";
-
 export interface Placement {
   startsAt: Date | null;
   endsAt: Date | null;
@@ -54,23 +52,4 @@ export function sessionTimesProblem(
   const day = dayNumber(times.date);
   if (day < dayNumber(span.startsOn) - 1 || day > dayNumber(span.endsOn) + 1) return "outside-meeting";
   return null;
-}
-
-export type ConnectionOutcome =
-  | { kind: "not-set" }
-  | { kind: "unreachable" }
-  | { kind: "answered"; httpStatus: number; validBody: boolean };
-
-export function connectionStatus(outcome: ConnectionOutcome): ConnectionStatus {
-  if (outcome.kind !== "answered") return outcome.kind;
-  const { httpStatus, validBody } = outcome;
-  if (httpStatus === 401 || httpStatus === 403) return "refused-key";
-  if (httpStatus === 404) return "no-programme";
-  return httpStatus >= 200 && httpStatus < 300 && validBody ? "ok" : "unexpected-answer";
-}
-
-/** The API's address as safe to show: origin and path, without credentials, query or fragment. */
-export function safeApiAddress(url: string): string {
-  const u = new URL(url);
-  return `${u.origin}${u.pathname}`;
 }

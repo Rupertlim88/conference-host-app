@@ -1,6 +1,6 @@
 import type { RelatedTalks, TalkSummary } from "@repo/host-contracts";
 
-import type { ConferenceApi } from "./conference-api";
+import type { ConferenceApi } from "./matching-api";
 
 export const RELATED_TOP = 5;
 

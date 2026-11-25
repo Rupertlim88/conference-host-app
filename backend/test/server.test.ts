@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { readConfig } from "../src/config";
+import { readConfig, safeApiAddress } from "../src/server";
 
 const base = {
   HOST_SOCIETY: "ams",
@@ -49,5 +49,12 @@ describe("readConfig", () => {
     const google = { GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret" };
     expect(readConfig({ ...base, ...google }).google).toEqual({ clientId: "id", clientSecret: "secret" });
     expect(() => readConfig({ ...base, GOOGLE_CLIENT_ID: "id" })).toThrow(/GOOGLE_CLIENT_SECRET/);
+  });
+});
+
+describe("safeApiAddress", () => {
+  test("keeps the origin and path and drops credentials, query and fragment", () => {
+    expect(safeApiAddress("https://user:secret@api.example.org/base/?key=abc#x")).toBe("https://api.example.org/base/");
+    expect(safeApiAddress("http://127.0.0.1:8787")).toBe("http://127.0.0.1:8787/");
   });
 });

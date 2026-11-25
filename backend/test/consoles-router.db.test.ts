@@ -3,9 +3,9 @@ import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
-import type { ConferenceApi } from "../src/conference-api";
-import { appRouter } from "../src/router";
-import { createCallerFactory, type Context } from "../src/trpc";
+import type { ConferenceApi } from "../src/matching-api";
+import { appRouter } from "../src/server";
+import { createCallerFactory, type Context } from "../src/gate";
 import { rows as baseRows } from "./programme";
 
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
@@ -183,7 +183,7 @@ describe.skipIf(!url)("organiser and developer procedures", { timeout: 60_000 },
     const refusing: ConferenceApi = {
       ...api,
       writeTalks: async () => {
-        const { ApiRefusedError } = await import("../src/conference-api");
+        const { ApiRefusedError } = await import("../src/matching-api");
         throw new ApiRefusedError(403, "Forbidden");
       },
     };

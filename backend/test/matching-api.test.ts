@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, test } from "vitest";
 
-import { ApiRefusedError, conferenceApi } from "../src/conference-api";
+import { ApiRefusedError, conferenceApi, connectionStatus } from "../src/matching-api";
 
 interface Seen {
   url: string;
@@ -135,5 +135,18 @@ describe("conferenceApi.writeTalks", () => {
       api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "" }] }, AbortSignal.timeout(50)),
     ).rejects.toMatchObject({ name: "TimeoutError" });
     expect(Date.now() - started).toBeLessThan(1000);
+  });
+});
+
+describe("connectionStatus", () => {
+  test("names what a connection test found", () => {
+    expect(connectionStatus({ kind: "not-set" })).toBe("not-set");
+    expect(connectionStatus({ kind: "unreachable" })).toBe("unreachable");
+    expect(connectionStatus({ kind: "answered", httpStatus: 200, validBody: true })).toBe("ok");
+    expect(connectionStatus({ kind: "answered", httpStatus: 200, validBody: false })).toBe("unexpected-answer");
+    expect(connectionStatus({ kind: "answered", httpStatus: 401, validBody: false })).toBe("refused-key");
+    expect(connectionStatus({ kind: "answered", httpStatus: 403, validBody: false })).toBe("refused-key");
+    expect(connectionStatus({ kind: "answered", httpStatus: 404, validBody: false })).toBe("no-programme");
+    expect(connectionStatus({ kind: "answered", httpStatus: 500, validBody: false })).toBe("unexpected-answer");
   });
 });

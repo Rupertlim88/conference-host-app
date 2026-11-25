@@ -1,12 +1,7 @@
 import { describe, expect, test } from "vitest";
 
-import {
-  connectionStatus,
-  placeInSession,
-  safeApiAddress,
-  sessionShift,
-  sessionTimesProblem,
-} from "../src/programme-rules";
+import { placeInSession, sessionShift, sessionTimesProblem } from "../src/organiser-rules";
+
 
 const at = (hhmm: string) => new Date(`2026-01-27T${hhmm}:00.000Z`);
 const session = { startsAt: at("13:30"), endsAt: at("15:00"), room: "350D", building: "GRB" };
@@ -103,22 +98,3 @@ describe("sessionTimesProblem", () => {
   });
 });
 
-describe("connectionStatus", () => {
-  test("names what a connection test found", () => {
-    expect(connectionStatus({ kind: "not-set" })).toBe("not-set");
-    expect(connectionStatus({ kind: "unreachable" })).toBe("unreachable");
-    expect(connectionStatus({ kind: "answered", httpStatus: 200, validBody: true })).toBe("ok");
-    expect(connectionStatus({ kind: "answered", httpStatus: 200, validBody: false })).toBe("unexpected-answer");
-    expect(connectionStatus({ kind: "answered", httpStatus: 401, validBody: false })).toBe("refused-key");
-    expect(connectionStatus({ kind: "answered", httpStatus: 403, validBody: false })).toBe("refused-key");
-    expect(connectionStatus({ kind: "answered", httpStatus: 404, validBody: false })).toBe("no-programme");
-    expect(connectionStatus({ kind: "answered", httpStatus: 500, validBody: false })).toBe("unexpected-answer");
-  });
-});
-
-describe("safeApiAddress", () => {
-  test("keeps the origin and path and drops credentials, query and fragment", () => {
-    expect(safeApiAddress("https://user:secret@api.example.org/base/?key=abc#x")).toBe("https://api.example.org/base/");
-    expect(safeApiAddress("http://127.0.0.1:8787")).toBe("http://127.0.0.1:8787/");
-  });
-});

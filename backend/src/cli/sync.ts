@@ -1,7 +1,7 @@
 import { connect, createStore, createSyncLog } from "@repo/host-store";
 
-import { CONFERENCE_IDS, conferenceApi } from "../conference-api";
-import { readConfig } from "../config";
+import { CONFERENCE_IDS, conferenceApi } from "../matching-api";
+import { readConfig } from "../server";
 import { SendFailed, sendProgramme } from "../send";
 
 const config = readConfig(process.env);

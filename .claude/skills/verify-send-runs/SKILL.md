@@ -1,6 +1,6 @@
 ---
 name: verify-send-runs
-description: Use when a change touches how the host app sends a programme to the conference API, or its run log: backend/src/send.ts (sendProgramme, SEND_DEADLINE_MS), the deadline or signal in syncProgramme (backend/src/sync.ts) or conferenceApi.writeTalks, data/store/src/sync-log.ts (start, finish, fail, STALE_AFTER_MINUTES), or the sync_runs table and its index sync_runs_one_running. Model-checks "two sends never write at once" with TLA+ (TLC) and runs the database tests that tie the model to the code.
+description: Use when a change touches how the host app sends a programme to the conference API, or its run log: backend/src/send.ts (sendProgramme, SEND_DEADLINE_MS), the deadline or signal in syncProgramme (also backend/src/send.ts) or conferenceApi.writeTalks (backend/src/matching-api.ts), data/store/src/sync-log.ts (start, finish, fail, STALE_AFTER_MINUTES), or the sync_runs table and its index sync_runs_one_running. Model-checks "two sends never write at once" with TLA+ (TLC) and runs the database tests that tie the model to the code.
 ---
 
 # Verify the programme send's run log
@@ -12,8 +12,8 @@ Organisers press Send programme, and the CLI runs `npm run sync`. Each send writ
 | File | What the model covers |
 | --- | --- |
 | `backend/src/send.ts` | `sendProgramme`: the deadline signal made before `log.start()`, the refusal when start returns null, `log.finish` or `log.fail` after the writes; `SEND_DEADLINE_MS` |
-| `backend/src/sync.ts` | `syncProgramme` passing the signal to every write, and `NothingToSend`, thrown before any write when no talk can be sent (one of the failures `ApiDone` covers) |
-| `backend/src/conference-api.ts` | `writeTalks` aborting on the caller's signal |
+| `backend/src/send.ts` | `syncProgramme` passing the signal to every write, and `NothingToSend`, thrown before any write when no talk can be sent (one of the failures `ApiDone` covers) |
+| `backend/src/matching-api.ts` | `writeTalks` aborting on the caller's signal |
 | `data/store/src/sync-log.ts` | `start` (mark stale runs interrupted, then insert ... on conflict do nothing), `finish` and `fail` (update only `where state = 'running'`); `STALE_AFTER_MINUTES` |
 | `data/store/src/schema.ts`, `data/store/drizzle/0004_send_runs.sql` | table `sync_runs` and the partial unique index `sync_runs_one_running` |
 
@@ -24,7 +24,7 @@ Any later migration that changes `sync_runs` or its indexes is covered code too.
 ## 1. Check whether your change touches the verified code
 
 ```sh
-git diff bdc0f7f52ad90cb8988798af476fc117581ea2b7 -- backend/src/send.ts backend/src/sync.ts backend/src/conference-api.ts data/store/src/sync-log.ts data/store/src/schema.ts data/store/drizzle/
+git diff bdc0f7f52ad90cb8988798af476fc117581ea2b7 -- backend/src/send.ts backend/src/matching-api.ts data/store/src/sync-log.ts data/store/src/schema.ts data/store/drizzle/
 rg -n "sync_runs|syncRuns|createSyncLog|sendProgramme|SEND_DEADLINE_MS|STALE_AFTER_MINUTES" host-app --glob '!**/node_modules/**'
 ```
 

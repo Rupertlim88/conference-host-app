@@ -5,8 +5,8 @@ import { testUtils } from "better-auth/plugins";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { authOptions, viewerFrom } from "../src/auth";
-import type { HostConfig } from "../src/config";
+import { authOptions, viewerFrom } from "../src/gate";
+import type { HostConfig } from "../src/server";
 
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
 const config: HostConfig = {

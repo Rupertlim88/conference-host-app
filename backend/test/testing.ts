@@ -3,8 +3,8 @@ import { connect } from "@repo/host-store";
 import { betterAuth } from "better-auth";
 import { testUtils } from "better-auth/plugins";
 
-import { authOptions } from "./auth";
-import { readConfig } from "./config";
+import { authOptions } from "../src/gate";
+import { readConfig } from "../src/server";
 
 export interface TestCookie {
   name: string;

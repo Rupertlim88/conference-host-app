@@ -3,8 +3,8 @@ import { getAuthTables } from "better-auth/db";
 import { getTableColumns } from "drizzle-orm";
 import { expect, test } from "vitest";
 
-import { authOptions } from "../src/auth";
-import { readConfig } from "../src/config";
+import { authOptions } from "../src/gate";
+import { readConfig } from "../src/server";
 
 const config = readConfig({
   HOST_SOCIETY: "ams",

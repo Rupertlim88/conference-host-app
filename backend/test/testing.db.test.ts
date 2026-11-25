@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { signInForTest } from "../src/testing";
+import { signInForTest } from "./testing";
 
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
 
