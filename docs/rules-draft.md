@@ -10,7 +10,7 @@ are merged into it.
 
 ## 1. Where the CLAUDE.md files sit
 
-A rule sits in the folder that holds its file. Twelve CLAUDE.md files; the six marked **lowest** hold every rule that
+A rule sits in the folder that holds its file. Ten CLAUDE.md files; the five marked **lowest** hold every rule that
 is tied to a file.
 
 | CLAUDE.md | Level | What it holds |
@@ -20,25 +20,24 @@ is tied to a file.
 | `backend/src/` | **lowest** | 9 rules, one per backend file |
 | `data/` | part | the data layer's security level; data kept separately, public fields only; gathered gently |
 | `data/store/src/` | **lowest** | 12 rules: the database and every read and write |
-| `data/programmes/` | **lowest** | 2 rules: the AMS and GSA programme files as published |
+| `data/programmes/` | **lowest** | 1 rule: the AMS 2027 programme files as published |
 | `contracts/src/` | **lowest** | 3 rules: the forms that pass between the host app's parts |
 | `ui/` | part | what every UI has: attendee app, organiser console, developer console |
 | `ui/ams/` | UI version | what the AMS UI is (today's rules); lists its one further CLAUDE.md |
 | `ui/ams/features/` | **lowest** | 22 rules, one per feature |
-| `ui/gsa/` | UI version | what the GSA UI is (today's rules); lists its one further CLAUDE.md |
-| `ui/gsa/features/` | **lowest** | 24 rules, one per feature |
 
-**72 lowest-level rules in all.**
+**47 lowest-level rules in all.**
 
 ### Folder moves this needs
 
-- `ui/apps/ams` → `ui/ams`, `ui/apps/gsa` → `ui/gsa`: the UI versions sit side by side straight inside the UI folder.
+- **GSA is removed** (the user's decision): the GSA UI, its data, its loading code, its schema in the database (by a new migration that drops it) and every mention of it.
+- `ui/apps/ams` → `ui/ams`: UI versions sit straight inside the UI folder.
 - In each UI, the code in `components/`, `components/views/`, `components/console/` and `lib/` merges into one file per
   feature in a new `features/` folder. The shadcn building blocks move to `features/ui/`, and the English text from
   `messages/` to `features/text/`. `app/globals.css` becomes `features/theme.css`.
 - `app/` keeps only the files Next.js needs there (`page`, `layout`, `error`, `not-found`, `route`, `manifest`). Each
   becomes a line or two that hands over to its feature's file.
-- `data/ams2027` → `data/programmes/ams2027`, `data/gsa2026` → `data/programmes/gsa2026`.
+- `data/ams2027` → `data/programmes/ams2027`.
 - `data/store/drizzle` → `data/store/src/migrations`.
 - `data/loader` (a Python loader for APS's Global Physics Summit 2026, used by nothing in the host app) is deleted.
 - `contracts/src/index.ts` splits into three files by who uses each form; `index.ts` stays as the file that re-exports them.
@@ -75,12 +74,12 @@ where the global rules leave a change to the user), plus:
 and the UIs reach the data only through it.**
 
 **`data/`:** today's rules: Supabase's PostgreSQL, always on; security level; each society's data kept separately,
-public fields only; data gathered gently. Rule 5 from PR #11 (every AMS 2027 talk) moves down to `data/programmes/`
+public fields only; data gathered gently. (The rule that each society's data is kept separately stays, for a future society.) Rule 5 from PR #11 (every AMS 2027 talk) moves down to `data/programmes/`
 and `data/store/src/`, split into its two ideas: the files kept, and the talks loaded.
 
 **`ui/`:** today's three rules (attendee app, organiser console, developer console, with their security level).
 
-**`ui/ams/`, `ui/gsa/`:** today's rules, plus: **This UI has one further CLAUDE.md, in its features folder, holding
+**`ui/ams/`:** today's rules, plus: **This UI has one further CLAUDE.md, in its features folder, holding
 one rule per feature.**
 
 ---
@@ -146,8 +145,7 @@ one rule per feature.**
 ### The matching API
 
 7. **The host app talks to a matching API only in the form of the conference API's contract.** Any API can be plugged
-   in by its address and key. It is called at `/v1/conferences/<conference>/`, with the conference `ams-2027` or
-   `gsa-2026`, and the key as a bearer token.
+   in by its address and key. It is called at `/v1/conferences/<conference>/`, with the conference `ams-2027`, and the key as a bearer token.
    - **Requests.** Every request is checked against the conference API's contract before it is sent, and one that
      fails is never sent.
    - **Time limits.** A matches search for related talks waits 3 seconds, a connection test 5 seconds, a talks write a
@@ -233,18 +231,12 @@ one rule per feature.**
    *How:* code alone: the files are checked with zod, then mapped.
    *File (planned):* `ams-rows.ts` (today's `ams.ts` and `html.ts`)
 
-7. **GSA's files become the host app's programme: its sessions, talks, people and tracks.** A session's start is read
-   from its date line, in 2026; a talk's end comes from its session's table; a session ends when its last talk ends;
-   abstract categories become tracks; talks keep the order of their session's table.
-   *How:* code alone: the files are checked with zod, then mapped.
-   *File (planned):* `gsa-rows.ts` (today's `gsa.ts`)
-
-8. **A time in the meeting's own zone is turned into an exact instant, through daylight saving.** A 12-hour clock is
+7. **A time in the meeting's own zone is turned into an exact instant, through daylight saving.** A 12-hour clock is
    read as 24-hour; anything else is refused.
    *How:* code alone, with the platform's time-zone data.
    *File (planned):* `time.ts`
 
-9. **Loading a society puts back its published programme in one step, and keeps stars, notes and sign-ins.** The
+8. **Loading a society puts back its published programme in one step, and keeps stars, notes and sign-ins.** The
    meeting, tracks, sessions, talks and people are written as both the live and the published programme, and anything
    no longer in the files is removed. It all happens in one transaction, so a failed load changes nothing. It undoes
    organisers' edits.
@@ -253,19 +245,19 @@ one rule per feature.**
 
 ### Reading and writing
 
-10. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
+9. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
     zone, tracks, session kinds, sessions, talks and people. A person is listed only while one of their talks is shown.
     Search covers talks, sessions and people, at most 50, 20 and 20. The talks a send carries are the same shown talks,
     with their session's title and format.
     *How:* code alone: SQL through Drizzle; every read filters out withdrawn talks.
     *File (planned):* `programme.ts` (the programme half of today's `queries.ts`)
 
-11. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
+10. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
     stars and unstars talks and sessions, and sees their schedule. A note saved blank is deleted.
     *How:* code alone: every read and write is filtered by the guest's id.
     *File (planned):* `guest-data.ts` (the stars and notes half of today's `queries.ts`)
 
-12. **Organisers see every talk with how it differs from the published programme, and their edits lock the session
+11. **Organisers see every talk with how it differs from the published programme, and their edits lock the session
     first.**
     - **Reading:** papers in pages of 50, filtered by status (all, scheduled, withdrawn, changed) and search, where a
       page past the end gives the last page; sessions with their count of shown talks and whether they changed; the
@@ -276,18 +268,18 @@ one rule per feature.**
     *How:* code alone: SQL through Drizzle, with `SELECT … FOR UPDATE` on the session.
     *File (planned):* `organiser.ts`
 
-13. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
+12. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
     when no other is running; it ends as sent or failed, and only a running one can end. Its error is kept to 500
     characters. The last ten runs are listed.
     *How:* code alone: a partial unique index allows one running row; the model check in verify-send-runs covers it.
     *File (planned):* `sync-log.ts`
 
-(Rule 12 keeps reading and editing in one file, because both use the same "changed since published" test; if it grows
+(The organiser rule keeps reading and editing in one file, because both use the same "changed since published" test; if it grows
 past about 300 lines, it splits into two rules.)
 
 ---
 
-## 5. `data/programmes/` — 2 rules
+## 5. `data/programmes/` — 1 rule
 
 1. **The host app holds every talk of the AMS 2027 Annual Meeting, as AMS published it, public fields only.** The four
    files of AMS's public programme (papers, sessions, time slots and programmes), refreshed as AMS adds to it. Where the
@@ -297,10 +289,6 @@ past about 300 lines, it splits into two rules.)
    and the hashes of the unfiltered downloads.
    *File (planned):* `ams2027/`
 
-2. **The host app holds the GSA Connects 2026 programme, as GSA published it, public fields only.** Every session and
-   abstract from GSA's public programme pages, read once, slowly; plus GSA's printed programme.
-   *How:* read once by a crawler; the note says how, when and the counts.
-   *File (planned):* `gsa2026/`
 
 ---
 
@@ -480,84 +468,7 @@ past about 300 lines, it splits into two rules.)
 
 ---
 
-## 8. `ui/gsa/features/` — 24 rules
-
-The same shape as AMS, with GSA's own screens. Where the rule matches AMS's word for word apart from the names, it is
-marked "as AMS". Each is still its own rule in GSA's own CLAUDE.md, since no UI shares another's code.
-
-1. **The app is installable, English only, and shows times in Denver unless the guest chooses their own zone.** As AMS.
-   *File (planned):* `app.tsx`
-2. **The look is the demo's own, never Guidebook's: its own name, logo, colours and type.** The name is "Strata Guide
-   (Demo)".
-   *File (planned):* `theme.css`
-3. **Guests sign in with Google, and signing out cannot be undone with Back.** As AMS.
-   *File (planned):* `sign-in.tsx`
-4. **Every attendee page sits in one frame, like the GSA Meetings Guide's, with its eleven-item menu.** A green bar
-   with the menu button on phones, the meeting's name, the time-zone switch and sign-out; on computers, a side menu with
-   the logo. The menu: Home, About GSA Connects, Search Abstracts, Schedule: Sessions / Events, My Schedule, Filter by
-   Abstract Type, Filter by Session Type, Notes, Notifications, Organiser console, Developer console.
-   *File (planned):* `frame.tsx`
-5. **A page that is missing says so, and a page that fails offers to try again.** As AMS.
-   *File (planned):* `errors.tsx`
-6. **Times show in meeting time or the guest's own zone, and a place shows its room and building.** As AMS.
-   *File (planned):* `meeting-time.tsx`
-7. **Home, About and Notifications show the meeting as the Guidebook app does.** Home: a picture of the city, the
-   meeting's name and dates, its details and location. About: the full dates, venue, city and the meeting's own
-   description. Notifications: All and Unread tabs, always empty.
-   *File (planned):* `home.tsx`
-8. **Sessions and talks show as cards and Guidebook-style rows, coloured by kind.** As AMS's cards, plus the session
-   row: start and end on the left, "number: title", kind and room beneath.
-   *File (planned):* `cards.tsx`
-9. **Schedule: Sessions / Events shows one day at a time, and session types list their sessions.** It opens on the
-   first day of the meeting; day pills mark the current day; a day with no sessions says so; a bad date is "not found".
-   Session types list each kind with its count, and each kind its sessions.
-   *File (planned):* `calendar.tsx`
-10. **Abstract types list every track, and each track lists its sessions by day.** As AMS's Conferences and Symposia.
-    *File (planned):* `programmes.tsx`
-11. **Search Abstracts finds talks, sessions and people from two to a hundred characters.** As AMS, except that a
-    person found links to nothing until GSA's app has a people page (see question 3 below).
-    *File (planned):* `search.tsx`
-12. **A session's page shows its time, place, organisers and talks, and can be added to a calendar.** As AMS's session
-    page, plus Add to calendar and a note.
-    *File (planned):* `session.tsx`
-13. **Any timed session or talk can be added to a calendar as a file.** The file is named by its number, in UTC; with
-    no end, it lasts 30 minutes; with no start, there is no button.
-    *File (planned):* `add-to-calendar.tsx` (today's button and `lib/ics.ts`)
-14. **A talk's page shows everything the programme publishes about it.** As AMS, plus Add to calendar, affiliations,
-    a DOI link that opens in a new tab, and a note.
-    *File (planned):* `talk.tsx`
-15. **On every talk page, a related-talks panel shows the matching API's matches for that talk, and never breaks the
-    page.** As AMS.
-    *File (planned):* `related-talks.tsx`
-16. **A guest stars talks and sessions, and My Schedule lists what they starred.** As AMS.
-    *File (planned):* `my-schedule.tsx`
-17. **A guest keeps a private note on any session or talk, and Notes lists them all.** Up to 5,000 characters; it says
-    "Saved" until the note changes again, or that saving failed. Notes links each note back to its session or talk; with
-    none, it says how to add one.
-    *File (planned):* `notes.tsx` (today's note editor, note form, notes view)
-18. **The consoles have their own frame, with tables, pages of fifty and Mountain time.** As AMS, with the names
-    "Strata Program Desk" and "Strata Developer Console".
-    *File (planned):* `console-frame.tsx`
-19. **Organisers find any submission, withdraw or restore it, and move it to another session.** As AMS's papers.
-    *File (planned):* `organiser-submissions.tsx`
-20. **Organisers change a session's date, times and room, and are told by name why a change is refused.** As AMS.
-    *File (planned):* `organiser-sessions.tsx`
-21. **Organisers send the programme to the matching API, after confirming, and see the last ten sends.** As AMS.
-    *File (planned):* `send.tsx`
-22. **The developer console shows the matching API's settings, tests the connection, and can put the published
-    programme back.** As AMS.
-    *File (planned):* `developer.tsx`
-23. **The UI's building blocks are shadcn/ui components, kept as shadcn makes them.** As AMS.
-    *File (planned):* `ui/`
-24. **Every word the UI shows is in one English text file.** As AMS.
-    *File (planned):* `text/`
-
-Every GSA rule gets its own *How:* line, as AMS's do; they are the same as AMS's and are left out here only to keep
-this draft short.
-
----
-
-## 9. How each rule was kept narrow
+## 8. How each rule was kept narrow
 
 Each rule names one job that one file of about 50–300 lines can do in full, at the level the conference API's
 lowest-level rules use: what is done, its limits and its edge cases, never "the UI is good" or "the backend is secure".
@@ -571,12 +482,11 @@ rules described the same code, they were merged so that one file serves one rule
   `programme-rules.ts` into organiser rules and the matching API, `queries.ts` into the attendee's programme and the
   guest's own data, `contracts/src/index.ts` into three.
 
-## 10. Things the reading found that are not right today
+## 9. Things the reading found that are not right today
 
-- **GSA search links people to a page that does not exist** (`/people/{id}`), and a test asserts that link.
 - **The request check before sending is not built.** Requests are typed but not checked against the contract.
 - **The AMS 2027 data is nine days old:** 886 sessions here against 922 in the tester's snapshot of 24 November.
 - `data/README.md` says the sign-in tables are in schema `auth`; they are in `sign_in`.
-- Three identical `error.tsx` files and two identical console `not-found.tsx` files in each UI; one unused shadcn
+- Three identical `error.tsx` files and two identical console `not-found.tsx` files; one unused shadcn
   component (separator) in AMS.
 - Two unused re-exports from the backend (`authOptions`, `readConfig`).
