@@ -62,7 +62,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 20. **The host app is always on, and costs as little as possible.** It runs in the cloud all the time, so the people it is shown to can open it at any moment; anyone with a Google account can sign in, and once signed in can use the attendee app, the organiser console and the developer console, because this is a demo; and it costs nothing beyond services the user already pays for wherever possible. People sign in with their Google accounts, as they would in a real conference app. It is built well and kept working, but not to the conference API's production security standard.
 
-21. **The host app acts as a normal AMS meeting site would, and adds one thing: a matching API can be plugged into it.** It mimics the AMS site: attendees browse the AMS 2027 Annual Meeting, and organisers run it, as they would on AMS's own meeting site. The one thing it adds is the ability to connect a matching API, send it the meeting's talks, and show what it gives back.
+21. **The host app acts as a normal AMS meeting site would, and adds two things: a matching API can be plugged into it, and our versions of the site can be shown beside AMS's own.** It mimics the AMS site: attendees browse the AMS 2027 Annual Meeting, and organisers run it, as they would on AMS's own meeting site. The first thing it adds is the ability to connect a matching API, send it the meeting's talks, and show what it gives back. The second is our versions of the meeting app, each of which marks every change it makes to AMS's own.
 
 ## How the host app is built
 
@@ -90,7 +90,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 27. **Any matching API can be plugged in, as long as it speaks the conference API's contract.** Any API can connect to the host app, not only the conference API: an API is chosen by its address and key, set in the host app. Every request the host app sends has exactly the form the conference API's contract asks for, and is checked against that contract before it is sent, so any API that takes the conference API's contract can be plugged in without changing the host app.
 
-28. **For now, the host app sends the programme and shows each talk's related talks; any further processing of what a matching API returns comes later.** Everything else the host app needs is built now. What a matching API returns is used in one place today: the related-talks panel on each talk page, which shows the API's matches for that talk. Any other processing of what an API returns is added later.
+28. **The host app sends the programme to a matching API and uses what it returns in two places: each talk's related talks, and our versions of the meeting app.** Everything else the host app needs is built now. What a matching API returns is shown in the related-talks panel on each talk page, which shows the API's matches for that talk, and it shapes our versions of the meeting app around the demo's one fixed abstract. Any other processing of what an API returns is added later.
 
 # Rules for the whole app (from the global CLAUDE.md, except where the host app's rules about the CLAUDE.md files say otherwise; its rules about the CLAUDE.md files are replaced by the host app's own, above)
 

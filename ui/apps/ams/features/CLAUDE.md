@@ -46,26 +46,35 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 7. **Every attendee page sits in one frame, like the Confex meeting app's, and Home opens it.** A skip link; a top bar
    with sign-out, the time-zone switch, search and, on phones, a menu sheet that closes when a link is picked; a banner
-   with the logo and the meeting's name and city; on computers, a side menu of eight links (Home, Conferences and
-   Symposia, Meeting Calendar, People, My Schedule, Search, Organiser console, Developer console). Home shows a welcome,
-   the location and five tiles.
+   with the logo and the meeting's name and city; on computers, a side menu. What the menu and Home offer is the rule
+   on Home and the menu.
    *How:* code alone; the attendee layout and the home page count with this file.
    *File:* `frame.tsx`
 
-8. **A page that is missing says so, and a page that fails offers to try again.** "We could not find that page", with
+8. **Home and the menu offer every button on the AMS meeting app's main screen, then the demo's own sections.** In
+   AMS's order: Home, Search, Conferences and Symposia, Events, Meeting Calendar, Participating Program Committees,
+   Officers of the 107th Annual Meeting, Main Exhibit Hall, Career Resource and Graduate School Fair, Program
+   Highlights, General Information and Attendee Resources, each with AMS's sub-items, Sponsor Index and Technical
+   Support; then People, My Schedule, the organiser console and the developer console. Home shows a short welcome in
+   the demo's own words and a tile for each of AMS's home tiles, every button from Conferences and Symposia to Attendee
+   Resources; it shows none of AMS's own content.
+   *How:* code alone; the home page counts with this file.
+   *File:* needed
+
+9. **A page that is missing says so, and a page that fails offers to try again.** "We could not find that page", with
    a link home, in exactly one main region; "Something went wrong" with "Try again", which asks the server for the page
    afresh. A failure inside the attendee app or a console shows in its frame; any other, such as in a layout or on the
    sign-in page, shows on a page of its own.
    *How:* code alone: Next.js's error and not-found files hand over to this file.
    *File:* `errors.tsx`
 
-9. **Times show in meeting time or the guest's own zone, and the guest's choice is remembered.** The choice is
+10. **Times show in meeting time or the guest's own zone, and the guest's choice is remembered.** The choice is
    remembered on their device, and lasts for the page if the device refuses to store it. The page shows the same time
    on the server and in the browser. A time shows as a day, a date, a time or a range.
    *How:* code alone: `Intl` formatting; the choice in local storage.
    *File:* `meeting-time.tsx`
 
-10. **Sessions and talks show as cards, and a page shows when and where in one box.** A session card shows its label
+11. **Sessions and talks show as cards, and a page shows when and where in one box.** A session card shows its label
     (its kind and number; a plain session shows only its number, and a break only its title), its title and place,
     with an edge coloured by kind (event, poster, joint, panel, break or oral), and links to the session. A talk card
     shows its time, number, title, authors and place; a break is shown, greyed, but is not a link. A place reads
@@ -77,50 +86,50 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### Finding talks
 
-11. **The Meeting Calendar shows one day at a time, its sessions grouped by time.** It opens on the first day with
+12. **The Meeting Calendar shows one day at a time, its sessions grouped by time.** It opens on the first day with
     sessions from the meeting's start, or else the earliest day with sessions; with no sessions at all it goes home. A
     strip of days marks the current one. Sessions with the same start and end are grouped, earliest first; untimed
     sessions are left out; a day with none says so; an address that is not a date is "not found".
     *How:* code alone; the calendar's pages count with this file.
     *File:* `calendar.tsx`
 
-12. **Conferences and Symposia lists every track, and each track lists its sessions by day.** A track shows how many
+13. **Conferences and Symposia lists every track, and each track lists its sessions by day.** A track shows how many
     sessions it has, then its sessions under each day in meeting time, untimed ones last.
     *How:* code alone; its pages count with this file.
     *File:* `programmes.tsx`
 
-13. **People are listed A to Z by surname, and each person shows their talks.** Letters ignore accents; names that do
+14. **People are listed A to Z by surname, and each person shows their talks.** Letters ignore accents; names that do
     not start with A–Z go under "#", last. With no letter chosen, the first group shows.
     *How:* code alone; the people pages count with this file.
     *File:* `people.tsx`
 
-14. **Search finds talks, sessions and people from two to a hundred characters.** A shorter or longer query is not run
+15. **Search finds talks, sessions and people from two to a hundred characters.** A shorter or longer query is not run
     and says which limit it broke; no hits says nothing matches. Results show people, then sessions, then presentations.
     *How:* code alone: a plain form that puts the query in the address; the search page counts with this file.
     *File:* `search.tsx`
 
 ### A session and a talk
 
-15. **A session's page shows its time, place, chairs and talks.** Its tracks above the title; its label, then the
+16. **A session's page shows its time, place, chairs and talks.** Its tracks above the title; its label, then the
     title ("Session 5 - Wind Energy Forecasting", "Joint Session J1 - Decision Support I");
     a star; time and place; its description; its organisers; its presentations, or that none are listed; links to its
     tracks.
     *How:* code alone; the session page counts with this file.
     *File:* `session.tsx`
 
-16. **A talk's page shows everything the programme publishes about it.** Number and title, a star, time and place,
+17. **A talk's page shows everything the programme publishes about it.** Number and title, a star, time and place,
     poster board, authors, the abstract in paragraphs (or that none was published), its related talks, then its
     session and its citation.
     *How:* code alone; the talk page counts with this file.
     *File:* `talk.tsx`
 
-17. **On every talk page, a related-talks panel shows the matching API's matches for that talk, and never breaks the page.** While loading it shows placeholders. When the API cannot answer, it says the related talks are unavailable
+18. **On every talk page, a related-talks panel shows the matching API's matches for that talk, and never breaks the page.** While loading it shows placeholders. When the API cannot answer, it says the related talks are unavailable
     right now; with none, it says so. Each match shows whether it is close or unexpected, its time, number, title and
     reason, and links to the talk.
     *How:* code alone: loads in the browser after the page, so a slow API never holds up the talk.
     *File:* `related-talks.tsx`
 
-18. **A guest stars talks and sessions, and My Schedule lists what they starred.** The star shows whether it is on, and
+19. **A guest stars talks and sessions, and My Schedule lists what they starred.** The star shows whether it is on, and
     cannot be pressed while stars load or a change saves. My Schedule lists sessions, then presentations; with nothing
     starred, it says how to add some.
     *How:* code alone; the schedule page counts with this file.
@@ -128,7 +137,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### The organiser console
 
-19. **The consoles have their own frame, with tables, pages of fifty and Mountain time.** A dark header with the
+20. **The consoles have their own frame, with tables, pages of fifty and Mountain time.** A dark header with the
     console's name ("Program Builder" or "Developer Console"), its sections, a link to the attendee app and sign-out.
     Tables are dense; a pager shows "Page x of y" and hides when one page holds everything. Times are always Mountain
     time, and a stored time fills a console's time fields as the meeting's own clock shows it. Chips show a paper's status (scheduled,
@@ -138,21 +147,21 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *How:* code alone; the two console layouts count with this file.
     *File:* `console-frame.tsx`
 
-20. **Organisers find any paper, withdraw or restore it, and move it to another session.** Papers are searched and
+21. **Organisers find any paper, withdraw or restore it, and move it to another session.** Papers are searched and
     filtered by status, 50 a page. A paper's page shows its status, presenter, session, time and room. Withdraw and
     Restore cannot be pressed twice and say when a change did not save. A paper is moved by searching for a session;
     its own session is marked. A withdrawn paper has no link to the attendee app.
     *How:* code alone; the papers pages count with this file.
     *File:* `organiser-papers.tsx`
 
-21. **Organisers change a session's date, times and room, and are told by name why a change is refused.** Sessions are
+22. **Organisers change a session's date, times and room, and are told by name why a change is refused.** Sessions are
     searched, 50 a page. A session's page shows its status and every paper in it, withdrawn ones too. Times are in
     Mountain time; leaving them empty clears them. A refusal names its reason: a time half given, an end not after the
     start, or a day more than a day outside the meeting.
     *How:* code alone; the sessions pages count with this file.
     *File:* `organiser-sessions.tsx`
 
-22. **Organisers send the programme to the matching API, after confirming, and see the last ten sends.** The page says
+23. **Organisers send the programme to the matching API, after confirming, and see the last ten sends.** The page says
     withdrawn papers are left out and shows the changes. Send asks to confirm, then shows it is sending. It reports what
     was sent, added, changed and withdrawn, or the failure, or that a send is already running.
     *How:* code alone; the send page counts with this file.
@@ -160,7 +169,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### The developer console
 
-23. **The developer console shows the matching API's settings, tests the connection, and can put the published programme back.** It shows the API's address (or that none is set), whether a key is set, and the last send. The
+24. **The developer console shows the matching API's settings, tests the connection, and can put the published programme back.** It shows the API's address (or that none is set), whether a key is set, and the last send. The
     test reports one of: ok (with its HTTP status and time), not set, key refused, no programme or no talks, unreachable,
     or an unexpected answer. It can send the programme again, and put the published programme back after confirming,
     saying how many papers and sessions changed.
@@ -169,13 +178,13 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### Building blocks
 
-24. **The UI's building blocks are shadcn/ui components, kept as shadcn makes them.** Badge, button, input, sheet and
+25. **The UI's building blocks are shadcn/ui components, kept as shadcn makes them.** Badge, button, input, sheet and
     skeleton, and the one helper through which they and the rest of the app merge class names with shadcn's own `cn`.
     *How:* added with the shadcn command; changed only where the look needs it, or where a word they show must come
     from the English text.
     *File:* `ui/`
 
-25. **Every word the UI shows is in one English text file.** The words the UI writes come from it; what the meeting's
+26. **Every word the UI shows is in one English text file.** The words the UI writes come from it; what the meeting's
     own data says, such as a session's kind, and the reasons the backend records, such as why a send failed, are shown
     as they come.
     *How:* next-intl reads it, and the app's title and install manifest read their words from it; every key is used.
