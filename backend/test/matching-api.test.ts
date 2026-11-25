@@ -2,7 +2,7 @@ import { createServer, type IncomingMessage, type Server } from "node:http";
 import type { AddressInfo } from "node:net";
 import { afterEach, describe, expect, test } from "vitest";
 
-import { ApiRefusedError, conferenceApi, connectionStatus } from "../src/matching-api";
+import { ApiRefusedError, conferenceApi, connectionStatus, RequestNotSent } from "../src/matching-api";
 
 interface Seen {
   url: string;
@@ -103,7 +103,7 @@ describe("conferenceApi.writeTalks", () => {
     const answer = { programmeVersion: "pv_8f3k2Qw9xLm0ZpT4vN7aBc", added: 1, changed: 0, withdrawn: 0, unchanged: 0, matchingJob: "job_x91Kd02LmQpZ7rT5vWb3Yu" };
     const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify(answer) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
-    const req = { talks: [{ id: "1", title: "One", abstract: "" }] };
+    const req = { talks: [{ id: "1", title: "One", abstract: "An abstract." }] };
     expect(await api.writeTalks(req)).toEqual(answer);
     expect(seen[0]!.url).toBe("/v1/conferences/ams-2027/talks:write");
     expect(seen[0]!.body).toEqual(req);
@@ -113,7 +113,7 @@ describe("conferenceApi.writeTalks", () => {
     const problem = { type: "/problems/invalid-talks", title: "Some talks are invalid", status: 400, requestId: "req_9ToXrv3QWGspAajx6rMNfA" };
     const { url } = await serve(() => ({ status: 400, body: JSON.stringify(problem) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
-    const refused = api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "" }] });
+    const refused = api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "An abstract." }] });
     await expect(refused).rejects.toBeInstanceOf(ApiRefusedError);
     await expect(refused).rejects.toMatchObject({ status: 400, title: "Some talks are invalid" });
   });
@@ -121,7 +121,7 @@ describe("conferenceApi.writeTalks", () => {
   test("a refusal that is not JSON still carries its status", async () => {
     const { url } = await serve(() => ({ status: 502, body: "<html>Bad gateway</html>" }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
-    await expect(api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "" }] })).rejects.toMatchObject({
+    await expect(api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "An abstract." }] })).rejects.toMatchObject({
       status: 502,
       title: "no problem details",
     });
@@ -132,7 +132,7 @@ describe("conferenceApi.writeTalks", () => {
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
     const started = Date.now();
     await expect(
-      api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "" }] }, AbortSignal.timeout(50)),
+      api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "An abstract." }] }, AbortSignal.timeout(50)),
     ).rejects.toMatchObject({ name: "TimeoutError" });
     expect(Date.now() - started).toBeLessThan(1000);
   });
@@ -148,5 +148,24 @@ describe("connectionStatus", () => {
     expect(connectionStatus({ kind: "answered", httpStatus: 403, validBody: false })).toBe("refused-key");
     expect(connectionStatus({ kind: "answered", httpStatus: 404, validBody: false })).toBe("no-programme");
     expect(connectionStatus({ kind: "answered", httpStatus: 500, validBody: false })).toBe("unexpected-answer");
+  });
+});
+
+describe("requests are checked against the conference API's contract before they are sent", () => {
+  test("a write that breaks the contract is never sent, and says what was wrong", async () => {
+    const { url, seen } = await serve(() => ({ status: 200, body: "{}" }));
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
+    const twice = { id: "1", title: "One", abstract: "An abstract." };
+    const refused = api.writeTalks({ talks: [twice, twice] });
+    await expect(refused).rejects.toBeInstanceOf(RequestNotSent);
+    await expect(refused).rejects.toThrow(/sent twice/);
+    expect(seen).toEqual([]);
+  });
+
+  test("a matches search that breaks the contract is never sent, and related talks are unavailable", async () => {
+    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [] }) }));
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
+    expect(await api.related("-not-an-id", 5)).toEqual({ status: "unavailable" });
+    expect(seen).toEqual([]);
   });
 });

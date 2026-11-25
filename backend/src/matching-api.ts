@@ -1,6 +1,8 @@
 import {
+  MatchesSearchRequestSchema,
   MatchesSearchResponseSchema,
   ProblemSchema,
+  TalksWriteRequestSchema,
   TalksWriteResponseSchema,
   type Match,
   type TalksWriteRequest,
@@ -33,6 +35,21 @@ export class ApiRefusedError extends Error {
   }
 }
 
+/** A request that does not fit the conference API's contract; it was never sent. */
+export class RequestNotSent extends Error {
+  constructor(problems: string) {
+    super(`The request did not fit the conference API's contract, so it was not sent: ${problems}`);
+    this.name = "RequestNotSent";
+  }
+}
+
+/** Throws RequestNotSent unless the body fits the schema. The body itself is sent unchanged. */
+function checked(schema: { safeParse(body: unknown): { success: boolean; error?: { issues: { message: string }[] } } }, body: unknown) {
+  const result = schema.safeParse(body);
+  if (!result.success) throw new RequestNotSent(result.error!.issues.slice(0, 5).map((i) => i.message).join("; "));
+  return body;
+}
+
 /** Used when no API address is set: every related-talks request is unavailable. */
 export const unconfiguredApi: ConferenceApi = {
   related: async () => ({ status: "unavailable" }),
@@ -60,7 +77,8 @@ export function conferenceApi(opts: {
   return {
     async related(talkId, top) {
       try {
-        const res = await post("matches:search", { likeTalks: [talkId], topPerPerson: top }, opts.timeoutMs ?? 3000);
+        const body = checked(MatchesSearchRequestSchema, { likeTalks: [talkId], topPerPerson: top });
+        const res = await post("matches:search", body, opts.timeoutMs ?? 3000);
         if (!res.ok) return { status: "unavailable" };
         const parsed = MatchesSearchResponseSchema.safeParse(await res.json());
         return parsed.success ? { status: "ok", matches: parsed.data.matches } : { status: "unavailable" };
@@ -73,7 +91,8 @@ export function conferenceApi(opts: {
       const started = performance.now();
       const ms = () => Math.round(performance.now() - started);
       try {
-        const res = await post("matches:search", { likeTalks: [talkId], topPerPerson: 1 }, opts.timeoutMs ?? 5000);
+        const body = checked(MatchesSearchRequestSchema, { likeTalks: [talkId], topPerPerson: 1 });
+        const res = await post("matches:search", body, opts.timeoutMs ?? 5000);
         const validBody = res.ok && MatchesSearchResponseSchema.safeParse(await res.json().catch(() => null)).success;
         return { outcome: { kind: "answered", httpStatus: res.status, validBody }, ms: ms() };
       } catch {
@@ -82,7 +101,7 @@ export function conferenceApi(opts: {
     },
 
     async writeTalks(req, signal) {
-      const res = await post("talks:write", req, opts.timeoutMs ?? 60_000, signal);
+      const res = await post("talks:write", checked(TalksWriteRequestSchema, req), opts.timeoutMs ?? 60_000, signal);
       if (!res.ok) {
         const problem = ProblemSchema.safeParse(await res.json().catch(() => null));
         if (!problem.success) throw new ApiRefusedError(res.status, "no problem details");

@@ -139,6 +139,15 @@ test("a Next.js entry file and a command-line script count with the file they ha
   assert.deepEqual(r.untiedFiles, ["ui/ams/app/stray.tsx"]);
 });
 
+test("an index file that only gathers its folder's code is not counted; one with code of its own is", () => {
+  const r = check(repo({
+    "part/CLAUDE.md": lowest([]),
+    "part/index.ts": 'export { a } from "./a";\nexport { b, type B } from "./b";\nexport * from "./c";\n',
+    "part/sub/index.ts": 'export { a } from "./a";\nexport const x = 1;\n',
+  }));
+  assert.deepEqual(r.untiedFiles, ["part/sub/index.ts"]);
+});
+
 test("files that only set up the tools, overviews, docs, tools and the copy of the conference API's contract are not counted", () => {
   const r = check(repo({
     "CLAUDE.md": "# Global\n",

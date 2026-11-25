@@ -49,6 +49,11 @@ const SETUP =
 /** Folders that hold the tools, the docs, or a copy of another product's code. */
 const NOT_COUNTED_FOLDERS = /^(docs|scripts|tooling|\.claude|\.github|backend\/verification|conference-api-contract)\//;
 
+/** An index file that only gathers its folder's code for other code to use: nothing in it but re-exports. */
+const onlyGathers = (path, text) =>
+  /(^|\/)index\.[cm]?[jt]s$/.test(path) &&
+  text.split("\n").every((l) => l.trim() === "" || /^export (\*|\{[^}]*\}) from ["'][^"']+["'];?$/.test(l.trim()));
+
 function notCounted(path) {
   const name = posix.basename(path);
   return (
@@ -158,7 +163,7 @@ export function check({ files, read }) {
 
   const tiedFolders = [...tied.keys()].filter((p) => p.endsWith("/"));
   const untiedFiles = [];
-  for (const file of files.filter((f) => !notCounted(f)).sort()) {
+  for (const file of files.filter((f) => !notCounted(f) && !onlyGathers(f, read(f))).sort()) {
     if (tied.has(file) || tiedFolders.some((d) => file.startsWith(d))) continue;
     const owner = closest(file);
     const claims = owner && isLowest(owner) && heading(file, read(file));
