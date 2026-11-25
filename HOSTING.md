@@ -19,6 +19,7 @@ The conference API's `issue-key` command makes keys that last the number of days
 2. Open **Connect** and copy two connection strings, each with the database password filled in:
    - the **transaction pooler** string (port 6543), which the app uses
    - the **session pooler** string (port 5432), which you use from your machine
+3. Keep both strings on your own computer. The only other place either goes is Vercel, which gets the transaction pooler string in section 5. Never put them in the repository, a pull request, a chat, or a cloud Claude session. Run `load` and `migrate` for the hosted database from your computer.
 
 The store's `connect()` requires TLS for any database off your machine, and refuses an address that turns TLS off with `sslmode=disable`, `allow` or `prefer`.
 
