@@ -93,7 +93,7 @@ Stop ends the app's process group, and ends the conference API too once no app s
 
 - The app uses the conference API on port 8787 and the one host database. The key lasts a day: after that, related talks show as unavailable until the next launch.
 - `verify.sh launch` builds the app. After editing app code, stop and launch again before you drive it.
-- Talk numbers repeat in AMS (several talks are numbered J1.2), and 197 of its 2027 programme entries have no number. Open talks by id, such as `/talks/493803`, not by number.
+- Talk numbers repeat in AMS (several talks are numbered J1.2), and 197 of its 4,531 programme entries (162 of them breaks) have no number. Open talks by id, such as `/talks/493803`, not by number.
 - Times show in the meeting's time zone by default: Mountain. The `MST` button in the top bar switches to the device's zone.
 - The matches are placeholders (each talk matches the next three, and says so). Check that the related-talks panel fills and links to real talks, not that the matches are good.
 - Google sign-in is not set up locally. The sign-in page says so, and looks sign in through the test helper instead.

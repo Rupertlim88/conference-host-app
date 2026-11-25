@@ -25,6 +25,11 @@ describe("readConfig", () => {
     expect(() => readConfig({ ...base, HOST_SOCIETY: "agu" })).toThrow(/HOST_SOCIETY/);
     expect(() => readConfig({ ...base, BETTER_AUTH_SECRET: "short" })).toThrow(/BETTER_AUTH_SECRET/);
   });
+  test("names every wrong setting in one error, even when a required one is missing too", () => {
+    const noSociety: Record<string, string | undefined> = { ...base, HOST_SOCIETY: undefined };
+    expect(() => readConfig({ ...noSociety, CONFERENCE_API_URL: "http://127.0.0.1:4010" })).toThrow(/HOST_SOCIETY.*CONFERENCE_API_KEY|CONFERENCE_API_KEY.*HOST_SOCIETY/);
+    expect(() => readConfig({ ...noSociety, GOOGLE_CLIENT_SECRET: "secret" })).toThrow(/HOST_SOCIETY.*GOOGLE_CLIENT_ID|GOOGLE_CLIENT_ID.*HOST_SOCIETY/);
+  });
   test("treats blank optional settings as unset", () => {
     expect(readConfig({ ...base, CONFERENCE_API_URL: "", CONFERENCE_API_KEY: "" }).api).toBeNull();
   });

@@ -1,3 +1,4 @@
+// Every request passes one gate: only a signed-in guest gets in, and errors never show their insides.
 import type { Viewer } from "@repo/host-contracts";
 import { authTables, type Db, type GuestData, type OrganiserStore, type ProgrammeStore, type SyncLog } from "@repo/host-store";
 import { initTRPC, TRPCError } from "@trpc/server";
@@ -47,6 +48,9 @@ export interface Context {
 }
 
 const t = initTRPC.context<Context>().create({
+  // Stacks only while developing: tRPC would otherwise add them to every error whenever NODE_ENV is not "production".
+  // eslint-disable-next-line turbo/no-undeclared-env-vars
+  isDev: process.env.NODE_ENV === "development",
   // Unexpected errors carry SQL and stack traces; clients outside development see a plain message.
   errorFormatter({ shape, error }) {
     // eslint-disable-next-line turbo/no-undeclared-env-vars

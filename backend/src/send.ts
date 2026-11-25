@@ -1,3 +1,4 @@
+// The programme is sent as one run at a time, in parts of a thousand talks, and stops at a five-minute deadline.
 import type { TalkInput } from "@repo/contracts";
 import type { SyncRun } from "@repo/host-contracts";
 import type { SyncLog } from "@repo/host-store";

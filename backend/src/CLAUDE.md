@@ -22,10 +22,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
    the keep-alive's secret, when set, at least 16. From the settings it builds one backend: the store, the matching API
    for the meeting's conference (or none, when no address is set), sign-in, the keep-alive, and one router joining the
    attendee app's and the consoles' requests. The developer console is told only the API's address, without any query
-   or credentials, and whether a key is set: never the key. An unexpected error is logged on the server.
+   or credentials, and whether a key is set: never the key. An unexpected error in a request from the browser is logged
+   on the server.
    *How:* code alone: the settings are parsed with zod into typed values once, and one backend is built from them on
    first use, once per process.
-   *File:* needed
+   *File:* `server.ts`
 
 3. **Every request passes one gate: only a signed-in guest gets in, and errors never show their insides.** Anyone with
    a Google account may sign in, through Better Auth, choosing their account each time, when Google is set up. Every
@@ -36,18 +37,18 @@ Everything else is a lower level, written by Claude to carry out these specifica
    and the signed-in guest.
    *How:* code alone: Better Auth reads the session from the request's cookies; every request but "who is signed in" is
    built on one tRPC middleware that refuses a request with no guest; tRPC's error formatter strips internal errors.
-   *File:* needed
+   *File:* `gate.ts`
 
 ### The attendee app
 
 4. **The attendee app's requests read the programme through the store, and a missing item is "not found".** Who is
    signed in, the meeting, days, tracks, session kinds, sessions, talks, related talks, people, search, the guest's
    schedule, stars and notes. Every input, and every answer that carries data, is checked against the host app's
-   contract. A talk, session, track or person that does not exist, or a talk that is withdrawn, answers "not found",
-   naming what kind of item was missing. Related talks are asked for only for a talk the attendee can see.
+   contract. Looking up a talk, session, track or person that does not exist, or a talk that is withdrawn, answers "not
+   found", naming what kind of item was missing. Related talks are asked for only for a talk the attendee can see.
    *How:* code alone: tRPC procedures calling the store, with zod schemas from the host app's contract; related talks
    are handed to the related-talks file.
-   *File:* needed
+   *File:* `attendee-router.ts`
 
 5. **A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.** Up
    to five matches are asked for. Each is shown with its kind, score and reason, as the talk this programme holds; a
@@ -67,7 +68,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    (or is told there is no programme to test with), and resets the programme to the published one. Every input and
    answer is checked against the host app's contract.
    *How:* code alone: tRPC procedures calling the organiser store, the send and the matching API.
-   *File:* needed
+   *File:* `console-router.ts`
 
 7. **An organiser's edit keeps a talk's length and keeps a session's times close to the meeting's days.** A talk moved
    into a session takes the session's room and building and goes after its last shown talk; it starts when the session
@@ -77,7 +78,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    after the start, or when the day is more than a day outside the days it is given.
    *How:* code alone: pure functions. The console router checks new times before it edits; the store calls the
    placement and the shift inside its locked edit.
-   *File:* needed
+   *File:* `organiser-rules.ts`
 
 ### The matching API
 
@@ -95,7 +96,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
      "not set".
    *How:* code alone: `fetch` with an abort signal; zod schemas from the host app's copy of the conference API's
    contract check each request before it is sent and each answer as it arrives.
-   *File:* needed
+   *File:* `matching-api.ts`
 
 9. **The programme is sent as one run at a time, in parts of a thousand talks, and stops at a five-minute deadline.**
    - **What is sent:** every talk the store shows, except breaks and talks with no abstract. Text is made plain:
@@ -112,7 +113,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    - The `sync` command does the same from the command line.
    *How:* code alone; the store's run log lets only one run start. The rule "two sends never write at once" is
    model-checked with TLA+ (the verify-send-runs skill).
-   *File:* needed
+   *File:* `send.ts`
 
 ### Staying on
 
@@ -121,4 +122,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
     failure answers only "The database read failed", and the error is logged on the server.
     *How:* code alone: Vercel's daily cron calls it with the secret; the secret is compared in constant time; it runs
     the one trivial read the store gives it.
-    *File:* needed
+    *File:* `keep-alive.ts`

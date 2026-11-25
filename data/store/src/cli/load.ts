@@ -1,7 +1,7 @@
 import { readFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 
-import { AmsFilesSchema, amsRows } from "../ams-rows";
+import { amsRows } from "../ams-rows";
 import { connect } from "../connect";
 import { loadRows } from "../load";
 import { migrateStore } from "../migrate";
@@ -22,14 +22,12 @@ if (!url) {
   process.exit(1);
 }
 
-const rows = amsRows(
-  AmsFilesSchema.parse({
-    Paper: read("107ANNUAL-Paper.json"),
-    Session: read("107ANNUAL-Session.json"),
-    SlotData: read("107ANNUAL-SlotData.json"),
-    Program: read("107ANNUAL-Program.json"),
-  }),
-);
+const rows = amsRows({
+  Paper: read("107ANNUAL-Paper.json"),
+  Session: read("107ANNUAL-Session.json"),
+  SlotData: read("107ANNUAL-SlotData.json"),
+  Program: read("107ANNUAL-Program.json"),
+});
 const { db, close } = connect(url);
 try {
   await migrateStore(db);

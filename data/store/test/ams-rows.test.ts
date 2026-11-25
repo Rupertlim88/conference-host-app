@@ -1,6 +1,7 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, test } from "vitest";
+import { ZodError } from "zod";
 
 import { AmsFilesSchema, amsRows, htmlToText } from "../src/ams-rows";
 
@@ -112,6 +113,13 @@ describe("amsRows on the public download's stray spaces", () => {
     const s = spaced.sessions.find((x) => x.id === "74577")!;
     expect(s).toMatchObject({ number: "", kind: "Event" });
     expect(s.title).toBe("Local Chapter Officers' Breakfast");
+  });
+});
+
+describe("checking the files", () => {
+  test("files that do not have AMS's form are refused before anything is mapped", () => {
+    expect(() => amsRows({ Paper: [{ id: 1 }], Session: [], SlotData: [], Program: [] })).toThrow(ZodError);
+    expect(() => amsRows({ Paper: [] })).toThrow(ZodError);
   });
 });
 

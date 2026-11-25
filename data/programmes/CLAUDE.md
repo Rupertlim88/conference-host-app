@@ -15,4 +15,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 2. **The host app holds every talk of the AMS 2027 Annual Meeting, as AMS published it, public fields only.** Every talk and poster of the AMS 107th Annual Meeting, with its abstract and everything else the public programme shows, is kept here, so that the host app runs on the whole meeting and can send all of it to a matching API: the four files of AMS's public programme (papers, sessions, time slots and programmes), refreshed as AMS adds to it. Where the host app does not yet have part of the meeting, it may copy it from the conference matching tester's snapshot of the same meeting, which was read from the same public programme.
    *How:* code fetches the files (the rule on fetching AMS's public programme, in the store's code) and keeps only the public fields; the folder's note says when they were fetched, from where, how many rows each holds, and the hashes of the unfiltered downloads, so a later download can be compared.
-   *File:* needed
+   *File:* `ams2027/`

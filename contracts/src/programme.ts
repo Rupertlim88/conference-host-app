@@ -1,3 +1,4 @@
+// The attendee app and the backend pass the programme in fixed forms.
 import { z } from "zod";
 
 export const SocietySchema = z.enum(["ams"]);
@@ -138,4 +139,4 @@ export type Viewer = z.infer<typeof ViewerSchema>;
 
 export const SessionKindSchema = z.strictObject({ kind: z.string(), sessions: z.int().min(1) });
 export type SessionKind = z.infer<typeof SessionKindSchema>;
-export const KindInputSchema = z.strictObject({ kind: z.string().trim().min(1).max(100) });
+export const KindInputSchema = z.strictObject({ kind: z.string().trim().min(1).max(100).refine(noNul, NUL_MESSAGE) });

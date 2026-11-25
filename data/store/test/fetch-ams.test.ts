@@ -126,6 +126,17 @@ describe("publicProgramme", () => {
     expect(out.Session[0]!.TopDisplay).toBe(chairs);
   });
 
+  test("drops attributes whose quoted values hold a >, as text pasted from a chat page does", () => {
+    const abstract = '<div class="[&>*]:mt-0 [&_p>a]:x" dir="auto" data-turn-id="request-1">Results</div><p data-x=\'a>b\'>More</p>';
+    const out = publicProgramme(
+      files({
+        Paper: [paper("487641", "76096", { Abstract: abstract }), paper("496187", "76096")],
+        Session: [session("76096", ["487641", "496187"])],
+      }),
+    );
+    expect(out.Paper[0]!.Abstract).toBe("<div>Results</div><p>More</p>");
+  });
+
   test("keeps a paper that belongs to no session", () => {
     const keynote = paper("498894", "none", { ParentList_ParentEntries: ["Program/1976"] });
     const out = publicProgramme(files({ Paper: [paper("487641", "76096"), keynote] }));

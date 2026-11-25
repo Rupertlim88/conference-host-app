@@ -1,3 +1,4 @@
+// Only one send runs at a time, and a run that never finished is taken over after ten minutes.
 import { randomUUID } from "node:crypto";
 import type { SyncRun, SyncRunState } from "@repo/host-contracts";
 import { and, desc, eq, sql } from "drizzle-orm";

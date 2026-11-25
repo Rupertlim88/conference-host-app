@@ -1,6 +1,8 @@
-# AMS 107th Annual Meeting programme (2027)
+# The host app holds every talk of the AMS 2027 Annual Meeting, as AMS published it, public fields only.
 
-The public programme of the 107th AMS Annual Meeting, 10 to 14 January 2027 at the Colorado Convention Center in Denver and online, as published so far. On the day of this download, every one of the 922 sessions kept had its number. The host app's AMS version is built from these files.
+## AMS 107th Annual Meeting programme (2027)
+
+The public programme of the 107th AMS Annual Meeting, 10 to 14 January 2027 at the Colorado Convention Center in Denver and online, as published so far. AMS is still building it: on the day of this download, 295 of the 922 sessions kept had no session number, and 197 of the 4,531 papers (162 of them breaks) had no number. The host app's AMS version is built from these files.
 
 ## Source and refresh
 
@@ -47,8 +49,8 @@ The unfiltered downloads were never written to disk. Their SHA-256 hashes let yo
 | Unfiltered download | SHA-256 |
 |---|---|
 | `Paper` | `24ad112b441c52d973d7ed8a37bfc9594a0f9bfc28e5241a38b66c4cd8b95d35` |
-| `Session` | `818b78a32f67afb9ae20d90b37aaa10ef3783ea3b8a3516c5bfd86eb2081597e` |
+| `Session` | `0e998cd72e5fd2ec54aedcf69e6eb5b3482e0ef2a542088bbf04126bb441c020` |
 | `SlotData` | `ad5cf0c8926cc56790aa5d697c5f8094cc003df70b95034ce82b1a8043f03a10` |
-| `Program` | `068a9ba227a163162524b56499192ca02d8ceba24b4f6251f89b5eb6a40f4f2b` |
+| `Program` | `e3fad3401df1c75c85f6671b04c6dcabf2019ab702a6761a0e074bb30cdced4f` |
 
 The abstracts belong to their authors and AMS. Use them only inside the private demo.

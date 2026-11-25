@@ -1,3 +1,4 @@
+// Migrations are applied by a command of their own, which loads nothing, so organisers' edits stay.
 import { fileURLToPath } from "node:url";
 import { migrate } from "drizzle-orm/postgres-js/migrator";
 

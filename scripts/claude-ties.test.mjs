@@ -142,7 +142,7 @@ test("a Next.js entry file and a command-line script count with the file they ha
 test("an index file that only gathers its folder's code is not counted; one with code of its own is", () => {
   const r = check(repo({
     "part/CLAUDE.md": lowest([]),
-    "part/index.ts": 'export { a } from "./a";\nexport { b, type B } from "./b";\nexport * from "./c";\n',
+    "part/index.ts": 'export { a } from "./a";\nexport { b, type B } from "./b";\nexport * from "./c";\nexport type { D } from "./d";\n',
     "part/sub/index.ts": 'export { a } from "./a";\nexport const x = 1;\n',
   }));
   assert.deepEqual(r.untiedFiles, ["part/sub/index.ts"]);

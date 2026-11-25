@@ -6,7 +6,7 @@ import {
   NoteInputSchema,
   RelatedTalksSchema,
   SearchInputSchema,
-  TalkDetailSchema, SavedNoteSchema, SocietySchema } from "../src/index";
+  TalkDetailSchema, KindInputSchema, SavedNoteSchema, SocietySchema } from "../src/index";
 
 const summary = {
   id: "464598",
@@ -76,5 +76,13 @@ describe("a guest's saved note", () => {
     expect(SavedNoteSchema.parse({ body: "Ask about it.", updatedAt: "2027-01-11T15:00:00.000Z" })?.body).toBe("Ask about it.");
     expect(SavedNoteSchema.parse(null)).toBeNull();
     expect(SavedNoteSchema.safeParse({ body: "x" }).success).toBe(false);
+  });
+});
+
+describe("a session kind asked for", () => {
+  test("is 1 to 100 characters after trimming, and holds no NUL character", () => {
+    expect(KindInputSchema.parse({ kind: "  Joint Session " }).kind).toBe("Joint Session");
+    expect(KindInputSchema.safeParse({ kind: "Joint\u0000Session" }).success).toBe(false);
+    expect(KindInputSchema.safeParse({ kind: " " }).success).toBe(false);
   });
 });

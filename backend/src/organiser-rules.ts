@@ -1,3 +1,4 @@
+// An organiser's edit keeps a talk's length and keeps a session's times close to the meeting's days.
 export interface Placement {
   startsAt: Date | null;
   endsAt: Date | null;

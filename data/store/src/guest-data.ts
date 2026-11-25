@@ -1,3 +1,4 @@
+// Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.
 import type { Note, Schedule, Target } from "@repo/host-contracts";
 import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
 
@@ -63,10 +64,16 @@ export function createGuestData(db: Db, society: Society) {
 
     async note(userId: string, target: Target): Promise<{ body: string; updatedAt: string } | null> {
       const [row] = await db
-        .select()
+        .select({ body: t.notes.body, updatedAt: t.notes.updatedAt })
         .from(t.notes)
+        .leftJoin(t.talks, and(eq(t.notes.targetKind, "talk"), eq(t.notes.targetId, t.talks.id)))
         .where(
-          and(eq(t.notes.userId, userId), eq(t.notes.targetKind, target.targetKind), eq(t.notes.targetId, target.targetId)),
+          and(
+            eq(t.notes.userId, userId),
+            eq(t.notes.targetKind, target.targetKind),
+            eq(t.notes.targetId, target.targetId),
+            or(isNull(t.talks.withdrawn), shown),
+          ),
         );
       return row ? { body: row.body, updatedAt: row.updatedAt.toISOString() } : null;
     },

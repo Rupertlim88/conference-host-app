@@ -1,3 +1,4 @@
+// Organisers see every talk with how it differs from the published programme, and their edits never cross.
 import {
   PAGE_SIZE,
   type Changes,

@@ -25,4 +25,9 @@ describe("sslFor", () => {
     expect(sslFor("postgres://rupertlim@localhost:54329/host_app_dev")).toBeUndefined();
     expect(sslFor("postgres://kindred:kindred@127.0.0.1:5432/kindred")).toBeUndefined();
   });
+  test("an address with no host is judged by the host the driver falls back to", () => {
+    expect(sslFor("postgres:///postgres", { PGHOST: "db.example.org" })).toBe("require");
+    expect(sslFor("postgres:///postgres", { PGHOST: "/var/run/postgresql" })).toBeUndefined();
+    expect(sslFor("postgres:///postgres", {})).toBeUndefined();
+  });
 });

@@ -1,3 +1,4 @@
+// The backend is built once per process, from settings checked when it starts.
 import { SocietySchema, type Society } from "@repo/host-contracts";
 import { connect, createGuestData, createOrganiserStore, createProgramme, createSyncLog } from "@repo/host-store";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -13,7 +14,7 @@ import { CONFERENCE_IDS, conferenceApi, unconfiguredApi } from "./matching-api";
 const optional = z.preprocess((v) => (v === "" ? undefined : v), z.string().optional());
 
 const LOCAL_HOSTS = new Set(["localhost", "127.0.0.1", "[::1]"]);
-/** A web address that is encrypted unless it stays on this machine (CLAUDE.md rule 1). */
+/** A web address that is encrypted unless it stays on this machine. */
 const WebAddress = z
   .url({ protocol: /^https?$/ })
   .refine((url) => {
@@ -34,21 +35,21 @@ const EnvSchema = z
     CONFERENCE_API_URL: optionalAddress,
     CONFERENCE_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(16).optional()),
     CRON_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(16).optional()),
-  })
-  .superRefine((e, ctx) => {
-    if (e.CONFERENCE_API_URL && !e.CONFERENCE_API_KEY) {
-      ctx.addIssue({ code: "custom", path: ["CONFERENCE_API_KEY"], message: "required when CONFERENCE_API_URL is set" });
-    }
-    if (e.GOOGLE_CLIENT_ID && !e.GOOGLE_CLIENT_SECRET) {
-      ctx.addIssue({ code: "custom", path: ["GOOGLE_CLIENT_SECRET"], message: "required when GOOGLE_CLIENT_ID is set" });
-    }
-    if (e.CONFERENCE_API_KEY && !e.CONFERENCE_API_URL) {
-      ctx.addIssue({ code: "custom", path: ["CONFERENCE_API_URL"], message: "required when CONFERENCE_API_KEY is set" });
-    }
-    if (e.GOOGLE_CLIENT_SECRET && !e.GOOGLE_CLIENT_ID) {
-      ctx.addIssue({ code: "custom", path: ["GOOGLE_CLIENT_ID"], message: "required when GOOGLE_CLIENT_SECRET is set" });
-    }
   });
+
+/** Settings that come together or not at all. They are checked on the raw settings, so a pair is named even when
+ *  another setting is wrong too. */
+const PAIRS = [
+  ["CONFERENCE_API_URL", "CONFERENCE_API_KEY"],
+  ["GOOGLE_CLIENT_ID", "GOOGLE_CLIENT_SECRET"],
+] as const;
+
+function unpaired(env: Record<string, string | undefined>): string[] {
+  const set = (name: string) => Boolean(env[name]);
+  return PAIRS.flatMap(([a, b]) =>
+    set(a) === set(b) ? [] : [set(a) ? `${b}: required when ${a} is set` : `${a}: required when ${b} is set`],
+  );
+}
 
 export interface HostConfig {
   society: Society;
@@ -64,10 +65,11 @@ export interface HostConfig {
 /** Parses settings once, naming every setting that is wrong. */
 export function readConfig(env: Record<string, string | undefined>): HostConfig {
   const parsed = EnvSchema.safeParse(env);
-  if (!parsed.success) {
-    const problems = parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`).join("; ");
-    throw new Error(`Host app settings are invalid: ${problems}`);
-  }
+  const problems = [
+    ...(parsed.success ? [] : parsed.error.issues.map((i) => `${i.path.join(".")}: ${i.message}`)),
+    ...unpaired(env),
+  ];
+  if (!parsed.success || problems.length > 0) throw new Error(`Host app settings are invalid: ${problems.join("; ")}`);
   const e = parsed.data;
   return {
     society: e.HOST_SOCIETY,

@@ -1,3 +1,4 @@
+// The meeting has its own schema in the database, and sign-in has a schema of its own.
 import { sql } from "drizzle-orm";
 import {
   boolean,

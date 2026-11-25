@@ -1,3 +1,4 @@
+// Loading puts back the published programme in one step, and keeps stars, notes and sign-ins.
 import { getTableColumns, notInArray, sql, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 
@@ -26,15 +27,6 @@ export interface SocietyRows {
   talkPeople: TalkPersonRow[];
 }
 
-/** A stable id from a person's name: lower case, accents dropped, other characters as hyphens. */
-export function personId(name: string): string {
-  return name
-    .normalize("NFKD")
-    .replace(/[̀-ͯ]/g, "")
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, "-")
-    .replace(/^-|-$/g, "");
-}
 
 type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 const CHUNK = 500;

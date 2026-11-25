@@ -1,3 +1,4 @@
+// The consoles' requests carry out the organiser's and developer's actions, and name every refusal.
 import {
   ApiStatusSchema,
   ChangesSchema,

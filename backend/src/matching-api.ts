@@ -1,3 +1,4 @@
+// The host app talks to a matching API only in the form of the conference API's contract.
 import {
   MatchesSearchRequestSchema,
   MatchesSearchResponseSchema,

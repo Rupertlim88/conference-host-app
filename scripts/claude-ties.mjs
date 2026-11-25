@@ -52,7 +52,7 @@ const NOT_COUNTED_FOLDERS = /^(docs|scripts|tooling|\.claude|\.github|backend\/v
 /** An index file that only gathers its folder's code for other code to use: nothing in it but re-exports. */
 const onlyGathers = (path, text) =>
   /(^|\/)index\.[cm]?[jt]s$/.test(path) &&
-  text.split("\n").every((l) => l.trim() === "" || /^export (\*|\{[^}]*\}) from ["'][^"']+["'];?$/.test(l.trim()));
+  text.split("\n").every((l) => l.trim() === "" || /^export (type )?(\*|\{[^}]*\}) from ["'][^"']+["'];?$/.test(l.trim()));
 
 function notCounted(path) {
   const name = posix.basename(path);

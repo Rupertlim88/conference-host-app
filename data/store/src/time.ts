@@ -1,3 +1,4 @@
+// A time in the meeting's own zone is turned into an exact instant, through daylight saving.
 const formats = new Map<string, Intl.DateTimeFormat>();
 
 /** Minutes the zone is ahead of UTC at an instant: -360 for Denver in October. */

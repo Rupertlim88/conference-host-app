@@ -1,6 +1,7 @@
+// AMS's files become the host app's programme: its sessions, talks, people and tracks.
 import { z } from "zod";
 
-import { personId, type PersonRow, type SessionRow, type SocietyRows, type TalkKind, type TalkRow } from "./load";
+import { type PersonRow, type SessionRow, type SocietyRows, type TalkKind, type TalkRow } from "./load";
 
 // The public download pads some values with spaces ("Event "); every text value is trimmed where it enters.
 const text = z.string().nullish().transform((v) => (v ?? "").trim());
@@ -90,7 +91,19 @@ function presenterFrom(topDisplay: string): { name: string; affiliation: string 
   return name ? { name, affiliation: htmlToText(m[2] ?? "") } : null;
 }
 
-export function amsRows(files: AmsFiles): SocietyRows {
+/** A stable id from a person's name: lower case, accents dropped, other characters as hyphens. */
+function personId(name: string): string {
+  return name
+    .normalize("NFKD")
+    .replace(/[̀-ͯ]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9]+/g, "-")
+    .replace(/^-|-$/g, "");
+}
+
+/** AMS's four files, checked against their form, as the host app's programme. */
+export function amsRows(raw: unknown): SocietyRows {
+  const files: AmsFiles = AmsFilesSchema.parse(raw);
   const slots = new Map(files.SlotData.map((s) => [s.id, s]));
   const slotOf = (entries: string[]) => idsOf(entries, "SlotData").map((id) => slots.get(id)).find(Boolean);
   const programIds = new Set(files.Program.map((p) => p.id));

@@ -1,3 +1,4 @@
+// The attendee app sees only the talks that are not withdrawn.
 import type {
   Day,
   Meeting,
@@ -213,7 +214,7 @@ export function createProgramme(db: Db, society: Society) {
     },
 
     async person(id: string): Promise<PersonDetail | null> {
-      const [p] = await db.select().from(t.people).where(eq(t.people.id, id));
+      const [p] = await db.select().from(t.people).where(and(eq(t.people.id, id), hasShownTalk()));
       if (!p) return null;
       const talks = await db
         .select({ talk: t.talks })

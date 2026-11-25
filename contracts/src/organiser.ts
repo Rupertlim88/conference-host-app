@@ -1,3 +1,4 @@
+// The organiser console's lists and edits have fixed forms and limits.
 import { z } from "zod";
 
 import { Id, noNul, NUL_MESSAGE, TalkSummarySchema, SessionSummarySchema, SessionDetailSchema } from "./programme";

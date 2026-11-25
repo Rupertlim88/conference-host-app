@@ -1,3 +1,4 @@
+// The attendee app's requests read the programme through the store, and a missing item is "not found".
 import {
   DateInputSchema,
   DaySchema,
