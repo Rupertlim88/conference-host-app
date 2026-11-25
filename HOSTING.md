@@ -1,6 +1,6 @@
-# Host the AMS and GSA apps on Vercel and Supabase
+# Host the AMS app on Vercel and Supabase
 
-This guide puts both host apps online on free tiers. One Supabase project holds both societies' data, and each app is its own Vercel Hobby project. The owner does every step that creates an account, a project or a secret, in each service's own dashboard. Secrets go straight into those dashboards, never into the repository or a chat.
+This guide puts the host app online on free tiers. One Supabase project holds the data, and the app is a Vercel Hobby project. The owner does every step that creates an account, a project or a secret, in each service's own dashboard. Secrets go straight into those dashboards, never into the repository or a chat.
 
 ## Before you start
 
@@ -8,7 +8,7 @@ You need these:
 
 - the repository on GitHub, with `main` holding the version to host
 - a Supabase account, a Google Cloud account, and a Vercel account on the Hobby plan
-- the conference API's HTTPS address, and a key that can write talks and read matches for `ams-2027` and `gsa-2026`
+- the conference API's HTTPS address, and a key that can write talks and read matches for `ams-2027`
 - this repository on your machine, with `npm install` done, for the one-off load
 
 The conference API's `issue-key` command makes keys that last the number of days it is given, at most a year. When the key expires, the related-talks panels and the programme sends stop until someone sets a new key. The hosted apps need a key that lasts longer, and that change belongs to the conference API.
@@ -22,68 +22,65 @@ The conference API's `issue-key` command makes keys that last the number of days
 
 The store's `connect()` requires TLS for any database off your machine, and refuses an address that turns TLS off with `sslmode=disable`, `allow` or `prefer`.
 
-## 2. Load both programmes
+## 2. Load the programme
 
 From the repository root, with the session pooler string:
 
 ```sh
 HOST_DATABASE_URL='<session pooler string>' npm run load --workspace=@repo/host-store -- ams
-HOST_DATABASE_URL='<session pooler string>' npm run load --workspace=@repo/host-store -- gsa
 ```
 
-Each command applies the migrations, then prints the counts it loaded, such as `ams: 49 tracks, 886 sessions, 4521 talks, 3779 people`.
+It applies the migrations, then prints the counts it loaded, such as `ams: 49 tracks, 922 sessions, 4531 talks, 3788 people`.
 
 ## 3. Create the Google sign-in client
 
 1. In Google Cloud, open **APIs & Services**, then **OAuth consent screen**. Choose **External**, fill in the app name and contact address, and publish the app (**In production**), so that any Google account can sign in.
 2. Open **Credentials**, then **Create credentials**, then **OAuth client ID**, and choose **Web application**.
-3. Add one authorised redirect URI per app, using each app's production address:
-   - `https://<AMS address>/api/auth/callback/google`
-   - `https://<GSA address>/api/auth/callback/google`
+3. Add the authorised redirect URI, using the app's production address: `https://<AMS address>/api/auth/callback/google`
 4. Copy the client ID and the client secret.
 
-If you do not know the addresses yet, create the Vercel projects first (step 4), then come back.
+If you do not know the address yet, create the Vercel project first (step 4), then come back.
 
-## 4. Create the two Vercel projects
+## 4. Create the Vercel project
 
-Import the repository twice, once per app:
+Import the repository:
 
-| Project setting | AMS | GSA |
-| --- | --- | --- |
-| Root Directory | `ui/apps/ams` | `ui/apps/gsa` |
-| Framework Preset | Next.js | Next.js |
-| Node.js Version | 24.x | 24.x |
-| Include files outside the root directory | on | on |
+| Project setting | Value |
+| --- | --- |
+| Root Directory | `ui/apps/ams` |
+| Framework Preset | Next.js |
+| Node.js Version | 24.x |
+| Include files outside the root directory | on |
 
-Vercel installs the whole npm workspace from the repository root, so each app builds with its workspace packages.
+Vercel installs the whole npm workspace from the repository root, so the app builds with its workspace packages.
 
 ## 5. Enter the settings
 
-In each project, open **Settings**, then **Environment Variables**, and add these for **Production**. Mark every secret as **Sensitive**.
+In the project, open **Settings**, then **Environment Variables**, and add these for **Production**. Mark every secret as **Sensitive**.
 
 | Setting | Value | Secret |
 | --- | --- | --- |
-| `HOST_SOCIETY` | `ams` or `gsa` | no |
+| `HOST_SOCIETY` | `ams` | no |
 | `HOST_DATABASE_URL` | the transaction pooler string (port 6543) | yes |
-| `BETTER_AUTH_SECRET` | the output of `openssl rand -base64 32`, a different value per project | yes |
+| `BETTER_AUTH_SECRET` | the output of `openssl rand -base64 32` | yes |
 | `BETTER_AUTH_URL` | the app's production address, such as `https://<AMS address>` | no |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | from step 3 | yes |
 | `CONFERENCE_API_URL` | the conference API's address | no |
 | `CONFERENCE_API_KEY` | the conference API key | yes |
-| `CRON_SECRET` | the output of `openssl rand -hex 24`, a different value per project | yes |
+| `CRON_SECRET` | the output of `openssl rand -hex 24` | yes |
 
-The apps check every setting when they start and name each one that is wrong.
+The app checks every setting when they start and name each one that is wrong.
 
 ## 6. Deploy and send the programme
 
-1. Deploy each project to production.
-2. Sign in to each app, open **Organiser console**, then **Send to API**, and press **Send programme**, then **Send now**. The page reports how many talks it sent.
+1. Deploy the project to production.
+2. Sign in to the app, open **Organiser console**, then **Send to API**, and press **Send programme**, then **Send now**. The page reports how many talks it sent.
 
 ## 7. Check that it works
 
-1. On each address, sign in with a Google account, open a talk, and check that **Related talks** lists talks.
+1. On the app's address, sign in with a Google account, open a talk, and check that **Related talks** lists talks.
 2. Open **Developer console** and press **Test connection**. It says **Connection works**.
-3. In each Vercel project, open **Schedules**, then **Cron Jobs**. `/api/keep-alive` runs daily, at 06:00 UTC for AMS and 18:00 UTC for GSA, at any minute within that hour. Its log shows status 200. Supabase pauses a free project that goes unused, and this daily database read keeps the project in use.
+3. In the Vercel project, open **Schedules**, then **Cron Jobs**. `/api/keep-alive` runs daily at 06:00 UTC, at any minute within that hour. Its log shows status 200. Supabase pauses a free project that goes unused, and this daily database read keeps the project in use.
 
 ## Change the schema later
 

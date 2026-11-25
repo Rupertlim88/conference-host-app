@@ -12,7 +12,7 @@ describe.skipIf(!url)("migrating a hosted database", { timeout: 60_000 }, () => 
   const db = (conn?.db ?? null) as Db;
 
   beforeAll(async () => {
-    for (const schema of ["ams2027", "gsa2026", "sign_in", "auth"]) await db.execute(sql.raw(`drop schema if exists ${schema} cascade`));
+    for (const schema of ["ams2027", "sign_in", "auth"]) await db.execute(sql.raw(`drop schema if exists ${schema} cascade`));
     await db.execute(sql`drop table if exists drizzle.__host_store_migrations`);
     // Every Supabase project already has an auth schema of its own, for Supabase Auth.
     await db.execute(sql`create schema auth`);
@@ -33,5 +33,13 @@ describe.skipIf(!url)("migrating a hosted database", { timeout: 60_000 }, () => 
       ).map((r) => r.table_name);
     expect(await tables("sign_in")).toEqual(["account", "session", "user", "verification"]);
     expect(await tables("auth")).toEqual(["users"]);
+  });
+
+  test("leaves no schema for GSA, whose programme the host app no longer carries", async () => {
+    await migrateStore(db);
+    const schemas = (
+      await db.execute<{ schema_name: string }>(sql`select schema_name from information_schema.schemata where schema_name = 'gsa2026'`)
+    ).map((r) => r.schema_name);
+    expect(schemas).toEqual([]);
   });
 });

@@ -6,8 +6,7 @@ import {
   NoteInputSchema,
   RelatedTalksSchema,
   SearchInputSchema,
-  TalkDetailSchema,
-} from "../src/index";
+  TalkDetailSchema, SocietySchema } from "../src/index";
 
 const summary = {
   id: "464598",
@@ -62,5 +61,12 @@ describe("related talks", () => {
     const match = { talk: summary, kind: "unexpected", score: 0.9, reason: "Shared method." };
     expect(RelatedTalksSchema.safeParse({ status: "matches", matches: [match] }).success).toBe(true);
     expect(RelatedTalksSchema.safeParse({ status: "matches", matches: [] }).success).toBe(false);
+  });
+});
+
+describe("societies", () => {
+  test("the host app carries AMS only", () => {
+    expect(SocietySchema.options).toEqual(["ams"]);
+    expect(SocietySchema.safeParse("gsa").success).toBe(false);
   });
 });

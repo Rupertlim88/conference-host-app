@@ -17,7 +17,6 @@ describe.skipIf(!url)("stars, notes and the sync list", { timeout: 60_000 }, () 
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
   const ams = createStore(db, "ams");
-  const gsa = createStore(db, "gsa");
 
   beforeAll(async () => {
     await migrateStore(db);
@@ -38,10 +37,9 @@ describe.skipIf(!url)("stars, notes and the sync list", { timeout: 60_000 }, () 
     expect(await ams.starred("u1")).toEqual([]);
   });
 
-  test("stars belong to one person and one society", async () => {
+  test("stars belong to one person", async () => {
     await ams.star("u1", { targetKind: "session", targetId: "73193" });
     expect(await ams.starred("u2")).toEqual([]);
-    expect(await gsa.starred("u1")).toEqual([]);
     expect((await ams.schedule("u1")).sessions.map((s) => s.id)).toEqual(["73193"]);
   });
 

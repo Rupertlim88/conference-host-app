@@ -1,6 +1,6 @@
 export { connect, type Db } from "./db";
 export { loadRows, type LoadCounts } from "./load-rows";
-export { SOCIETY_TABLES, amsTables, gsaTables, type Society, type SocietyTables } from "./schema";
+export { SOCIETY_TABLES, amsTables, type Society, type SocietyTables } from "./schema";
 export type { MeetingRow, PersonRow, SessionRow, SocietyRows, TalkKind, TalkRow, TrackRow } from "./rows";
 export { authTables } from "./auth-schema";
 export { createStore, type HostStore } from "./queries";

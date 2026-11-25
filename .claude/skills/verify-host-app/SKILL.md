@@ -1,23 +1,22 @@
 ---
 name: verify-host-app
-description: Launch the host app's AMS app (Isobar Meetings) or GSA app (Strata Guide), with their organiser and developer consoles, against the local conference API, sign in as a test guest, drive real pages in a browser, and save screenshots and ARIA snapshots as proof. Use to prove any user-facing change under  works in the running app, not only in tests.
+description: Launch the host app's AMS app (Isobar Meetings), with its organiser and developer consoles, against the local conference API, sign in as a test guest, drive real pages in a browser, and save screenshots and ARIA snapshots as proof. Use to prove any user-facing change under  works in the running app, not only in tests.
 ---
 
 # Verify the host app
 
-The host app has one attendee app per society, each with an organiser console at `/organiser` and a developer console at `/developer`. Both run as production builds on this machine, read the local Postgres through `@repo/host-backend`, and get related talks from the conference API at `CONFERENCE_API_URL`. Locally that is the real conference API (`conference-api/backend`) on port 8787, serving placeholder matches.
+The host app has one attendee app, for AMS, with an organiser console at `/organiser` and a developer console at `/developer`. It runs as a production build on this machine, read the local Postgres through `@repo/host-backend`, and get related talks from the conference API at `CONFERENCE_API_URL`. Locally that is the real conference API (`conference-api/backend`) on port 8787, serving placeholder matches.
 
 | Society | App | Folder | Address |
 | --- | --- | --- | --- |
 | `ams` | Isobar Meetings 2027 (Demo) | `ui/apps/ams` | http://localhost:3001 |
-| `gsa` | Strata Guide (Demo) | `ui/apps/gsa` | http://localhost:3002 |
 
-All commands below run from the repository root. `S` stands for `ams` or `gsa`.
+All commands below run from the repository root. `S` stands for `ams`.
 
 ## Before the first launch
 
 - Postgres must be running, and the database named in the app's `HOST_DATABASE_URL` must exist. It may be empty. On Rupert's Mac the cluster is `~/pgsql/data` on port 54329: start it with `~/pgsql/bin/pg_ctl -D ~/pgsql/data -l ~/pgsql/data/server.log -o "-p 54329" start`.
-- Each app needs `ui/apps/S/.env.local`, which git ignores. The app's `README.md` lists its settings. For the local conference API set `CONFERENCE_API_URL=http://127.0.0.1:8787`; launch issues the key, so `CONFERENCE_API_KEY` there is ignored. The conference API needs Postgres with `pgcrypto`. On Rupert's Mac that is a second cluster: start it with `/opt/homebrew/opt/postgresql@18/bin/pg_ctl -D ~/pgsql-api/data -l ~/pgsql-api/server.log -o "-p 54330" start` and set `API_DATABASE_URL=postgres://rupertlim@localhost:54330/postgres`. Without `API_DATABASE_URL` the API's databases go on the host database's server, as in CI.
+- The app needs `ui/apps/S/.env.local`, which git ignores. The app's `README.md` lists its settings. For the local conference API set `CONFERENCE_API_URL=http://127.0.0.1:8787`; launch issues the key, so `CONFERENCE_API_KEY` there is ignored. The conference API needs Postgres with `pgcrypto`. On Rupert's Mac that is a second cluster: start it with `/opt/homebrew/opt/postgresql@18/bin/pg_ctl -D ~/pgsql-api/data -l ~/pgsql-api/server.log -o "-p 54330" start` and set `API_DATABASE_URL=postgres://rupertlim@localhost:54330/postgres`. Without `API_DATABASE_URL` the API's databases go on the host database's server, as in CI.
 
 ## Launch
 
@@ -92,9 +91,9 @@ Stop ends the app's process group, and ends the conference API too once no app s
 
 ## Gotchas
 
-- Both apps share the conference API on port 8787 and the one host database. Stopping one app keeps the API while the other runs. The key lasts a day: after that, related talks show as unavailable until the next launch.
+- The app uses the conference API on port 8787 and the one host database. The key lasts a day: after that, related talks show as unavailable until the next launch.
 - `verify.sh launch` builds the app. After editing app code, stop and launch again before you drive it.
-- Talk numbers repeat in AMS (four talks are numbered J1.2), and 1,535 of its 2027 talks and posters have no number yet. Open talks by id, such as `/talks/493803`, not by number.
-- Times show in the meeting's time zone by default: Mountain for both. The AMS `MST` button or the GSA `MT` button in the top bar switches to the device's zone.
+- Talk numbers repeat in AMS (several talks are numbered J1.2), and 197 of its 2027 programme entries have no number. Open talks by id, such as `/talks/493803`, not by number.
+- Times show in the meeting's time zone by default: Mountain. The `MST` button in the top bar switches to the device's zone.
 - The matches are placeholders (each talk matches the next three, and says so). Check that the related-talks panel fills and links to real talks, not that the matches are good.
 - Google sign-in is not set up locally. The sign-in page says so, and looks sign in through the test helper instead.

@@ -171,10 +171,9 @@ function societyTables(schemaName: string) {
 }
 
 export const amsTables = societyTables("ams2027");
-export const gsaTables = societyTables("gsa2026");
 export type SocietyTables = typeof amsTables;
 
-export const SOCIETY_TABLES = { ams: amsTables, gsa: gsaTables } as const;
+export const SOCIETY_TABLES = { ams: amsTables } as const;
 export type Society = keyof typeof SOCIETY_TABLES;
 
 // drizzle-kit finds schemas and tables only in top-level exports.
@@ -190,18 +189,6 @@ export const {
   notes: amsNotes,
   syncRuns: amsSyncRuns,
 } = amsTables;
-export const {
-  schema: gsa2026,
-  meeting: gsaMeeting,
-  tracks: gsaTracks,
-  sessions: gsaSessions,
-  talks: gsaTalks,
-  people: gsaPeople,
-  talkPeople: gsaTalkPeople,
-  stars: gsaStars,
-  notes: gsaNotes,
-  syncRuns: gsaSyncRuns,
-} = gsaTables;
 
-// The auth schema is shared by both societies' hosted copies.
+// The sign-in tables sit in their own schema.
 export * from "./auth-schema";

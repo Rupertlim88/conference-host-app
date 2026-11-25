@@ -1,6 +1,6 @@
 import { z } from "zod";
 
-export const SocietySchema = z.enum(["ams", "gsa"]);
+export const SocietySchema = z.enum(["ams"]);
 export type Society = z.infer<typeof SocietySchema>;
 
 const Id = z.string().regex(/^[A-Za-z0-9._-]{1,64}$/);

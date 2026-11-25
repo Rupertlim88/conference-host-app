@@ -20,7 +20,6 @@ Preconditions:
 - The baseline preconditions in the index hold.
 
 - **Redirect, AMS.** Run `L ams /talks/493803 gate --signed-out --expect "heading=Sign in to the demo"`. The `.aria.txt` starts with `http://localhost:3001/sign-in` and contains `Isobar Meetings 2027 (Demo)`.
-- **Redirect, GSA.** Run `L gsa /talks/16121 gate --signed-out --expect "heading=Sign in to the demo"`. The `.aria.txt` starts with `http://localhost:3002/sign-in` and contains `Strata Guide (Demo)`.
 - **Signed in.** Run `L ams /talks/493803 talk --expect "heading=Abstract"`. The `.aria.txt` starts with `http://localhost:3001/talks/493803`.
 
 ## Gotchas

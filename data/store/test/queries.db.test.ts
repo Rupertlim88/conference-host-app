@@ -12,10 +12,9 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { AmsFilesSchema, amsRows } from "../src/ams";
 import { connect, type Db } from "../src/db";
 import { migrateStore } from "../src/migrate";
-import { GsaFilesSchema, gsaRows } from "../src/gsa";
 import { loadRows } from "../src/load-rows";
 import { createStore } from "../src/queries";
-import { amsTables, gsaTables } from "../src/schema";
+import { amsTables } from "../src/schema";
 
 const url = process.env.HOST_TEST_DATABASE_URL;
 const fixture = (name: string) => JSON.parse(readFileSync(join(import.meta.dirname, "fixtures", name), "utf8"));
@@ -24,16 +23,13 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
   const ams = createStore(db, "ams");
-  const gsa = createStore(db, "gsa");
 
   beforeAll(async () => {
     await db.execute(sql`drop schema if exists ams2027 cascade`);
-    await db.execute(sql`drop schema if exists gsa2026 cascade`);
     await db.execute(sql`drop schema if exists sign_in cascade`);
     await db.execute(sql`drop table if exists drizzle.__host_store_migrations`);
     await migrateStore(db);
     await loadRows(db, amsTables, amsRows(AmsFilesSchema.parse(fixture("ams-slice.json"))));
-    await loadRows(db, gsaTables, gsaRows(GsaFilesSchema.parse(fixture("gsa-slice.json"))));
   });
   afterAll(async () => {
     await conn?.close();
@@ -45,15 +41,11 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
 
   test("meeting", async () => {
     expect((await ams.meeting()).timeZone).toBe("America/Denver");
-    expect((await gsa.meeting()).name).toBe("GSA Connects 2026");
+    expect((await ams.meeting()).name).toContain("AMS Annual Meeting");
   });
 
   test("days count sessions by the meeting's own calendar date", async () => {
     expect(await ams.days()).toEqual([{ date: "2026-01-27", sessions: 2 }]);
-    expect(await gsa.days()).toEqual([
-      { date: "2026-10-11", sessions: 1 },
-      { date: "2026-10-12", sessions: 1 },
-    ]);
   });
 
   test("sessions on a day come in start order", async () => {
@@ -80,8 +72,8 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
   });
 
   test("talk summaries come back in the order asked, skipping unknown ids", async () => {
-    const got = await gsa.talkSummaries(["16121", "missing", "15697"]);
-    expect(got.map((t) => t.id)).toEqual(["16121", "15697"]);
+    const got = await ams.talkSummaries(["477728", "missing", "464598"]);
+    expect(got.map((t) => t.id)).toEqual(["477728", "464598"]);
   });
 
   test("a track lists its sessions", async () => {
@@ -90,7 +82,7 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
   });
 
   test("tracks are in their loaded order", async () => {
-    expect((await gsa.tracks()).map((t) => t.title)).toContain("Topical Sessions");
+    expect((await ams.tracks()).map((t) => t.code)).toEqual(["EDUCATION", "MIDDLE", "TROPICAL", "TOWNHALL"]);
   });
 
   test("people are listed by name, and a person lists their talks", async () => {
@@ -103,8 +95,8 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
   test("search finds talks by title, number and presenter, and sessions and people", async () => {
     expect((await ams.search("storm")).talks.map((t) => t.number)).toContain("J7.1");
     expect((await ams.search("J7.3")).talks.map((t) => t.number)).toEqual(["J7.3"]);
-    expect((await gsa.search("corson")).people.map((p) => p.name)).toEqual(["Nicholas Corson-Dosch"]);
-    expect((await gsa.search("hydrologic")).sessions.map((s) => s.id)).toEqual(["96389"]);
+    expect((await ams.search("oehrlein")).people.map((p) => p.name)).toEqual(["Jessica Oehrlein"]);
+    expect((await ams.search("cloud-radiative")).sessions.map((s) => s.id)).toEqual(["73941"]);
   });
 
   test("search treats % and _ as plain characters", async () => {
@@ -113,11 +105,11 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
   });
 
   test("session kinds are counted, and a kind lists its sessions in start order", async () => {
-    expect(await gsa.sessionKinds()).toEqual([
-      { kind: "Poster: Topical", sessions: 1 },
-      { kind: "Topical Sessions", sessions: 1 },
+    expect(await ams.sessionKinds()).toEqual([
+      { kind: "Joint Session", sessions: 1 },
+      { kind: "Session", sessions: 1 },
     ]);
-    expect((await gsa.sessionsOfKind("Topical Sessions")).map((s) => s.id)).toEqual(["96389"]);
-    expect(await gsa.sessionsOfKind("Nope")).toEqual([]);
+    expect((await ams.sessionsOfKind("Joint Session")).map((s) => s.id)).toEqual(["73193"]);
+    expect(await ams.sessionsOfKind("Nope")).toEqual([]);
   });
 });

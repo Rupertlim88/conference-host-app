@@ -1,10 +1,10 @@
-# The repo's Python: the programme loader (data/loader) and the Python side of the conference API's contract
-# (conference-api-contract/pytests). Run the tests with: uv run pytest
+# The repo's Python: the Python side of the conference API's contract (conference-api-contract/pytests).
+# Run the tests with: uv run pytest
 [project]
 name = "conference-host-app-python"
 version = "0.0.0"
 requires-python = ">=3.12"
-dependencies = ["gps-data"]
+dependencies = []
 
 [dependency-groups]
 test = ["jsonschema>=4.23", "pytest>=8"]
@@ -13,8 +13,5 @@ test = ["jsonschema>=4.23", "pytest>=8"]
 package = false
 default-groups = ["test"]
 
-[tool.uv.sources]
-gps-data = { path = "data/loader", editable = true }
-
 [tool.pytest.ini_options]
-testpaths = ["data/loader/tests", "conference-api-contract/pytests"]
+testpaths = ["conference-api-contract/pytests"]

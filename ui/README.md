@@ -4,7 +4,7 @@ The rules for this part are in this folder's CLAUDE.md. This file says where the
 
 | What | Where |
 |---|---|
-| One app per UI | `ui/apps/<ui>`: `ams` (Isobar Meetings) and `gsa` (Strata Guide) |
+| One app per UI | `ui/apps/<ui>`: `ams` (Isobar Meetings) |
 | Each app's shadcn/ui components | `ui/apps/<ui>/components/ui` |
 | Each app's theme tokens | `ui/apps/<ui>/app/globals.css` |
 

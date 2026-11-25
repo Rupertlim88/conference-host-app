@@ -24,9 +24,6 @@ wheels = [
 name = "conference-host-app-python"
 version = "0.0.0"
 source = { virtual = "." }
-dependencies = [
-    { name = "gps-data" },
-]
 
 [package.dev-dependencies]
 test = [
@@ -35,18 +32,12 @@ test = [
 ]
 
 [package.metadata]
-requires-dist = [{ name = "gps-data", editable = "data/loader" }]
 
 [package.metadata.requires-dev]
 test = [
     { name = "jsonschema", specifier = ">=4.23" },
     { name = "pytest", specifier = ">=8" },
 ]
-
-[[package]]
-name = "gps-data"
-version = "0.1.0"
-source = { editable = "data/loader" }
 
 [[package]]
 name = "iniconfig"

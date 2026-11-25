@@ -11,7 +11,7 @@ import type { Society } from "@repo/host-contracts";
 import type { ConnectionOutcome } from "./programme-rules";
 
 /** The conference id each society's programme is filed under at the conference API. */
-export const CONFERENCE_IDS: Record<Society, string> = { ams: "ams-2027", gsa: "gsa-2026" };
+export const CONFERENCE_IDS: Record<Society, string> = { ams: "ams-2027" };
 
 export type RelatedAnswer = { status: "ok"; matches: Match[] } | { status: "unavailable" };
 

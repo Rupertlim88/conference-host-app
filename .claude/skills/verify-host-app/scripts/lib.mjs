@@ -4,12 +4,11 @@ import { fileURLToPath } from "node:url";
 
 const APPS = {
   ams: { dir: "ui/apps/ams", port: 3001, name: "Isobar Meetings 2027", conference: "ams-2027", schema: "ams2027", sampleTalk: "487641" },
-  gsa: { dir: "ui/apps/gsa", port: 3002, name: "Strata Guide", conference: "gsa-2026", schema: "gsa2026", sampleTalk: "16121" },
 };
 
 export function appFor(society) {
   const app = APPS[society];
-  if (!app) throw new Error(`society must be ams or gsa, not ${JSON.stringify(society)}`);
+  if (!app) throw new Error(`society must be ams, not ${JSON.stringify(society)}`);
   return { society, ...app };
 }
 
@@ -20,7 +19,7 @@ function pair(option, value, left, right) {
   return [value.slice(0, at), value.slice(at + 1)];
 }
 
-const USAGE = "usage: look.mts <ams|gsa> <route> <name> [--computer] [--signed-out] [--click role=name] [--fill label=text] [--press key] [--expect role=name]";
+const USAGE = "usage: look.mts ams <route> <name> [--computer] [--signed-out] [--click role=name] [--fill label=text] [--press key] [--expect role=name]";
 
 export function parseLook(argv) {
   const [society, route, name, ...rest] = argv;

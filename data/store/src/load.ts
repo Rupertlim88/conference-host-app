@@ -4,7 +4,6 @@ import { fileURLToPath } from "node:url";
 import { AmsFilesSchema, amsRows } from "./ams";
 import { connect } from "./db";
 import { migrateStore } from "./migrate";
-import { GsaFilesSchema, gsaRows } from "./gsa";
 import { loadRows } from "./load-rows";
 import type { SocietyRows } from "./rows";
 import { SOCIETY_TABLES, type Society } from "./schema";
@@ -22,19 +21,12 @@ const READERS: Record<Society, () => SocietyRows> = {
         Program: read("ams2027", "107ANNUAL-Program.json"),
       }),
     ),
-  gsa: () =>
-    gsaRows(
-      GsaFilesSchema.parse({
-        sessions: read("gsa2026", "connects26-sessions.json"),
-        abstracts: read("gsa2026", "connects26-abstracts.json"),
-      }),
-    ),
 };
 
 const society = process.argv[2];
 const url = process.env.HOST_DATABASE_URL;
-if (society !== "ams" && society !== "gsa") {
-  console.error("Usage: npm run load --workspace=@repo/host-store -- ams|gsa");
+if (society !== "ams") {
+  console.error("Usage: npm run load --workspace=@repo/host-store -- ams");
   process.exit(1);
 }
 if (!url) {

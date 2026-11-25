@@ -102,17 +102,17 @@ describe("conferenceApi.writeTalks", () => {
   test("sends talks:write and returns the parsed answer", async () => {
     const answer = { programmeVersion: "pv_8f3k2Qw9xLm0ZpT4vN7aBc", added: 1, changed: 0, withdrawn: 0, unchanged: 0, matchingJob: "job_x91Kd02LmQpZ7rT5vWb3Yu" };
     const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify(answer) }));
-    const api = conferenceApi({ url, key: "k".repeat(16), conference: "gsa-2026" });
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
     const req = { talks: [{ id: "1", title: "One", abstract: "" }] };
     expect(await api.writeTalks(req)).toEqual(answer);
-    expect(seen[0]!.url).toBe("/v1/conferences/gsa-2026/talks:write");
+    expect(seen[0]!.url).toBe("/v1/conferences/ams-2027/talks:write");
     expect(seen[0]!.body).toEqual(req);
   });
 
   test("a refused upload throws with the API's problem title", async () => {
     const problem = { type: "/problems/invalid-talks", title: "Some talks are invalid", status: 400, requestId: "req_9ToXrv3QWGspAajx6rMNfA" };
     const { url } = await serve(() => ({ status: 400, body: JSON.stringify(problem) }));
-    const api = conferenceApi({ url, key: "k".repeat(16), conference: "gsa-2026" });
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
     const refused = api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "" }] });
     await expect(refused).rejects.toBeInstanceOf(ApiRefusedError);
     await expect(refused).rejects.toMatchObject({ status: 400, title: "Some talks are invalid" });
@@ -120,7 +120,7 @@ describe("conferenceApi.writeTalks", () => {
 
   test("a refusal that is not JSON still carries its status", async () => {
     const { url } = await serve(() => ({ status: 502, body: "<html>Bad gateway</html>" }));
-    const api = conferenceApi({ url, key: "k".repeat(16), conference: "gsa-2026" });
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
     await expect(api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "" }] })).rejects.toMatchObject({
       status: 502,
       title: "no problem details",
@@ -129,7 +129,7 @@ describe("conferenceApi.writeTalks", () => {
 
   test("a write stops as soon as the caller's signal aborts", async () => {
     const { url } = await serve(() => ({ status: 200, body: "{}", delayMs: 1500 }));
-    const api = conferenceApi({ url, key: "k".repeat(16), conference: "gsa-2026" });
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
     const started = Date.now();
     await expect(
       api.writeTalks({ talks: [{ id: "1", title: "One", abstract: "" }] }, AbortSignal.timeout(50)),

@@ -2,7 +2,7 @@
 # Launches, checks, or stops one host app and the local conference API. Usage is in ../SKILL.md.
 set -euo pipefail
 
-USAGE="usage: verify.sh <launch|doctor|stop> <ams|gsa>"
+USAGE="usage: verify.sh <launch|doctor|stop> ams"
 ACTION=${1:?$USAGE}
 SOCIETY=${2:?$USAGE}
 HERE=$(cd "$(dirname "$0")" && pwd)
@@ -79,10 +79,8 @@ prepare_api() {
   api_cli migrate-control >/dev/null
   api_cli add-partner host-demo Host app demo >/dev/null
   local conference key_id
-  for conference in ams-2027 gsa-2026; do
-    api_cli create-conference "$conference" host-demo >/dev/null
-  done
   conference="$(field conference)"
+  api_cli create-conference "$conference" host-demo >/dev/null
   for key_id in $(api_cli list-keys | awk -v c="$conference" '$2 == "host-demo" && $3 == c && $NF == "live" { print $1 }'); do
     api_cli cancel-key "$key_id" >/dev/null
   done
