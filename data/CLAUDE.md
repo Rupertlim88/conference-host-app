@@ -11,15 +11,18 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 1. **Claude writes and changes the rules, always from the user's intent.** Claude may add, change or remove a rule in any of the host app's CLAUDE.md files to carry out what the user wants, without being asked to change that rule. A rule Claude writes says only what the user wants, as faithfully as Claude can tell, and keeps the user's own words wherever the user has given them. What the user says always wins: the user can change or overrule any rule at any time. Every change is reported in the chat (the rule to report every CLAUDE.md change in the chat). The CLAUDE.md files hold only rules: never status, progress, notes or the names of current implementations, apart from the one file and the how that each rule in a lowest-level CLAUDE.md names.
 
-## Rules
+## The database
+
 2. **The database is Supabase's PostgreSQL database, always on.**
+
+3. **The hosted database's login is stored locally, on the computer of each person who looks after the database.** Besides those computers, it is kept only by the host that runs the app, which needs it to read and write the data; it is never put in the repository, a pull request, the chat or a cloud Claude session. Migrating the hosted database, and loading the meeting's programme into it, are run from one of those computers.
 
 ## Security level
 
-3. **The host app's data layer meets OWASP ASVS 5.0 at Level 1.** Every Level 1 requirement of OWASP ASVS 5.0 applies to it.
+4. **The host app's data layer meets OWASP ASVS 5.0 at Level 1.** Every Level 1 requirement of OWASP ASVS 5.0 applies to it.
 
 ## The meeting's data
 
-4. **The meeting's data holds only what the public programme shows.** Fields the public programme does not show, such as reviewers' ratings, submitters' comments or internal notes, are removed before the data is stored anywhere, including the repository, and are never kept or shown. Withdrawn entries are left out.
+5. **The meeting's data holds only what the public programme shows.** Fields the public programme does not show, such as reviewers' ratings, submitters' comments or internal notes, are removed before the data is stored anywhere, including the repository, and are never kept or shown. Withdrawn entries are left out.
 
-5. **Data is gathered gently.** Where a society offers a public download, it is used; where pages must be read one by one, they are read slowly enough never to burden the society's site, and each page is read once and kept.
+6. **Data is gathered gently.** Where a society offers a public download, it is used; where pages must be read one by one, they are read slowly enough never to burden the society's site, and each page is read once and kept.
