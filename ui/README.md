@@ -5,8 +5,11 @@ The rules for this part are in this folder's CLAUDE.md. This file says where the
 | What | Where |
 |---|---|
 | One app per UI | `ui/apps/<ui>`: `ams` (Isobar Meetings) |
-| Each app's shadcn/ui components | `ui/apps/<ui>/components/ui` |
-| Each app's theme tokens | `ui/apps/<ui>/app/globals.css` |
+| Each app's features, one file per rule in its features CLAUDE.md | `ui/apps/<ui>/features` |
+| Each app's shadcn/ui components | `ui/apps/<ui>/features/ui` |
+| Each app's theme tokens | `ui/apps/<ui>/features/theme.css` |
+| Each app's English text | `ui/apps/<ui>/features/text/en.json` |
+| The files Next.js needs, each handing over to a feature | `ui/apps/<ui>/app` |
 
 - Every app is self-contained. Two apps never share components, styles, or helpers, so each app keeps its own copy.
 - Add a missing shadcn primitive to one app from the repo root: `npx shadcn@latest add <name> -c ui/apps/<ui>`.

@@ -2,9 +2,9 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { InfoBox } from "@/components/info-box";
 
 import { renderApp } from "../render";
+import { InfoBox } from "@/features/cards";
 
 const definitions = () => screen.getAllByRole("definition").map((d) => d.textContent);
 

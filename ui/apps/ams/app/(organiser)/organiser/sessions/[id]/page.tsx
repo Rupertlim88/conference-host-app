@@ -1,9 +1,7 @@
-import { SessionForm } from "@/components/console/session-form";
-import { OrganiserSessionView } from "@/components/views/organiser-session-view";
-import { MEETING_ZONE } from "@/lib/meeting";
-import { meetingClock } from "@/lib/meeting-clock";
-import { orNotFound } from "@/lib/or-not-found";
-import { serverApi } from "@/lib/server-api";
+import { MEETING_ZONE } from "@/features/app";
+import { OrganiserSessionView, SessionForm } from "@/features/organiser-sessions";
+import { orNotFound, serverApi } from "@/features/server";
+import { meetingClock } from "@/features/console-frame";
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

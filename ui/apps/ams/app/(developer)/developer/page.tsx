@@ -1,6 +1,5 @@
-import { DeveloperActions } from "@/components/console/developer-actions";
-import { DeveloperView } from "@/components/views/developer-view";
-import { serverApi } from "@/lib/server-api";
+import { DeveloperActions, DeveloperView } from "@/features/developer";
+import { serverApi } from "@/features/server";
 
 export default async function DeveloperPage() {
   const status = await (await serverApi()).developer.status();

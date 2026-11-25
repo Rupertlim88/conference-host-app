@@ -2,7 +2,7 @@
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { ProgramsView } from "@/components/views/programs-view";
+import { ProgramsView } from "@/features/programmes";
 
 import { track } from "../fixtures";
 import { renderApp } from "../render";

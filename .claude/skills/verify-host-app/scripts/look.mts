@@ -23,7 +23,9 @@ mkdirSync(evidence, { recursive: true });
 
 // One guest per launch: the first signed-in look creates it, later looks reuse its cookies.
 const statePath = join(run, `${app.society}-state.json`);
-const browser = await chromium.launch();
+// A machine whose installed browser differs from Playwright's own names it in CHROMIUM_PATH.
+// eslint-disable-next-line turbo/no-undeclared-env-vars
+const browser = await chromium.launch(process.env.CHROMIUM_PATH ? { executablePath: process.env.CHROMIUM_PATH } : {});
 const context = await browser.newContext({
   baseURL,
   ...(look.device === "phone" ? { ...devices["Pixel 7"], viewport: { width: 390, height: 844 } } : { viewport: { width: 1280, height: 900 } }),

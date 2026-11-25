@@ -3,7 +3,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { SignInButton } from "@/components/sign-in-button";
+import { SignInButton } from "@/features/sign-in";
 
 import { renderApp } from "../render";
 

@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { PageTitle } from "@/components/page-title";
+import { PageTitle } from "@/features/frame";
 
 import { renderApp } from "../render";
 

@@ -2,11 +2,11 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 
-import { DeveloperControls } from "@/components/console/developer-actions";
-import { MoveControl } from "@/components/console/move-button";
-import { SendControl } from "@/components/console/send-panel";
-import { SessionFormFields } from "@/components/console/session-form";
-import { WithdrawControl } from "@/components/console/withdraw-button";
+import { DeveloperControls } from "@/features/developer";
+import { MoveControl } from "@/features/organiser-papers";
+import { SendControl } from "@/features/send";
+import { SessionFormFields } from "@/features/organiser-sessions";
+import { WithdrawControl } from "@/features/organiser-papers";
 
 import { syncRun } from "../fixtures";
 import { renderApp } from "../render";

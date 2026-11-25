@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
+import { meetingClock } from "@/features/console-frame";
 
-import { meetingClock } from "@/lib/meeting-clock";
 
 test("an instant reads as the date and 24-hour time in the meeting's zone", () => {
   expect(meetingClock("2027-01-11T15:30:00.000Z", "America/Denver")).toEqual({ date: "2027-01-11", time: "08:30" });

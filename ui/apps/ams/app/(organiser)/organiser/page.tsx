@@ -1,6 +1,6 @@
-import { OrganiserPapersView } from "@/components/views/organiser-papers-view";
-import { listParams } from "@/lib/list-params";
-import { serverApi } from "@/lib/server-api";
+import { OrganiserPapersView } from "@/features/organiser-papers";
+import { listParams } from "@/features/console-frame";
+import { serverApi } from "@/features/server";
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
 

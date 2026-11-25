@@ -1,8 +1,7 @@
-import { RelatedTalks } from "@/components/related-talks";
-import { StarButton } from "@/components/star-button";
-import { TalkView } from "@/components/views/talk-view";
-import { orNotFound } from "@/lib/or-not-found";
-import { serverApi } from "@/lib/server-api";
+import { StarButton } from "@/features/my-schedule";
+import { RelatedTalks } from "@/features/related-talks";
+import { orNotFound, serverApi } from "@/features/server";
+import { TalkView } from "@/features/talk";
 
 export default async function TalkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { PersonView } from "@/components/views/person-view";
+import { PersonView } from "@/features/people";
 
 import { personDetail } from "../fixtures";
 import { renderApp } from "../render";

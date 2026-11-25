@@ -1,7 +1,7 @@
 import { DaySchema } from "@repo/host-contracts";
 import { expect, test } from "vitest";
 
-import { firstDay } from "../lib/first-day";
+import { firstDay } from "@/features/calendar";
 
 import { meeting } from "./fixtures";
 

@@ -5,7 +5,7 @@ description: Launch the host app's AMS app (Isobar Meetings), with its organiser
 
 # Verify the host app
 
-The host app has one attendee app, for AMS, with an organiser console at `/organiser` and a developer console at `/developer`. It runs as a production build on this machine, read the local Postgres through `@repo/host-backend`, and get related talks from the conference API at `CONFERENCE_API_URL`. Locally that is the real conference API (`conference-api/backend`) on port 8787, serving placeholder matches.
+The host app has one attendee app, for AMS, with an organiser console at `/organiser` and a developer console at `/developer`. It runs as a production build on this machine, read the local Postgres through `@repo/host-backend`, and get related talks from the conference API at `CONFERENCE_API_URL`. Locally that is the real conference API, from its own repository, on port 8787, serving placeholder matches. Launch finds that repository at `CONFERENCE_API_REPO`, or beside this one as `../Conference-Matching-API`; run `npm ci` there once.
 
 | Society | App | Folder | Address |
 | --- | --- | --- | --- |

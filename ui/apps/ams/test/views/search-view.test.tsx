@@ -2,7 +2,7 @@
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { SearchView } from "@/components/views/search-view";
+import { SearchView } from "@/features/search";
 
 import { person, sessionSummary, talkSummary } from "../fixtures";
 import { renderApp } from "../render";

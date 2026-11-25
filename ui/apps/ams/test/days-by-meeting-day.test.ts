@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { byMeetingDay } from "../lib/by-meeting-day";
+import { byMeetingDay } from "@/features/programmes";
 
 import { sessionSummary } from "./fixtures";
 

@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { SearchBox } from "@/components/search-box";
+import { SearchBox } from "@/features/search";
 
 import { renderApp } from "../render";
 
