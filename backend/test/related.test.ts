@@ -30,12 +30,15 @@ const apiAnswering = (answer: RelatedAnswer): ConferenceApi => ({
   },
 });
 const m = (talk: string, kind: "core" | "unexpected") => ({
+  basedOn: "T1",
   talk,
+  match: true,
+  shared: ["technique" as const],
   kind,
   rank: 1,
   score: 0.8,
-  reason: "Shared method.",
-  sharedMethods: [],
+  description: `Why ${talk} is relevant to this study.`,
+  methods: [],
   programmeVersion: "pv_8f3k2Qw9xLm0ZpT4vN7aBc",
 });
 
@@ -45,8 +48,8 @@ describe("relatedTalks", () => {
     expect(await relatedTalks({ talkSummaries }, api, "T1")).toEqual({
       status: "matches",
       matches: [
-        { talk: summary("T3"), kind: "unexpected", score: 0.8, reason: "Shared method." },
-        { talk: summary("T2"), kind: "core", score: 0.8, reason: "Shared method." },
+        { talk: summary("T3"), kind: "unexpected", score: 0.8, reason: "Why T3 is relevant to this study." },
+        { talk: summary("T2"), kind: "core", score: 0.8, reason: "Why T2 is relevant to this study." },
       ],
     });
   });

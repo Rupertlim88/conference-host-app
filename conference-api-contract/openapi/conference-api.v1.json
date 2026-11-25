@@ -11,12 +11,11 @@
     }
   ],
   "x-protections": {
-    "requestsPerMinutePerAddress": 1200,
-    "failedKeyChecksPerMinutePerAddress": 20
+    "requestsPerFiveMinutesPerAddress": 3000
   },
   "x-versioning": {
     "noticeMonths": 6,
-    "policy": "A change that would break partners becomes a new version under a new path prefix, running alongside the old one. A retiring operation is marked deprecated here, and its answers carry Deprecation and Sunset headers and a link to its successor. It keeps every security fix until it is switched off."
+    "policy": "A change that would break partners becomes a new version under a new path prefix, running alongside the old one. A retiring operation is marked deprecated here, with when it was announced, when it is switched off and its successor, and partners are told directly. It keeps every security fix until it is switched off."
   },
   "x-business-limits": {
     "talksPerConference": 50000,
@@ -32,8 +31,6 @@
         "x-limits": {
           "maxBodyBytes": 10000000,
           "requestsPerMinute": 60,
-          "requestsPerDay": 200,
-          "concurrentRequests": 2,
           "timeoutSeconds": 25
         },
         "security": [
@@ -134,7 +131,7 @@
             }
           },
           "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
+            "description": "Too many requests per minute with this key. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -154,7 +151,7 @@
             }
           },
           "503": {
-            "description": "The API cannot answer in time just now. Safe to retry.",
+            "description": "The API cannot answer in time just now, or is too busy. Safe to retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -173,8 +170,6 @@
         "x-limits": {
           "maxBodyBytes": 65536,
           "requestsPerMinute": 600,
-          "requestsPerDay": 100000,
-          "concurrentRequests": 20,
           "timeoutSeconds": 10
         },
         "security": [
@@ -275,7 +270,7 @@
             }
           },
           "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
+            "description": "Too many requests per minute with this key. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -295,7 +290,7 @@
             }
           },
           "503": {
-            "description": "The API cannot answer in time just now. Safe to retry.",
+            "description": "The API cannot answer in time just now, or is too busy. Safe to retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -314,8 +309,6 @@
         "x-limits": {
           "maxBodyBytes": 65536,
           "requestsPerMinute": 60,
-          "requestsPerDay": 500,
-          "concurrentRequests": 10,
           "timeoutSeconds": 20
         },
         "security": [
@@ -416,7 +409,7 @@
             }
           },
           "429": {
-            "description": "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
+            "description": "Too many requests per minute with this key. Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. Retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -436,7 +429,7 @@
             }
           },
           "503": {
-            "description": "The API cannot answer in time just now. Safe to retry.",
+            "description": "The API cannot answer in time just now, or is too busy. Safe to retry after the time in Retry-After.",
             "content": {
               "application/problem+json": {
                 "schema": {
@@ -668,6 +661,13 @@
             },
             "uniqueItems": true
           },
+          "include": {
+            "type": "string",
+            "enum": [
+              "matches",
+              "all"
+            ]
+          },
           "kind": {
             "type": "string",
             "enum": [
@@ -741,32 +741,27 @@
         "properties": {
           "programmeVersion": {
             "type": "string",
-            "pattern": "^pv_[A-Za-z0-9_-]{22}$",
-            "x-visibility": "public"
+            "pattern": "^pv_[A-Za-z0-9_-]{22}$"
           },
           "added": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 1000000,
-            "x-visibility": "public"
+            "maximum": 1000000
           },
           "changed": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 1000000,
-            "x-visibility": "public"
+            "maximum": 1000000
           },
           "withdrawn": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 1000000,
-            "x-visibility": "public"
+            "maximum": 1000000
           },
           "unchanged": {
             "type": "integer",
             "minimum": 0,
-            "maximum": 1000000,
-            "x-visibility": "public"
+            "maximum": 1000000
           },
           "matchingJob": {
             "anyOf": [
@@ -777,8 +772,7 @@
               {
                 "type": "null"
               }
-            ],
-            "x-visibility": "public"
+            ]
           }
         },
         "required": [
@@ -802,75 +796,135 @@
               "properties": {
                 "person": {
                   "type": "string",
-                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
-                  "x-visibility": "public"
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+                },
+                "basedOn": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
                 },
                 "talk": {
                   "type": "string",
-                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
-                  "x-visibility": "public"
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
                 },
                 "kind": {
                   "type": "string",
                   "enum": [
                     "core",
                     "unexpected"
-                  ],
-                  "x-visibility": "public"
+                  ]
                 },
                 "rank": {
                   "type": "integer",
                   "minimum": 1,
-                  "maximum": 1000000,
-                  "x-visibility": "public"
+                  "maximum": 1000000
                 },
                 "score": {
                   "type": "number",
                   "minimum": 0,
-                  "maximum": 1,
-                  "x-visibility": "public"
+                  "maximum": 1
                 },
-                "reason": {
-                  "type": "string",
-                  "minLength": 1,
-                  "maxLength": 2000,
-                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-                  "x-visibility": "public"
+                "match": {
+                  "type": "boolean"
                 },
-                "sharedMethods": {
-                  "maxItems": 20,
+                "shared": {
+                  "maxItems": 2,
                   "type": "array",
                   "items": {
                     "type": "string",
-                    "minLength": 1,
-                    "maxLength": 200,
-                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    "enum": [
+                      "intent",
+                      "technique"
+                    ]
                   },
-                  "x-visibility": "public"
+                  "uniqueItems": true
+                },
+                "description": {
+                  "type": "string",
+                  "minLength": 1,
+                  "maxLength": 800,
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                },
+                "methods": {
+                  "maxItems": 20,
+                  "type": "array",
+                  "items": {
+                    "type": "object",
+                    "properties": {
+                      "this": {
+                        "type": "object",
+                        "properties": {
+                          "intent": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2000,
+                            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                          },
+                          "technique": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2000,
+                            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                          }
+                        },
+                        "required": [
+                          "intent",
+                          "technique"
+                        ],
+                        "additionalProperties": false
+                      },
+                      "other": {
+                        "type": "object",
+                        "properties": {
+                          "intent": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2000,
+                            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                          },
+                          "technique": {
+                            "type": "string",
+                            "minLength": 1,
+                            "maxLength": 2000,
+                            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                          }
+                        },
+                        "required": [
+                          "intent",
+                          "technique"
+                        ],
+                        "additionalProperties": false
+                      }
+                    },
+                    "required": [
+                      "this",
+                      "other"
+                    ],
+                    "additionalProperties": false
+                  }
                 },
                 "programmeVersion": {
                   "type": "string",
-                  "pattern": "^pv_[A-Za-z0-9_-]{22}$",
-                  "x-visibility": "public"
+                  "pattern": "^pv_[A-Za-z0-9_-]{22}$"
                 }
               },
               "required": [
+                "basedOn",
                 "talk",
                 "kind",
                 "rank",
                 "score",
-                "reason",
-                "sharedMethods",
+                "match",
+                "shared",
+                "description",
+                "methods",
                 "programmeVersion"
               ],
               "additionalProperties": false
-            },
-            "x-visibility": "public"
+            }
           },
           "nextPageToken": {
             "type": "string",
-            "pattern": "^[A-Za-z0-9_-]{22}$",
-            "x-visibility": "public"
+            "pattern": "^[A-Za-z0-9_-]{22}$"
           }
         },
         "required": [
@@ -882,8 +936,7 @@
         "type": "object",
         "properties": {
           "enoughInformation": {
-            "type": "boolean",
-            "x-visibility": "public"
+            "type": "boolean"
           },
           "whatIsMissing": {
             "anyOf": [
@@ -896,8 +949,7 @@
               {
                 "type": "null"
               }
-            ],
-            "x-visibility": "public"
+            ]
           },
           "matches": {
             "maxItems": 1000,
@@ -907,35 +959,30 @@
               "properties": {
                 "talk": {
                   "type": "string",
-                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
-                  "x-visibility": "public"
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
                 },
                 "kind": {
                   "type": "string",
                   "enum": [
                     "core",
                     "unexpected"
-                  ],
-                  "x-visibility": "public"
+                  ]
                 },
                 "rank": {
                   "type": "integer",
                   "minimum": 1,
-                  "maximum": 1000000,
-                  "x-visibility": "public"
+                  "maximum": 1000000
                 },
                 "score": {
                   "type": "number",
                   "minimum": 0,
-                  "maximum": 1,
-                  "x-visibility": "public"
+                  "maximum": 1
                 },
                 "reason": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 2000,
-                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-                  "x-visibility": "public"
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
                 },
                 "sharedMethods": {
                   "maxItems": 20,
@@ -945,13 +992,11 @@
                     "minLength": 1,
                     "maxLength": 200,
                     "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
-                  },
-                  "x-visibility": "public"
+                  }
                 },
                 "programmeVersion": {
                   "type": "string",
-                  "pattern": "^pv_[A-Za-z0-9_-]{22}$",
-                  "x-visibility": "public"
+                  "pattern": "^pv_[A-Za-z0-9_-]{22}$"
                 }
               },
               "required": [
@@ -964,8 +1009,7 @@
                 "programmeVersion"
               ],
               "additionalProperties": false
-            },
-            "x-visibility": "public"
+            }
           }
         },
         "required": [
@@ -980,28 +1024,24 @@
         "properties": {
           "type": {
             "type": "string",
-            "pattern": "^\\/problems\\/[a-z0-9-]{1,60}$",
-            "x-visibility": "public"
+            "pattern": "^\\/problems\\/[a-z0-9-]{1,60}$"
           },
           "title": {
             "type": "string",
             "minLength": 1,
             "maxLength": 200,
-            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-            "x-visibility": "public"
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
           },
           "status": {
             "type": "integer",
             "minimum": 400,
-            "maximum": 599,
-            "x-visibility": "public"
+            "maximum": 599
           },
           "detail": {
             "type": "string",
             "minLength": 1,
             "maxLength": 2000,
-            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-            "x-visibility": "public"
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
           },
           "errors": {
             "maxItems": 1000,
@@ -1011,22 +1051,19 @@
               "properties": {
                 "talk": {
                   "type": "string",
-                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$",
-                  "x-visibility": "public"
+                  "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
                 },
                 "field": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 200,
-                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-                  "x-visibility": "public"
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
                 },
                 "problem": {
                   "type": "string",
                   "minLength": 1,
                   "maxLength": 500,
-                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$",
-                  "x-visibility": "public"
+                  "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
                 }
               },
               "required": [
@@ -1034,13 +1071,11 @@
                 "problem"
               ],
               "additionalProperties": false
-            },
-            "x-visibility": "public"
+            }
           },
           "requestId": {
             "type": "string",
-            "pattern": "^req_[A-Za-z0-9_-]{22}$",
-            "x-visibility": "public"
+            "pattern": "^req_[A-Za-z0-9_-]{22}$"
           }
         },
         "required": [

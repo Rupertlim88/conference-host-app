@@ -1,6 +1,9 @@
 {
   "engine": "commonkads_v1",
-  "partner": "org-aps",
+  "actor": {
+    "partner": "org-aps",
+    "organiser": "org-aps"
+  },
   "request": {
     "people": [
       "P1",

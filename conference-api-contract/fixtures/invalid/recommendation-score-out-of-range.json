@@ -5,10 +5,28 @@
   "rank": 1,
   "match": true,
   "cross_domain": true,
-  "why": "Both read carrier dynamics from the photocurrent transient.",
-  "strongest_parallel": "Time-resolved photocurrent as the readout of carrier dynamics.",
-  "shared_methods": ["transient photocurrent measurement"],
-  "evidence": { "same_method": 4, "specificity": 3, "usage_parallel": 5, "rubric_sum": 12 },
+  "shared": [
+    "technique"
+  ],
+  "description": "This study reads carrier dynamics from a photocurrent transient. The other study reads the same transient on a different material, so its measurement carries over directly.",
+  "methods": [
+    {
+      "this": {
+        "intent": "Carrier dynamics show in how a photocurrent decays.",
+        "technique": "Transient photocurrent measurement after a short light pulse."
+      },
+      "other": {
+        "intent": "Trapped carriers slow the decay of a photocurrent.",
+        "technique": "Transient photocurrent measurement on thin films."
+      }
+    }
+  ],
+  "evidence": {
+    "same_method": 4,
+    "specificity": 3,
+    "usage_parallel": 5,
+    "rubric_sum": 12
+  },
   "engine_id": "commonkads_v1",
   "run_id": "commonkads_v1-20260912T120000Z-a1b2c3",
   "contract_version": 1

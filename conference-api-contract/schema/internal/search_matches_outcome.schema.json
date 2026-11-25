@@ -21,6 +21,10 @@
                     "type": "string",
                     "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
                   },
+                  "basedOn": {
+                    "type": "string",
+                    "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+                  },
                   "talk": {
                     "type": "string",
                     "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
@@ -42,20 +46,83 @@
                     "minimum": 0,
                     "maximum": 1
                   },
-                  "reason": {
-                    "type": "string",
-                    "minLength": 1,
-                    "maxLength": 2000,
-                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                  "match": {
+                    "type": "boolean"
                   },
-                  "sharedMethods": {
-                    "maxItems": 20,
+                  "shared": {
+                    "maxItems": 2,
                     "type": "array",
                     "items": {
                       "type": "string",
-                      "minLength": 1,
-                      "maxLength": 200,
-                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                      "enum": [
+                        "intent",
+                        "technique"
+                      ]
+                    },
+                    "uniqueItems": true
+                  },
+                  "description": {
+                    "type": "string",
+                    "minLength": 1,
+                    "maxLength": 800,
+                    "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                  },
+                  "methods": {
+                    "maxItems": 20,
+                    "type": "array",
+                    "items": {
+                      "type": "object",
+                      "properties": {
+                        "this": {
+                          "type": "object",
+                          "properties": {
+                            "intent": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 2000,
+                              "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                            },
+                            "technique": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 2000,
+                              "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                            }
+                          },
+                          "required": [
+                            "intent",
+                            "technique"
+                          ],
+                          "additionalProperties": false
+                        },
+                        "other": {
+                          "type": "object",
+                          "properties": {
+                            "intent": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 2000,
+                              "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                            },
+                            "technique": {
+                              "type": "string",
+                              "minLength": 1,
+                              "maxLength": 2000,
+                              "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                            }
+                          },
+                          "required": [
+                            "intent",
+                            "technique"
+                          ],
+                          "additionalProperties": false
+                        }
+                      },
+                      "required": [
+                        "this",
+                        "other"
+                      ],
+                      "additionalProperties": false
                     }
                   },
                   "programmeVersion": {
@@ -64,12 +131,15 @@
                   }
                 },
                 "required": [
+                  "basedOn",
                   "talk",
                   "kind",
                   "rank",
                   "score",
-                  "reason",
-                  "sharedMethods",
+                  "match",
+                  "shared",
+                  "description",
+                  "methods",
                   "programmeVersion"
                 ],
                 "additionalProperties": false

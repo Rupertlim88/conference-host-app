@@ -15,7 +15,7 @@ export async function relatedTalks(
   const talks = new Map((await store.talkSummaries(answer.matches.map((x) => x.talk))).map((t) => [t.id, t]));
   const matches = answer.matches.flatMap((x) => {
     const talk = talks.get(x.talk);
-    return talk ? [{ talk, kind: x.kind, score: x.score, reason: x.reason }] : [];
+    return talk ? [{ talk, kind: x.kind, score: x.score, reason: x.description }] : [];
   });
   return matches.length ? { status: "matches", matches } : { status: "none" };
 }

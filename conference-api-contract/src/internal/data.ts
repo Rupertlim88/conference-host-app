@@ -30,7 +30,7 @@ export type WriteTalksOutcome = z.infer<typeof WriteTalksOutcomeSchema>;
  *  are bound to all three. */
 export const SearchMatchesQuerySchema = z.strictObject({
   engine: EngineIdSchema,
-  partner: PartnerIdSchema,
+  actor: ActorSchema,
   request: MatchesSearchRequestSchema,
 });
 export type SearchMatchesQuery = z.infer<typeof SearchMatchesQuerySchema>;
@@ -44,6 +44,7 @@ export type SearchMatchesOutcome = z.infer<typeof SearchMatchesOutcomeSchema>;
 /** A text to match on the spot, by the engine that serves the conference's matches. */
 export const TextRequestCommandSchema = z.strictObject({
   engine: EngineIdSchema,
+  actor: ActorSchema,
   request: MatchesFromTextRequestSchema,
 });
 export type TextRequestCommand = z.infer<typeof TextRequestCommandSchema>;

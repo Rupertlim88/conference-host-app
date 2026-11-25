@@ -51,16 +51,80 @@
           "cross_domain": {
             "type": "boolean"
           },
-          "why": {
-            "type": "string"
-          },
-          "strongest_parallel": {
-            "type": "string"
-          },
-          "shared_methods": {
+          "shared": {
+            "maxItems": 2,
             "type": "array",
             "items": {
-              "type": "string"
+              "type": "string",
+              "enum": [
+                "intent",
+                "technique"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800,
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+          },
+          "methods": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "this": {
+                  "type": "object",
+                  "properties": {
+                    "intent": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    },
+                    "technique": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    }
+                  },
+                  "required": [
+                    "intent",
+                    "technique"
+                  ],
+                  "additionalProperties": false
+                },
+                "other": {
+                  "type": "object",
+                  "properties": {
+                    "intent": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    },
+                    "technique": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    }
+                  },
+                  "required": [
+                    "intent",
+                    "technique"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "this",
+                "other"
+              ],
+              "additionalProperties": false
             }
           },
           "evidence": {
@@ -93,9 +157,9 @@
           "rank",
           "match",
           "cross_domain",
-          "why",
-          "strongest_parallel",
-          "shared_methods",
+          "shared",
+          "description",
+          "methods",
           "evidence",
           "engine_id",
           "run_id",

@@ -22,7 +22,59 @@ function distinctIds(max: number) {
     .meta({ uniqueItems: true });
 }
 
-const matchFields = {
+/** What two talks can share: the intent, the principle their approach relies on, and the technique, how they do
+ *  their core step. */
+export const SharedSideSchema = z.enum(["intent", "technique"]);
+const SIDE_ORDER = SharedSideSchema.options;
+
+const SharedSchema = z
+  .array(SharedSideSchema)
+  .max(2)
+  .refine(
+    (sides) => sides.every((side, i) => i === 0 || SIDE_ORDER.indexOf(side) > SIDE_ORDER.indexOf(sides[i - 1]!)),
+    "names the intent, then the technique, each at most once",
+  )
+  .meta({ uniqueItems: true });
+
+const MethodSideSchema = z.strictObject({ intent: text(1, 2000), technique: text(1, 2000) });
+
+/** A pair of linked methods: the one in the talk the result is judged from, and the one in the other talk. */
+export const LinkedMethodsSchema = z.strictObject({ this: MethodSideSchema, other: MethodSideSchema });
+
+/** How a result explains itself: match or not, what the two talks share, and a description written from the side
+ *  of the talk the result is judged from. Shared by the public result and the engines' internal one. */
+export const explanationFields = {
+  match: z.boolean(),
+  shared: SharedSchema,
+  description: text(1, 800),
+  methods: z.array(LinkedMethodsSchema).max(20),
+};
+
+/** Two talks are a match exactly when they share the intent, the technique or both. */
+export function matchAgreesWithShared(result: { match: boolean; shared: string[] }, ctx: z.RefinementCtx): void {
+  if (result.match !== result.shared.length > 0) {
+    ctx.addIssue({ code: "custom", path: ["match"], message: "is true exactly when the two talks share something" });
+  }
+}
+
+/** A result from matches:search, judged from the asker's talk named in "basedOn". "person" is there only when
+ *  asking by people. */
+export const MatchSchema = z
+  .strictObject({
+    person: PartnerIdSchema.optional(),
+    basedOn: PartnerIdSchema,
+    talk: PartnerIdSchema,
+    kind: MatchKindSchema,
+    rank: z.int().min(1).max(1_000_000),
+    score: ScoreSchema,
+    ...explanationFields,
+    programmeVersion: ProgrammeVersionSchema,
+  })
+  .superRefine(matchAgreesWithShared);
+export type Match = z.infer<typeof MatchSchema>;
+
+/** A match from matches:fromText, which never names a person. */
+export const TextMatchSchema = z.strictObject({
   talk: PartnerIdSchema,
   kind: MatchKindSchema,
   rank: z.int().min(1).max(1_000_000),
@@ -30,14 +82,7 @@ const matchFields = {
   reason: text(1, 2000),
   sharedMethods: z.array(text(1, 200)).max(20),
   programmeVersion: ProgrammeVersionSchema,
-};
-
-/** A match from matches:search. "person" is there only when asking by people. */
-export const MatchSchema = z.strictObject({ person: PartnerIdSchema.optional(), ...matchFields });
-export type Match = z.infer<typeof MatchSchema>;
-
-/** A match from matches:fromText, which never names a person. */
-export const TextMatchSchema = z.strictObject(matchFields);
+});
 export type TextMatch = z.infer<typeof TextMatchSchema>;
 
 export const MatchesSearchRequestSchema = z
@@ -45,6 +90,7 @@ export const MatchesSearchRequestSchema = z
     people: distinctIds(1000).optional(),
     likeTalks: distinctIds(100).optional(),
     talks: distinctIds(1000).optional(),
+    include: z.enum(["matches", "all"]).optional(),
     kind: MatchKindSchema.optional(),
     minScore: ScoreSchema.optional(),
     topPerPerson: z.int().min(1).max(1000).optional(),

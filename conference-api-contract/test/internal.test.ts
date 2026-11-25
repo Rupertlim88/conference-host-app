@@ -67,6 +67,21 @@ describe("internal rules", () => {
     delete job.run.models;
     expect(issuePaths(CompleteMatchingJobSchema, job)).toEqual(expect.arrayContaining(["run.engineVersion", "run.models"]));
   });
+  test("a job's pair is a match exactly when the two share something", () => {
+    const job = valid("complete_matching_job");
+    job.matches[0].shared = [];
+    expect(issuePaths(CompleteMatchingJobSchema, job)).toContain("matches.0.match");
+  });
+  test("a job keeps the talks found not to match, with their descriptions", () => {
+    const job = valid("complete_matching_job");
+    expect(job.matches.some((m: { match: boolean }) => !m.match)).toBe(true);
+    expect(CompleteMatchingJobSchema.safeParse(job).success).toBe(true);
+  });
+  test("a text result keeps its reason and shared methods", () => {
+    const result = valid("text_match_result");
+    expect(Object.keys(result.matches[0])).toEqual(expect.arrayContaining(["reason", "sharedMethods"]));
+    expect(TextMatchResultSchema.safeParse(result).success).toBe(true);
+  });
   test("a talk is never matched with itself", () => {
     const job = valid("complete_matching_job");
     job.matches[0].candidate = job.matches[0].anchor;
@@ -89,6 +104,14 @@ describe("internal rules", () => {
     delete text.engine;
     expect(issuePaths(SearchMatchesQuerySchema, search)).toContain("engine");
     expect(issuePaths(TextRequestCommandSchema, text)).toContain("engine");
+  });
+  test("a search and a text request name the partner that asked and the organiser it acted for", () => {
+    for (const [schema, fixtureName] of [[SearchMatchesQuerySchema, "search_matches_query"], [TextRequestCommandSchema, "text_request_command"]] as const) {
+      const command = valid(fixtureName);
+      expect(command.actor).toEqual({ partner: "org-aps", organiser: "org-aps" });
+      delete command.actor;
+      expect(issuePaths(schema, command)).toContain("actor");
+    }
   });
   test("a refused write lists its problems and carries no result", () => {
     expect(

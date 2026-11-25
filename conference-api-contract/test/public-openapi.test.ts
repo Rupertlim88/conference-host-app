@@ -42,13 +42,8 @@ describe("the published specification", () => {
     );
   });
 
-  test("every operation acts on one conference named in its path, and states its daily quota", () => {
-    for (const [name, op] of Object.entries(OPERATIONS)) {
-      expect(op.path, name).toMatch(/^\/v1\/conferences\/\{conference\}\//);
-      expect(op.limits.requestsPerDay, name).toBeGreaterThanOrEqual(op.limits.requestsPerMinute);
-      const published = paths[op.path]![op.method.toLowerCase()]!;
-      expect((published["x-limits"] as Json).requestsPerDay).toBe(op.limits.requestsPerDay);
-    }
+  test("every operation acts on one conference named in its path", () => {
+    for (const [name, op] of Object.entries(OPERATIONS)) expect(op.path, name).toMatch(/^\/v1\/conferences\/\{conference\}\//);
   });
 
   test("every operation needs the API key for its conference, sent as a bearer token, and nothing else", () => {
@@ -68,9 +63,10 @@ describe("the published specification", () => {
     for (const op of operations()) expect(op.requestBody).toMatchObject({ required: true });
   });
 
-  test("every operation states its limits and timing", () => {
+  test("every operation states its limits and timing: its body size, its requests per minute for each key, and its time limit", () => {
     for (const op of operations()) {
       const limits = op["x-limits"] as Json;
+      expect(Object.keys(limits).sort()).toEqual(["maxBodyBytes", "requestsPerMinute", "timeoutSeconds"]);
       expect(limits.maxBodyBytes).toBeGreaterThanOrEqual(1);
       expect(limits.requestsPerMinute).toBeGreaterThan(0);
       expect(limits.timeoutSeconds).toBeGreaterThan(0);
@@ -78,7 +74,7 @@ describe("the published specification", () => {
     expect(OPERATIONS.writeTalks.limits.maxBodyBytes).toBe(10_000_000);
   });
 
-  test("every operation fits through the front door: API Gateway refuses bodies over 10 MB and stops waiting after 29 seconds", async () => {
+  test("every operation fits inside the front door's ceilings: bodies up to 10 MB, and answers within the load balancer's 29 seconds", async () => {
     const { FRONT_DOOR } = await import("../src/public/index");
     expect(FRONT_DOOR).toEqual({ maxBodyBytes: 10_000_000, timeoutSeconds: 29 });
     for (const op of operations()) {
@@ -137,28 +133,14 @@ describe("the published specification", () => {
   });
 });
 
-test("every operation states how many requests one partner may have running at once", () => {
-  const spec = buildOpenApi() as { paths: Record<string, Record<string, { "x-limits": Record<string, number> }>> };
-  for (const op of Object.values(OPERATIONS)) {
-    expect(op.limits.concurrentRequests).toBeGreaterThanOrEqual(1);
-    expect(spec.paths[op.path]![op.method.toLowerCase()]!["x-limits"].concurrentRequests).toBe(op.limits.concurrentRequests);
-  }
-});
-
-test("the specification states the protections every request meets, before its operation's limits", () => {
+test("the specification states the firewall's limit on each network address, which every request meets first", () => {
   const spec = buildOpenApi() as { "x-protections": Record<string, number> };
+  expect(PROTECTIONS).toEqual({ requestsPerFiveMinutesPerAddress: 3_000 });
   expect(spec["x-protections"]).toEqual(PROTECTIONS);
-  for (const limit of Object.values(PROTECTIONS)) expect(limit).toBeGreaterThanOrEqual(1);
 });
 
-test("each kind of request has its own exact daily allowance", () => {
-  const perDay = (spec: Json) =>
-    Object.fromEntries(
-      Object.values(spec.paths as Record<string, Record<string, Json>>).flatMap((methods) =>
-        Object.values(methods).map((op) => [op.operationId, (op["x-limits"] as Json).requestsPerDay]),
-      ),
-    );
-  expect(perDay(buildOpenApi())).toEqual({ writeTalks: 200, searchMatches: 100_000, matchesFromText: 500 });
+test("no field of any answer carries a label: every field the specification lists may leave the API", () => {
+  expect(JSON.stringify(spec)).not.toMatch(/x-visibility|x-data-kind/);
 });
 
 test("the specification states every business limit, per conference and per organiser", () => {

@@ -6,9 +6,23 @@
       "type": "string",
       "pattern": "^[a-z0-9_]{1,64}$"
     },
-    "partner": {
-      "type": "string",
-      "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+    "actor": {
+      "type": "object",
+      "properties": {
+        "partner": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        },
+        "organiser": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$"
+        }
+      },
+      "required": [
+        "partner",
+        "organiser"
+      ],
+      "additionalProperties": false
     },
     "request": {
       "type": "object",
@@ -43,6 +57,13 @@
           },
           "uniqueItems": true
         },
+        "include": {
+          "type": "string",
+          "enum": [
+            "matches",
+            "all"
+          ]
+        },
         "kind": {
           "type": "string",
           "enum": [
@@ -76,7 +97,7 @@
   },
   "required": [
     "engine",
-    "partner",
+    "actor",
     "request"
   ],
   "additionalProperties": false

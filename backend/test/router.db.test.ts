@@ -71,7 +71,7 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   });
 
   test("related talks come from the API, joined to this programme", async () => {
-    const match = { talk: "T2", kind: "unexpected" as const, rank: 1, score: 0.9, reason: "r", sharedMethods: [], programmeVersion: "pv" };
+    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
     const c = caller({ api: api({ status: "ok", matches: [match] }) });
     const got = await c.talks.related({ id: "T1" });
     expect(got.status).toBe("matches");
