@@ -1,3 +1,4 @@
+// The consoles have their own frame, with tables, pages of fifty and Mountain time.
 import { type Changes, PAGE_SIZE, type TalkChange, type TalkStatusFilter, TalkStatusFilterSchema } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";

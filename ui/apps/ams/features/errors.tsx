@@ -1,8 +1,12 @@
 "use client";
 
-import { useTranslations } from "next-intl";
+// A page that is missing says so, and a page that fails offers to try again.
+
+import { NextIntlClientProvider, useTranslations } from "next-intl";
 import Link from "next/link";
 
+import { MEETING_ZONE } from "@/features/app";
+import text from "@/features/text/en.json";
 import { Button } from "@/features/ui/button";
 
 /** What an unknown address or id shows: the message and a way home. Its page decides whether it is the main region. */
@@ -66,5 +70,19 @@ export function RootError({ retry }: ErrorPageProps) {
     <main className="mx-auto max-w-md px-6 py-16 text-center">
       <TryAgain retry={retry} />
     </main>
+  );
+}
+
+/** Shown when the root layout itself fails. It replaces the whole document, so it brings its own html, body and
+ *  English words. */
+export function GlobalError({ reset, retry }: ErrorPageProps) {
+  return (
+    <html lang="en">
+      <body className="bg-background font-sans text-foreground antialiased">
+        <NextIntlClientProvider locale="en" messages={text} timeZone={MEETING_ZONE}>
+          <RootError reset={reset} retry={retry} />
+        </NextIntlClientProvider>
+      </body>
+    </html>
   );
 }

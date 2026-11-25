@@ -1,5 +1,6 @@
+// A session's page shows its time, place, chairs and talks.
 import type { SessionDetail } from "@repo/host-contracts";
-import { useTranslations } from "next-intl";
+import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { cardLabel, InfoBox, TalkCard } from "@/features/cards";
@@ -8,11 +9,13 @@ import { PageTitle } from "@/features/frame";
 /** A session as the meeting app shows it: its conferences, title, star, when and where, description, organizers, presentations and related conferences. */
 export function SessionView({ session, star }: { session: SessionDetail; star: React.ReactNode }) {
   const t = useTranslations("session");
-  const label = session.kind === "Session" ? `Session ${session.number}`.trim() : cardLabel(session.kind, session.number);
+  const format = useFormatter();
+  // A plain session is titled by its kind, as AMS names it, and its number: "Session 5".
+  const label = session.kind === "Session" ? [session.kind, session.number].filter(Boolean).join(" ") : cardLabel(session.kind, session.number);
   const chairs = session.chairs.split("; ").filter(Boolean);
   return (
     <>
-      <PageTitle eyebrow={session.tracks.map((track) => track.title).join(" and ")}>{label ? `${label} - ${session.title}` : session.title}</PageTitle>
+      <PageTitle eyebrow={format.list(session.tracks.map((track) => track.title), { type: "conjunction" })}>{label ? `${label} - ${session.title}` : session.title}</PageTitle>
       <div className="flex justify-end">{star}</div>
       <InfoBox start={session.startsAt} end={session.endsAt} room={session.room} building={session.building} />
       {session.description && (

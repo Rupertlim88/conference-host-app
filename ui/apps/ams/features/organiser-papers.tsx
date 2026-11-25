@@ -1,5 +1,7 @@
 "use client";
 
+// Organisers find any paper, withdraw or restore it, and move it to another session.
+
 import { type OrganiserSession, type OrganiserTalk, type SessionList, type TalkList, type TalkStatusFilter, TalkStatusFilterSchema } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Link from "next/link";

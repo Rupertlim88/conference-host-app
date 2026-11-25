@@ -27,4 +27,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### This UI's further CLAUDE.md
 
-5. **This UI has one further CLAUDE.md, in its features folder, holding one rule for each feature.** Each feature of this UI is one file in that folder, tied to its rule there. The files the web framework needs in its own folders read what their address needs from the backend and hand it to one feature, and count with that feature's file.
+5. **This UI has one further CLAUDE.md, in its features folder, holding one rule for each feature.** Each feature of this UI is one file in that folder, tied to its rule there. The files the web framework needs in its own folders, such as its pages, which read what their address needs from the backend, hand over to one feature, and count with that feature's file.

@@ -1,5 +1,7 @@
 "use client";
 
+// Every attendee page sits in one frame, like the Confex meeting app's, and Home opens it.
+
 import type { Meeting } from "@repo/host-contracts";
 import {
   CalendarDays,

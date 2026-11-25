@@ -8,8 +8,8 @@
 // its whole folder; `*File:* needed` marks a rule not yet tied. Every rule also has a `*How:*` line. A file's heading is
 // its first comment line (after any "use client" line), a SQL file's first comment, or a Markdown file's title.
 //
-// Not counted: a file's own tests, an entry point that only hands over to one file (Next.js's page, layout, error,
-// not-found, route and manifest files, and command-line scripts), files that only set up the tools, overviews, the
+// Not counted: a file's own tests, an entry point that hands over to one file (Next.js's page, layout, error,
+// not-found, route and manifest files, its icon files, and command-line scripts), files that only set up the tools, overviews, the
 // docs, the tools themselves and the copy of the conference API's contract.
 //
 //     node scripts/claude-ties.mjs            the broken ties, and how many rules and files are not yet tied or marked
@@ -37,7 +37,8 @@ function isTest(path) {
  *  scripts. It counts with the file it hands over to, as a test does. */
 function isEntryPoint(path) {
   return (
-    /(^|\/)app\/(.+\/)?(page|layout|error|not-found|route|manifest)\.[jt]sx?$/.test(path) ||
+    /(^|\/)app\/(.+\/)?(page|layout|error|global-error|not-found|route|manifest)\.[jt]sx?$/.test(path) ||
+    /(^|\/)app\/(.+\/)?(icon|apple-icon|favicon)\.(svg|png|ico)$/.test(path) ||
     /(^|\/)cli\/[^/]+\.[cm]?ts$/.test(path) ||
     /-cli\.[cm]?ts$/.test(path)
   );

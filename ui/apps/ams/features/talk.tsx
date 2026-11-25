@@ -1,3 +1,4 @@
+// A talk's page shows everything the programme publishes about it.
 import type { TalkDetail } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Link from "next/link";

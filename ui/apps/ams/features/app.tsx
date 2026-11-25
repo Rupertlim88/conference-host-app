@@ -1,3 +1,4 @@
+// The app is installable, English only, and shows times in Denver by default.
 import type { Metadata, MetadataRoute, Viewport } from "next";
 import { NextIntlClientProvider } from "next-intl";
 

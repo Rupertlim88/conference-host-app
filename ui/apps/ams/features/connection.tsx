@@ -1,5 +1,7 @@
 "use client";
 
+// The browser reaches the backend through one batched connection, which tries a failed read once more.
+
 import type { AppRouter } from "@repo/host-backend";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { httpBatchLink } from "@trpc/client";
@@ -10,7 +12,7 @@ import { useState } from "react";
  *  more, and nothing is read again just because the window regains focus. */
 export function Providers({ children }: { children: React.ReactNode }) {
   const [queryClient] = useState(
-    () => new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false } } }),
+    () => new QueryClient({ defaultOptions: { queries: { retry: 1, refetchOnWindowFocus: false }, mutations: { retry: 0 } } }),
   );
   const [trpcClient] = useState(() => trpc.createClient({ links: [httpBatchLink({ url: "/api/trpc" })] }));
   return (

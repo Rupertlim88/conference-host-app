@@ -1,5 +1,7 @@
 "use client";
 
+// Guests sign in with Google, and signing out cannot be undone with Back.
+
 import { createAuthClient } from "better-auth/react";
 import { LogOut } from "lucide-react";
 import { useTranslations } from "next-intl";

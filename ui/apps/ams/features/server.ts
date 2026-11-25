@@ -1,3 +1,4 @@
+// Every page reads the backend on the server as the signed-in guest, and an item that is not there shows "not found".
 import { getHostServer, type HostCaller } from "@repo/host-backend";
 import { TRPCError } from "@trpc/server";
 import { headers } from "next/headers";

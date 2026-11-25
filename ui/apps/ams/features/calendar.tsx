@@ -1,3 +1,4 @@
+// The Meeting Calendar shows one day at a time, its sessions grouped by time.
 import type { Day, Meeting, SessionSummary } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";

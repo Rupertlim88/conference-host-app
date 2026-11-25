@@ -23,3 +23,8 @@ test("a break shows no kind and no number", () => {
   renderApp(<SessionCard session={sessionSummary({ number: "", kind: "Break", title: "Daily Weather Briefings", room: "207" })} />);
   expect(screen.getByRole("link")).toHaveAccessibleName("Daily Weather Briefings 207 (Colorado Convention Center)");
 });
+
+test("a break shows only its title, even when it carries a number", () => {
+  renderApp(<SessionCard session={sessionSummary({ number: "B1", kind: "Break", title: "Coffee Break", room: "207" })} />);
+  expect(screen.getByRole("link")).toHaveAccessibleName("Coffee Break 207 (Colorado Convention Center)");
+});

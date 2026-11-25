@@ -1,3 +1,4 @@
+// Sessions and talks show as cards, and a page shows when and where in one box.
 import type { SessionSummary, TalkSummary } from "@repo/host-contracts";
 import { CalendarDays, Clock, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
@@ -93,8 +94,8 @@ export const TONE_CLASSES: Record<Tone, string> = {
 
 /** The bold label before a session's title: its kind, then its number. Breaks and plain sessions carry no kind. */
 export function cardLabel(kind: string, number: string): string {
-  const shownKind = kind === "Session" || toneOf(kind) === "break" ? "" : kind;
-  return [shownKind, number].filter(Boolean).join(" ");
+  if (toneOf(kind) === "break") return "";
+  return [kind === "Session" ? "" : kind, number].filter(Boolean).join(" ");
 }
 
 /** The day, time and place of a session or talk, as the meeting app shows them under the title. Lines with nothing

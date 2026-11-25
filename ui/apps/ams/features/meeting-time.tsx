@@ -1,5 +1,7 @@
 "use client";
 
+// Times show in meeting time or the guest's own zone, and the guest's choice is remembered.
+
 import { type DateTimeFormatOptions, useFormatter, useTranslations } from "next-intl";
 import { createContext, useContext, useSyncExternalStore } from "react";
 

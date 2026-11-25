@@ -1,3 +1,4 @@
+// Search finds talks, sessions and people from two to a hundred characters.
 import type { SearchResults } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Form from "next/form";
