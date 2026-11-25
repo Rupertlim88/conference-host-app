@@ -33,7 +33,7 @@ afterEach(async () => {
   server = null;
 });
 
-const match = { talk: "T2", kind: "core", rank: 1, score: 0.9, reason: "r", sharedMethods: [], programmeVersion: "pv_8f3k2Qw9xLm0ZpT4vN7aBc" };
+const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique"], kind: "core", rank: 1, score: 0.9, description: "r", methods: [], programmeVersion: "pv_8f3k2Qw9xLm0ZpT4vN7aBc" };
 
 describe("conferenceApi.related", () => {
   test("sends matches:search with the key and the liked talk", async () => {

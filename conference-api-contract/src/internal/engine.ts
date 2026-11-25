@@ -1,7 +1,7 @@
 import { z } from "zod";
 
 import { JobIdSchema, ProgrammeVersionSchema } from "../public/ids";
-import { MatchKindSchema } from "../public/matches";
+import { MatchKindSchema, explanationFields, matchAgreesWithShared } from "../public/matches";
 import { text } from "../public/text";
 
 /** The data layer's own ID for a talk. */
@@ -57,23 +57,29 @@ export const MatchingJobSchema = z.strictObject({
 });
 export type MatchingJob = z.infer<typeof MatchingJobSchema>;
 
-const matchFields = {
+/** One engine judgment from an anchor talk to a candidate: match or not, what the two share, and the description
+ *  written from the anchor's side. The data layer ranks results when it serves them. */
+export const MatchPairSchema = z
+  .strictObject({
+    anchor: InternalIdSchema,
+    candidate: InternalIdSchema,
+    score: z.number().min(0).max(1),
+    kind: MatchKindSchema,
+    ...explanationFields,
+  })
+  .superRefine(matchAgreesWithShared)
+  .refine((match) => match.anchor !== match.candidate, { path: ["candidate"], message: "a talk is never matched with itself" });
+export type MatchPair = z.infer<typeof MatchPairSchema>;
+
+/** One engine judgment that a candidate talk matches a person's own text. */
+export const EngineTextMatchSchema = z.strictObject({
   candidate: InternalIdSchema,
   score: z.number().min(0).max(1),
   kind: MatchKindSchema,
   reason: text(1, 2000),
   sharedMethods: z.array(text(1, 200)).max(20),
-};
-
-/** One engine judgment that a candidate talk matches. The data layer ranks matches when it serves them. */
-export const EngineMatchSchema = z.strictObject(matchFields);
-export type EngineMatch = z.infer<typeof EngineMatchSchema>;
-
-/** A match from one talk, the anchor, to another. */
-export const MatchPairSchema = z
-  .strictObject({ anchor: InternalIdSchema, ...matchFields })
-  .refine((match) => match.anchor !== match.candidate, { path: ["candidate"], message: "a talk is never matched with itself" });
-export type MatchPair = z.infer<typeof MatchPairSchema>;
+});
+export type EngineTextMatch = z.infer<typeof EngineTextMatchSchema>;
 
 /** A check that no two items in a list share a key; each repeat is reported at its own index. */
 function noRepeatedKeys<T>(keyOf: (item: T) => string, message: string) {
@@ -120,7 +126,7 @@ export const TextMatchResultSchema = z
     enoughInformation: z.boolean(),
     whatIsMissing: text(1, 500).nullable(),
     matches: z
-      .array(EngineMatchSchema)
+      .array(EngineTextMatchSchema)
       .max(1000)
       .superRefine(noRepeatedKeys((match) => String(match.candidate), "this talk is already listed")),
   })

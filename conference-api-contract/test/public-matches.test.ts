@@ -61,6 +61,62 @@ describe("matches:search", () => {
     ).toContain("likeTalks"));
   test("refuses a page token that is not one of ours", () =>
     expect(issuePaths(MatchesSearchRequestSchema, { pageToken: "abc" })).toContain("pageToken"));
+  test("include is matches or all, and may be left out", () => {
+    expect(MatchesSearchRequestSchema.safeParse({ include: "all" }).success).toBe(true);
+    expect(MatchesSearchRequestSchema.safeParse({ include: "matches" }).success).toBe(true);
+    expect(issuePaths(MatchesSearchRequestSchema, { include: "some" })).toContain("include");
+  });
+  test("a result names the asker's talk it is judged from", () => {
+    const without = { ...searchMatch };
+    delete without.basedOn;
+    expect(issuePaths(MatchesSearchResponseSchema, { matches: [without] })).toContain("matches.0.basedOn");
+  });
+  test("a result is a match exactly when the two share something", () => {
+    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, shared: [] }] })).toContain(
+      "matches.0.match",
+    );
+    expect(
+      issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, match: false, shared: ["intent"] }] }),
+    ).toContain("matches.0.match");
+    expect(
+      MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, match: false, shared: [] }] }).success,
+    ).toBe(true);
+  });
+  test("shared names the intent and the technique at most once each, in that order", () => {
+    expect(
+      MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, shared: ["intent", "technique"] }] }).success,
+    ).toBe(true);
+    for (const shared of [["technique", "intent"], ["intent", "intent"], ["method"]]) {
+      expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, shared }] }).join(" "), String(shared))
+        .toContain("matches.0.shared");
+    }
+  });
+  test("a description is 1 to 800 characters", () => {
+    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, description: "x".repeat(801) }] })).toContain(
+      "matches.0.description",
+    );
+    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, description: " " }] })).toContain(
+      "matches.0.description",
+    );
+  });
+  test("each linked method gives the intent and the technique of both talks, at most 20 pairs", () => {
+    const pair = searchMatch.methods[0];
+    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, methods: [{ this: pair.this }] }] })).toContain(
+      "matches.0.methods.0.other",
+    );
+    expect(
+      issuePaths(MatchesSearchResponseSchema, {
+        matches: [{ ...searchMatch, methods: [{ ...pair, other: { ...pair.other, intent: "x".repeat(2001) } }] }],
+      }),
+    ).toContain("matches.0.methods.0.other.intent");
+    expect(
+      issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, methods: Array.from({ length: 21 }, () => pair) }] }),
+    ).toContain("matches.0.methods");
+  });
+  test("a search result has no reason or sharedMethods any more", () =>
+    expect(
+      MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, reason: "r", sharedMethods: [] }] }).success,
+    ).toBe(false));
   test("refuses a score above 1 in a match", () =>
     expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, score: 1.5 }] })).toContain(
       "matches.0.score",
@@ -87,6 +143,8 @@ describe("matches:fromText", () => {
     expect(
       issuePaths(MatchesFromTextResponseSchema, { enoughInformation: true, whatIsMissing: "x", matches: [] }),
     ).toContain("whatIsMissing"));
+  test("a fromText match keeps its reason and shared methods", () =>
+    expect(Object.keys(textMatch)).toEqual(expect.arrayContaining(["reason", "sharedMethods"])));
   test("a fromText match never names a person", () =>
     expect(
       MatchesFromTextResponseSchema.safeParse({
@@ -101,6 +159,9 @@ const EXPECTED_PATH: Record<string, string> = {
   "matches_search_request-people-and-like-talks.json": "likeTalks",
   "matches_search_request-page-size-zero.json": "pageSize",
   "matches_search_response-score-above-one.json": "matches.0.score",
+  "matches_search_response-description-too-long.json": "matches.0.description",
+  "matches_search_response-match-without-shared.json": "matches.0.match",
+  "matches_search_request-include-unknown.json": "include",
   "matches_from_text_request-blank-text.json": "text",
   "matches_from_text_response-not-enough-with-matches.json": "matches",
 };

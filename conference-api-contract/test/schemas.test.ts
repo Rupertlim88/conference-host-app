@@ -71,6 +71,12 @@ test("talk has exactly 25 fields", () => {
   expect(Object.keys(TalkSchema.shape)).toHaveLength(25);
 });
 
+test("an engine row is a match exactly when the two talks share something", () => {
+  const row = JSON.parse(readFileSync(join(import.meta.dirname, "..", "fixtures", "valid", "recommendation.json"), "utf8"));
+  expect(RecommendationSchema.safeParse({ ...row, shared: [] }).success).toBe(false);
+  expect(RecommendationSchema.safeParse({ ...row, match: false, shared: [] }).success).toBe(true);
+});
+
 test("recommendation has exactly 13 fields", () => {
   expect(Object.keys(RecommendationSchema.shape)).toHaveLength(13);
 });

@@ -1,5 +1,9 @@
 {
   "engine": "commonkads_v1",
+  "actor": {
+    "partner": "org-aps",
+    "organiser": "org-aps"
+  },
   "request": {
     "title": "Heat in thin films",
     "text": "We use X-ray scattering to follow heat.",

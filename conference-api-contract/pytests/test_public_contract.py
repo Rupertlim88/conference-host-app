@@ -34,6 +34,8 @@ EXPRESSIBLE = {
     "problem-status-out-of-range.json",
     "matches_search_request-page-size-zero.json",
     "matches_search_response-score-above-one.json",
+    "matches_search_response-description-too-long.json",
+    "matches_search_request-include-unknown.json",
     "matches_from_text_request-blank-text.json",
 }
 

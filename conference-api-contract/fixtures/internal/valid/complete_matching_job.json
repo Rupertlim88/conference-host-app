@@ -16,9 +16,22 @@
       "candidate": 2,
       "score": 0.86,
       "kind": "unexpected",
-      "reason": "Both follow heat flow with X-ray scattering.",
-      "sharedMethods": [
-        "X-ray scattering"
+      "match": true,
+      "shared": [
+        "technique"
+      ],
+      "description": "This study follows heat flow across an interface with time-resolved X-ray scattering. The other study uses the same scattering technique on thin films, so its procedure carries over directly, though it asks how fast a lattice heats rather than how heat crosses a boundary.",
+      "methods": [
+        {
+          "this": {
+            "intent": "A material's heat flow shows in how its atoms scatter X-rays over time.",
+            "technique": "Time-resolved X-ray scattering after a laser pulse heats one side of an interface."
+          },
+          "other": {
+            "intent": "How fast a crystal lattice heats shows in how its X-ray scattering changes after a pulse.",
+            "technique": "Time-resolved X-ray scattering of a thin film after optical heating."
+          }
+        }
       ]
     },
     {
@@ -26,9 +39,43 @@
       "candidate": 1,
       "score": 0.86,
       "kind": "unexpected",
-      "reason": "Both follow heat flow with X-ray scattering.",
-      "sharedMethods": [
-        "X-ray scattering"
+      "match": true,
+      "shared": [
+        "technique"
+      ],
+      "description": "This study measures how fast a thin film's lattice heats with time-resolved X-ray scattering. The other study uses the same technique to follow heat across an interface, so its procedure carries over.",
+      "methods": [
+        {
+          "this": {
+            "intent": "How fast a crystal lattice heats shows in how its X-ray scattering changes after a pulse.",
+            "technique": "Time-resolved X-ray scattering of a thin film after optical heating."
+          },
+          "other": {
+            "intent": "A material's heat flow shows in how its atoms scatter X-rays over time.",
+            "technique": "Time-resolved X-ray scattering after a laser pulse heats one side of an interface."
+          }
+        }
+      ]
+    },
+    {
+      "anchor": 1,
+      "candidate": 3,
+      "score": 0.41,
+      "kind": "core",
+      "match": false,
+      "shared": [],
+      "description": "This study measures heat flow with X-ray scattering; the other study estimates rainfall from radar returns. They rely on different principles and different procedures, so it is not a close fit for this research.",
+      "methods": [
+        {
+          "this": {
+            "intent": "A material's heat flow shows in how its atoms scatter X-rays over time.",
+            "technique": "Time-resolved X-ray scattering after a laser pulse heats one side of an interface."
+          },
+          "other": {
+            "intent": "Rain drops of different sizes return radar signals of different strengths.",
+            "technique": "Dual-polarisation radar returns compared with rain gauges."
+          }
+        }
       ]
     }
   ]

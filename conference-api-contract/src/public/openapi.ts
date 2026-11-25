@@ -15,10 +15,6 @@ export interface OperationLimits {
   maxBodyBytes: number;
   /** Requests one key may make per minute, counted over one-minute windows. */
   requestsPerMinute: number;
-  /** Requests one partner may make per UTC day on one organiser's conferences, counted exactly. */
-  requestsPerDay: number;
-  /** Requests of this kind one key may have running at once. */
-  concurrentRequests: number;
   /** The API answers, or gives up, within this time. */
   timeoutSeconds: number;
 }
@@ -60,17 +56,15 @@ export const PATH_PARAMETERS: Record<string, z.ZodType> = {
   conference: ConferenceIdSchema,
 };
 
-/** What the front door, API Gateway, lets through: no request body over 10 MB, and no answer after 29 seconds.
- *  Every operation's own limits fit inside these, so the limits partners read are the ones that hold. */
+/** The ceilings every operation's own limits fit inside, so the limits partners read are the ones that hold: no request
+ *  body over 10 MB, and no answer after 29 seconds, when the front door's load balancer stops waiting (its idle timeout
+ *  is set from here). */
 export const FRONT_DOOR = { maxBodyBytes: 10_000_000, timeoutSeconds: 29 } as const;
 
-/** Protections every request meets before its operation's own limits. The backend enforces exactly these. */
+/** What every request meets at the front door's firewall, before anything else. */
 export const PROTECTIONS = {
-  /** Requests one network address may make per minute, counted before its key is checked. */
-  requestsPerMinutePerAddress: 1_200,
-  /** Requests with a missing, malformed, unknown, expired or cancelled key that one network address may make per
-   *  minute. Past that, every request from the address is refused until the allowance refills. */
-  failedKeyChecksPerMinutePerAddress: 20,
+  /** Requests one network address may make in five minutes. Past that, the firewall refuses the address's requests. */
+  requestsPerFiveMinutesPerAddress: 3_000,
 } as const;
 
 /** How much one conference may hold, counting everything kept, and how many talks it may add or change in a day.
@@ -88,14 +82,8 @@ export const BUSINESS_LIMITS = {
 
 const KiB = 1024;
 
-function limits(
-  maxBodyBytes: number,
-  requestsPerMinute: number,
-  requestsPerDay: number,
-  concurrentRequests: number,
-  timeoutSeconds: number,
-): OperationLimits {
-  return { maxBodyBytes, requestsPerMinute, requestsPerDay, concurrentRequests, timeoutSeconds };
+function limits(maxBodyBytes: number, requestsPerMinute: number, timeoutSeconds: number): OperationLimits {
+  return { maxBodyBytes, requestsPerMinute, timeoutSeconds };
 }
 
 /** The one source of every operation's path and limits. The backend enforces these. */
@@ -104,7 +92,7 @@ export const OPERATIONS = {
     method: "POST",
     path: "/v1/conferences/{conference}/talks:write",
     summary: "Send one talk, several, or the whole programme. All or nothing.",
-    limits: limits(10_000_000, 60, 200, 2, 25),
+    limits: limits(10_000_000, 60, 25),
     request: { name: "TalksWriteRequest", schema: TalksWriteRequestSchema },
     response: { name: "TalksWriteResponse", schema: TalksWriteResponseSchema },
   },
@@ -112,7 +100,7 @@ export const OPERATIONS = {
     method: "POST",
     path: "/v1/conferences/{conference}/matches:search",
     summary: "Get matches already worked out, by people or by liked talks.",
-    limits: limits(64 * KiB, 600, 100_000, 20, 10),
+    limits: limits(64 * KiB, 600, 10),
     request: { name: "MatchesSearchRequest", schema: MatchesSearchRequestSchema },
     response: { name: "MatchesSearchResponse", schema: MatchesSearchResponseSchema },
   },
@@ -120,7 +108,7 @@ export const OPERATIONS = {
     method: "POST",
     path: "/v1/conferences/{conference}/matches:fromText",
     summary: "Get matches for text a person enters, worked out on the spot.",
-    limits: limits(64 * KiB, 60, 500, 10, 20),
+    limits: limits(64 * KiB, 60, 20),
     request: { name: "MatchesFromTextRequest", schema: MatchesFromTextRequestSchema },
     response: { name: "MatchesFromTextResponse", schema: MatchesFromTextResponseSchema },
   },
@@ -135,11 +123,11 @@ const REFUSALS: Record<string, string> = {
   "413": "The request body is larger than this request allows.",
   "415": "The body is not JSON in UTF-8, uncompressed.",
   "429":
-    "Too many requests: per minute, per day or at once for this key, from this network address, or failed key checks from this address. " +
+    "Too many requests per minute with this key. " +
     "Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. " +
     "Retry after the time in Retry-After.",
   "500": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
-  "503": "The API cannot answer in time just now. Safe to retry.",
+  "503": "The API cannot answer in time just now, or is too busy. Safe to retry after the time in Retry-After.",
 };
 
 const refTo = (name: string) => ({ $ref: `#/components/schemas/${name}` });
@@ -147,18 +135,6 @@ const refTo = (name: string) => ({ $ref: `#/components/schemas/${name}` });
 /** A JSON Schema turned into an OpenAPI component: the document-level keywords dropped. */
 function asComponent(schema: Record<string, unknown>): Record<string, unknown> {
   return Object.fromEntries(Object.entries(schema).filter(([key]) => key !== "$schema" && key !== "$id"));
-}
-
-/** Marks every field of an answer with who may see it: the caller, unless the contract marks it internal. The
- *  shared security layer removes internal fields before an answer leaves the API. */
-function markVisibility(node: Record<string, unknown>): Record<string, unknown> {
-  for (const field of Object.values((node.properties ?? {}) as Record<string, Record<string, unknown>>)) {
-    field["x-visibility"] ??= "public";
-    markVisibility(field);
-  }
-  if (node.items) markVisibility(node.items as Record<string, unknown>);
-  for (const branch of (node.anyOf ?? []) as Record<string, unknown>[]) markVisibility(branch);
-  return node;
 }
 
 /** The JSON Schema of each named schema, as OpenAPI components that refer to one another by name. */
@@ -170,12 +146,7 @@ function componentsFor(entries: { name: string; schema: z.ZodType }[], io: "inpu
     io,
     uri: (id) => `#/components/schemas/${id}`,
   }) as { schemas: Record<string, Record<string, unknown>> };
-  return Object.fromEntries(
-    Object.entries(schemas).map(([name, schema]) => {
-      const component = asComponent(schema);
-      return [name, io === "output" ? markVisibility(component) : component];
-    }),
-  );
+  return Object.fromEntries(Object.entries(schemas).map(([name, schema]) => [name, asComponent(schema)]));
 }
 
 function pathParameterSchema(name: string): Record<string, unknown> {
@@ -220,8 +191,8 @@ function publishedOperation(operationId: string, operation: Operation): Record<s
 
 const VERSIONING_POLICY =
   "A change that would break partners becomes a new version under a new path prefix, running alongside the old one. " +
-  "A retiring operation is marked deprecated here, and its answers carry Deprecation and Sunset headers and a link to " +
-  "its successor. It keeps every security fix until it is switched off.";
+  "A retiring operation is marked deprecated here, with when it was announced, when it is switched off and its " +
+  "successor, and partners are told directly. It keeps every security fix until it is switched off.";
 
 /** The conference API's published specification, built from the zod contract. */
 export function buildOpenApi(): Record<string, unknown> {
@@ -261,7 +232,7 @@ export function buildOpenApi(): Record<string, unknown> {
 
 const OWNER = "conference API backend";
 
-/** A body size in the unit it was set in: decimal megabytes (API Gateway's 10 MB), otherwise binary kibibytes. */
+/** A body size in the unit it was set in: decimal megabytes (the 10 MB ceiling), otherwise binary kibibytes. */
 function sizeLabel(bytes: number): string {
   if (bytes % 1_000_000 === 0) return `${bytes / 1_000_000} MB`;
   if (bytes % KiB === 0) return `${bytes / KiB} KiB`;
@@ -270,7 +241,7 @@ function sizeLabel(bytes: number): string {
 
 function endpointRow(id: string, operation: Operation): string {
   const l = operation.limits;
-  const limitText = `${sizeLabel(l.maxBodyBytes)} body, ${l.requestsPerMinute}/min, ${l.requestsPerDay.toLocaleString("en-US")}/day, ${l.concurrentRequests} at once, ${l.timeoutSeconds} s`;
+  const limitText = `${sizeLabel(l.maxBodyBytes)} body, ${l.requestsPerMinute}/min, ${l.timeoutSeconds} s`;
   const status = operation.retiring === undefined ? "live" : `retiring, off ${operation.retiring.sunset}`;
   return `| ${operation.method} | \`${operation.path}\` | ${id} | ${OWNER} | ${limitText} | ${status} |`;
 }
@@ -284,7 +255,7 @@ export function endpointList(): string {
     "",
     "Generated from the contract by `npm run emit --workspace=@repo/contracts`. Do not edit it by hand. For our team only: partners see the published specification.",
     "",
-    "Every endpoint needs the API key for the conference in its path. Limits are per key, and the daily quota per partner and organiser. A test fails if the backend serves any route that is not listed here, or misses one that is.",
+    "Every endpoint needs the API key for the conference in its path. Limits are per key. A test fails if the backend serves any route that is not listed here, or misses one that is.",
     "",
     "| Method | Path | Operation | Owner | Limits | Status |",
     "|---|---|---|---|---|---|",
