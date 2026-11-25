@@ -1,7 +1,7 @@
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { connect, type Db } from "../src/db";
+import { connect, type Db } from "../src/connect";
 import { migrateStore } from "../src/migrate";
 
 const url = process.env.HOST_TEST_DATABASE_URL;
@@ -12,6 +12,7 @@ describe.skipIf(!url)("migrating a hosted database", { timeout: 60_000 }, () => 
   const db = (conn?.db ?? null) as Db;
 
   beforeAll(async () => {
+    // gsa2026 too: a database used before GSA was removed still has it, and migration 0000 would create it again.
     for (const schema of ["ams2027", "gsa2026", "sign_in", "auth"]) await db.execute(sql.raw(`drop schema if exists ${schema} cascade`));
     await db.execute(sql`drop table if exists drizzle.__host_store_migrations`);
     // Every Supabase project already has an auth schema of its own, for Supabase Auth.
@@ -33,5 +34,13 @@ describe.skipIf(!url)("migrating a hosted database", { timeout: 60_000 }, () => 
       ).map((r) => r.table_name);
     expect(await tables("sign_in")).toEqual(["account", "session", "user", "verification"]);
     expect(await tables("auth")).toEqual(["users"]);
+  });
+
+  test("leaves no schema for GSA, whose programme the host app no longer carries", async () => {
+    await migrateStore(db);
+    const schemas = (
+      await db.execute<{ schema_name: string }>(sql`select schema_name from information_schema.schemata where schema_name = 'gsa2026'`)
+    ).map((r) => r.schema_name);
+    expect(schemas).toEqual([]);
   });
 });

@@ -1,10 +1,10 @@
 import type { TalksWriteRequest } from "@repo/contracts";
-import { amsTables, connect, createOrganiserStore, createStore, createSyncLog, loadRows, type Db } from "@repo/host-store";
+import { amsTables, connect, createOrganiserStore, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
 import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
-import { ApiRefusedError, type ConferenceApi } from "../src/conference-api";
+import { ApiRefusedError, RequestNotSent, unconfiguredApi, type ConferenceApi } from "../src/matching-api";
 import { SendFailed, SendRunning, sendProgramme } from "../src/send";
 import { rows } from "./programme";
 
@@ -37,7 +37,7 @@ function neverAnswering(): ConferenceApi {
 describe.skipIf(!url)("sendProgramme", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
-  const store = createStore(db, "ams");
+  const store = createProgramme(db, "ams");
   const log = createSyncLog(db, "ams");
 
   beforeAll(async () => {
@@ -78,6 +78,50 @@ describe.skipIf(!url)("sendProgramme", { timeout: 60_000 }, () => {
     expect((failed as SendFailed).cause).toBeInstanceOf(ApiRefusedError);
     expect((failed as SendFailed).run).toMatchObject({ state: "failed", error: "401 Unauthorized" });
     expect((await log.runs())[0]).toEqual((failed as SendFailed).run);
+  });
+
+  test("records a request that does not fit the contract as failed, saying why, and sends nothing", async () => {
+    const api: ConferenceApi = {
+      ...taking([]),
+      writeTalks: async () => {
+        throw new RequestNotSent("talk 1 is sent twice");
+      },
+    };
+    const failed = await sendProgramme({ store, log, api }).catch((e: unknown) => e);
+    expect((failed as SendFailed).run).toMatchObject({
+      state: "failed",
+      error: "The request did not fit the conference API's contract, so it was not sent: talk 1 is sent twice",
+    });
+  });
+
+  test("with no API address set, the send is recorded as failed, saying what to set", async () => {
+    const failed = await sendProgramme({ store, log, api: unconfiguredApi }).catch((e: unknown) => e);
+    expect((failed as SendFailed).run).toMatchObject({
+      state: "failed",
+      error: "Set CONFERENCE_API_URL and CONFERENCE_API_KEY to send the programme.",
+    });
+  });
+
+  test("a fault in the code is recorded as unexpected, not as an API that could not be reached", async () => {
+    const api: ConferenceApi = {
+      ...taking([]),
+      writeTalks: async () => {
+        throw new TypeError("Cannot read properties of undefined (reading 'talks')");
+      },
+    };
+    const failed = await sendProgramme({ store, log, api }).catch((e: unknown) => e);
+    expect((failed as SendFailed).run).toMatchObject({ state: "failed", error: "Unexpected error" });
+  });
+
+  test("a network failure is recorded as an API that could not be reached", async () => {
+    const api: ConferenceApi = {
+      ...taking([]),
+      writeTalks: async () => {
+        throw new TypeError("fetch failed", { cause: new Error("connect ECONNREFUSED 127.0.0.1:9") });
+      },
+    };
+    const failed = await sendProgramme({ store, log, api }).catch((e: unknown) => e);
+    expect((failed as SendFailed).run).toMatchObject({ state: "failed", error: "Could not reach the conference API" });
   });
 
   test("a programme with nothing to send is recorded as failed, and writes nothing", async () => {

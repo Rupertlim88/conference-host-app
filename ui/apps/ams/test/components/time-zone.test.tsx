@@ -3,8 +3,8 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { TimeZoneSwitch } from "@/components/time-zone";
-import { When } from "@/components/when";
+import { TimeZoneSwitch } from "@/features/meeting-time";
+import { When } from "@/features/meeting-time";
 
 import { renderApp } from "../render";
 

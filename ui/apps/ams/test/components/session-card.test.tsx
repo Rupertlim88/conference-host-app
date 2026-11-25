@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { SessionCard } from "@/components/session-card";
+import { SessionCard } from "@/features/cards";
 
 import { sessionSummary } from "../fixtures";
 import { renderApp } from "../render";
@@ -22,4 +22,9 @@ test("a plain session shows only its number before the title", () => {
 test("a break shows no kind and no number", () => {
   renderApp(<SessionCard session={sessionSummary({ number: "", kind: "Break", title: "Daily Weather Briefings", room: "207" })} />);
   expect(screen.getByRole("link")).toHaveAccessibleName("Daily Weather Briefings 207 (Colorado Convention Center)");
+});
+
+test("a break shows only its title, even when it carries a number", () => {
+  renderApp(<SessionCard session={sessionSummary({ number: "B1", kind: "Break", title: "Coffee Break", room: "207" })} />);
+  expect(screen.getByRole("link")).toHaveAccessibleName("Coffee Break 207 (Colorado Convention Center)");
 });

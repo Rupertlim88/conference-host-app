@@ -3,12 +3,11 @@ import { join } from "node:path";
 import { eq, sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { AmsFilesSchema, amsRows } from "../src/ams";
-import { connect, type Db } from "../src/db";
+import { AmsFilesSchema, amsRows } from "../src/ams-rows";
+import { connect, type Db } from "../src/connect";
 import { migrateStore } from "../src/migrate";
-import { GsaFilesSchema, gsaRows } from "../src/gsa";
-import { loadRows } from "../src/load-rows";
-import { amsTables, gsaTables } from "../src/schema";
+import { loadRows } from "../src/load";
+import { amsTables } from "../src/tables";
 
 const url = process.env.HOST_TEST_DATABASE_URL;
 const fixture = (name: string) => JSON.parse(readFileSync(join(import.meta.dirname, "fixtures", name), "utf8"));
@@ -18,10 +17,10 @@ describe.skipIf(!url)("loading rows into Postgres", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
   const ams = amsRows(AmsFilesSchema.parse(fixture("ams-slice.json")));
-  const gsa = gsaRows(GsaFilesSchema.parse(fixture("gsa-slice.json")));
 
   beforeAll(async () => {
     await db.execute(sql`drop schema if exists ams2027 cascade`);
+    // A database used before GSA was removed still has its schema, which migration 0000 would create again.
     await db.execute(sql`drop schema if exists gsa2026 cascade`);
     await db.execute(sql`drop schema if exists sign_in cascade`);
     await db.execute(sql`drop table if exists drizzle.__host_store_migrations`);
@@ -67,13 +66,6 @@ describe.skipIf(!url)("loading rows into Postgres", { timeout: 60_000 }, () => {
              starts_at = pub_starts_at as same_start, ends_at = pub_ends_at as same_end, building = pub_building as same_building
       from ams2027.sessions where id = '73193'`);
     expect(session).toEqual({ start: "19:45", room: "350D", pub_room: "350D", same_start: true, same_end: true, same_building: true });
-  });
-
-  test("keeps the societies apart", async () => {
-    await loadRows(db, gsaTables, gsa);
-    const amsIds = (await db.select({ id: amsTables.talks.id }).from(amsTables.talks)).map((r) => r.id);
-    expect(amsIds).not.toContain("16121");
-    expect(await db.$count(gsaTables.talks)).toBe(15);
   });
 
   test("a reload drops talks no longer in the files, with their people links", async () => {

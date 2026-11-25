@@ -36,7 +36,6 @@ yarn-error.log*
 # Misc
 .DS_Store
 *.pem
-/data/gps2026/
 
 # Playwright MCP scratch
 .playwright-mcp/

@@ -3,7 +3,7 @@ import { test } from "node:test";
 
 import { appFor, parseLook } from "./lib.mjs";
 
-test("each society has its app's folder, port, name and conference id", () => {
+test("the AMS app has its folder, port, name and conference id", () => {
   assert.deepEqual(appFor("ams"), {
     society: "ams",
     dir: "ui/apps/ams",
@@ -13,13 +13,11 @@ test("each society has its app's folder, port, name and conference id", () => {
     schema: "ams2027",
     sampleTalk: "487641",
   });
-  assert.equal(appFor("gsa").port, 3002);
-  assert.equal(appFor("gsa").name, "Strata Guide");
-  assert.equal(appFor("gsa").sampleTalk, "16121");
 });
 
-test("an unknown society is refused", () => {
-  assert.throws(() => appFor("agu"), /society must be ams or gsa/);
+test("any society but AMS is refused", () => {
+  assert.throws(() => appFor("agu"), /society must be ams/);
+  assert.throws(() => appFor("gsa"), /society must be ams/);
 });
 
 test("a look names the society, the route and the evidence name, on a phone by default", () => {
@@ -31,20 +29,20 @@ test("a look names the society, the route and the evidence name, on a phone by d
     signedIn: true,
     steps: [],
   });
-  assert.equal(parseLook(["gsa", "/", "home", "--computer"]).device, "computer");
-  assert.equal(parseLook(["gsa", "/talks/16121", "gate", "--signed-out"]).signedIn, false);
+  assert.equal(parseLook(["ams", "/", "home", "--computer"]).device, "computer");
+  assert.equal(parseLook(["ams", "/talks/493803", "gate", "--signed-out"]).signedIn, false);
 });
 
 test("steps run in the order given", () => {
   const look = parseLook([
-    "gsa", "/talks/16121", "note",
-    "--fill", "My note=Ask about the emulators.",
-    "--click", "button=Save note",
+    "ams", "/organiser/sessions/73193", "time",
+    "--fill", "Room=350D",
+    "--click", "button=Save session",
     "--press", "Escape",
   ]);
   assert.deepEqual(look.steps, [
-    { fill: { label: "My note", text: "Ask about the emulators." } },
-    { click: { role: "button", name: "Save note" } },
+    { fill: { label: "Room", text: "350D" } },
+    { click: { role: "button", name: "Save session" } },
     { press: "Escape" },
   ]);
 });

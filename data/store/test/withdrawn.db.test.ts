@@ -3,12 +3,12 @@ import { join } from "node:path";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import { AmsFilesSchema, amsRows } from "../src/ams";
-import { connect, type Db } from "../src/db";
-import { loadRows } from "../src/load-rows";
+import { AmsFilesSchema, amsRows } from "../src/ams-rows";
+import { connect, type Db } from "../src/connect";
+import { loadRows } from "../src/load";
 import { migrateStore } from "../src/migrate";
-import { createStore } from "../src/queries";
-import { amsTables } from "../src/schema";
+import { createStore } from "./store";
+import { amsTables } from "../src/tables";
 
 const url = process.env.HOST_TEST_DATABASE_URL;
 const fixture = (name: string) => JSON.parse(readFileSync(join(import.meta.dirname, "fixtures", name), "utf8"));
@@ -60,14 +60,20 @@ describe.skipIf(!url)("a withdrawn talk", { timeout: 60_000 }, () => {
   });
 
   test("is left out of its presenter's talks, and a presenter with no other talk is left out of people", async () => {
-    expect((await ams.person("william-j-graff"))?.talks ?? []).toEqual([]);
+    expect(await ams.person("william-j-graff")).toBeNull();
     expect((await ams.people()).map((p) => p.id)).not.toContain("william-j-graff");
     expect((await ams.search("Graff")).people).toEqual([]);
+  });
+
+  test("its note is kept but not read back, while a shown talk's note is", async () => {
+    expect(await ams.note(USER, { targetKind: "talk", targetId: GONE })).toBeNull();
+    expect((await ams.note(USER, { targetKind: "talk", targetId: KEPT }))?.body).toBe(`note on ${KEPT}`);
   });
 
   test("keeps its stars and notes, which come back when it is restored", async () => {
     await db.execute(sql`update ams2027.talks set withdrawn = false where id = ${GONE}`);
     expect(ids((await ams.schedule(USER)).talks)).toContain(GONE);
     expect((await ams.notes(USER)).map((n) => n.targetId)).toContain(GONE);
+    expect((await ams.note(USER, { targetKind: "talk", targetId: GONE }))?.body).toBe(`note on ${GONE}`);
   });
 });

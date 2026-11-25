@@ -1,11 +1,11 @@
 import { migrateStore } from "@repo/host-store/migrate";
-import { amsTables, connect, createOrganiserStore, createStore, createSyncLog, loadRows, type Db } from "@repo/host-store";
+import { amsTables, connect, createOrganiserStore, createGuestData, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
 import { TRPCError } from "@trpc/server";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import type { ConferenceApi, RelatedAnswer } from "../src/conference-api";
-import { appRouter } from "../src/router";
-import { createCallerFactory, type Context } from "../src/trpc";
+import type { ConferenceApi, RelatedAnswer } from "../src/matching-api";
+import { appRouter } from "../src/server";
+import { createCallerFactory, type Context } from "../src/gate";
 import { rows } from "./programme";
 
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
@@ -23,7 +23,7 @@ const viewer = { id: "u1", name: "Guest", email: "guest@example.com", image: nul
 describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
-  const store = createStore(db, "ams");
+  const store = { ...createProgramme(db, "ams"), ...createGuestData(db, "ams") };
   const caller = (ctx: Partial<Context>) =>
     createCallerFactory(appRouter)({
       store,

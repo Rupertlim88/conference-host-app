@@ -12,8 +12,7 @@ A guest types at least two characters into the search box and gets matching pres
 ## How to get to it (user POV)
 
 - AMS: the search icon in the top bar, or **Search** in the menu.
-- GSA: **Search Abstracts** in the menu.
-- Both: the `/search?q=…` address.
+- The `/search?q=…` address.
 
 ## Driving it with look.mts
 
@@ -22,7 +21,7 @@ Preconditions:
 - The baseline preconditions in the index hold.
 
 - **Type a query.** Run `L ams /search typed --fill "Search titles, abstracts, numbers and names=Snow Squall" --press Enter --expect "link=J1.2 What is a Snow Squall"`.
-- **Open by address.** Run `L gsa "/search?q=Multi-Objective" byurl --expect "link=Multi-Objective Optimization"`.
+- **Open by address.** Run `L ams "/search?q=Snow Squall" byurl --expect "link=J1.2 What is a Snow Squall"`.
 - **No match.** Run `L ams "/search?q=zzzqqq" nothing --expect "heading=Search"`. The `.aria.txt` contains `Nothing matches`.
 
 ## Gotchas

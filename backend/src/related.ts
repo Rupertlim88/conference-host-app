@@ -1,6 +1,7 @@
+// A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.
 import type { RelatedTalks, TalkSummary } from "@repo/host-contracts";
 
-import type { ConferenceApi } from "./conference-api";
+import type { ConferenceApi } from "./matching-api";
 
 export const RELATED_TOP = 5;
 

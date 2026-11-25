@@ -2,7 +2,7 @@
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { SearchView } from "@/components/views/search-view";
+import { SearchView } from "@/features/search";
 
 import { person, sessionSummary, talkSummary } from "../fixtures";
 import { renderApp } from "../render";
@@ -36,4 +36,10 @@ test("a query too short to search asks for two characters; no query shows only t
   renderApp(<SearchView q="" results={null} />);
   expect(screen.queryByText("Type at least two characters.")).not.toBeInTheDocument();
   expect(screen.getByRole("search")).toBeInTheDocument();
+});
+
+test("a query too long to search says so, instead of asking for more", () => {
+  renderApp(<SearchView q={"x".repeat(101)} results={null} />);
+  expect(screen.getByText("Type at most 100 characters.")).toBeInTheDocument();
+  expect(screen.queryByText("Type at least two characters.")).not.toBeInTheDocument();
 });

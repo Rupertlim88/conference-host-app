@@ -20,7 +20,6 @@ Preconditions:
 - The baseline preconditions in the index hold, including doctor's line about the conference API.
 
 - **Panel, AMS.** Run `L ams /talks/493803 related --expect "heading=Related talks"`. In the `.aria.txt`, the `region "Related talks"` holds at least one link to `/talks/…`, and the text `Picked for you by the conference API`.
-- **Panel, GSA.** Run `L gsa /talks/16121 related --expect "heading=Related talks"`. Same checks.
 - **Follow a match.** Take a talk title from the panel in the `.aria.txt` of the last step, then run `L ams /talks/493803 follow --click "link=<title>" --expect "heading=Abstract"`. The URL in the new `.aria.txt` is that talk's page.
 - **API down.** Stop only the conference API with `kill -TERM -$(cat .verify/run/conference-api.pid)`. Run `L ams /talks/493803 down --expect "heading=Related talks"`. The `.aria.txt` contains `Related talks are unavailable right now.` and the rest of the talk page. Afterwards run `verify.sh stop ams`, then `verify.sh launch ams`.
 

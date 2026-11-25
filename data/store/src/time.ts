@@ -1,3 +1,4 @@
+// A time in the meeting's own zone is turned into an exact instant, through daylight saving.
 const formats = new Map<string, Intl.DateTimeFormat>();
 
 /** Minutes the zone is ahead of UTC at an instant: -360 for Denver in October. */
@@ -20,16 +21,4 @@ export function zonedInstant(date: string, time: string, timeZone: string): Date
   const wall = Date.UTC(y, mo - 1, d, h, mi);
   const first = wall - offsetMinutes(wall, timeZone) * 60_000;
   return new Date(wall - offsetMinutes(first, timeZone) * 60_000);
-}
-
-/** "01:35 PM" gives "13:35"; a bare "9:02" is read as 24-hour; anything else gives null. */
-export function toClock24(text: string): string | null {
-  const m = /^(\d{1,2}):(\d{2})\s*(AM|PM)?$/i.exec(text.trim());
-  if (!m) return null;
-  let h = Number(m[1]);
-  const half = m[3]?.toUpperCase();
-  if (half === "PM" && h !== 12) h += 12;
-  if (half === "AM" && h === 12) h = 0;
-  if (h > 23) return null;
-  return `${String(h).padStart(2, "0")}:${m[2]}`;
 }

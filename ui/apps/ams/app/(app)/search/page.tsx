@@ -1,8 +1,8 @@
 import { SearchInputSchema } from "@repo/host-contracts";
 
-import { SearchView } from "@/components/views/search-view";
-import { firstParam } from "@/lib/params";
-import { serverApi } from "@/lib/server-api";
+import { SearchView } from "@/features/search";
+import { firstParam } from "@/features/app";
+import { serverApi } from "@/features/server";
 
 export default async function SearchPage({ searchParams }: { searchParams: Promise<{ q?: string | string[] }> }) {
   const q = firstParam((await searchParams).q);

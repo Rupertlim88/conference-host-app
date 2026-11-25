@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
-import { ConsoleShell } from "@/components/console/console-shell";
-import { SignOutButton } from "@/components/sign-out-button";
-import { serverApi } from "@/lib/server-api";
+import { ConsoleShell } from "@/features/console-frame";
+import { SignOutButton } from "@/features/sign-in";
+import { serverApi } from "@/features/server";
 
 // Any signed-in guest may use the developer console: this is a demo (CLAUDE.md rule 6).
 export default async function DeveloperLayout({ children }: { children: React.ReactNode }) {

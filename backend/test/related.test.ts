@@ -1,7 +1,7 @@
 import type { TalkSummary } from "@repo/host-contracts";
 import { describe, expect, test } from "vitest";
 
-import type { ConferenceApi, RelatedAnswer } from "../src/conference-api";
+import type { ConferenceApi, RelatedAnswer } from "../src/matching-api";
 import { relatedTalks } from "../src/related";
 
 const summary = (id: string): TalkSummary => ({

@@ -7,7 +7,11 @@ export default defineConfig({
   plugins: [react()],
   resolve: {
     // Mirrors the `@/*` path alias from tsconfig.json.
-    alias: { "@": fileURLToPath(new URL(".", import.meta.url)) },
+    alias: {
+      "@": fileURLToPath(new URL(".", import.meta.url)),
+      // Next's guard that keeps server code out of the browser refuses to load outside Next.
+      "server-only": fileURLToPath(new URL("./test/server-only.ts", import.meta.url)),
+    },
   },
   test: {
     // Component tests opt into jsdom via a per-file

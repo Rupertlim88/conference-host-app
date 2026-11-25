@@ -2,7 +2,7 @@ import { SyncRunSchema } from "@repo/host-contracts";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeAll, beforeEach, describe, expect, test } from "vitest";
 
-import { connect, type Db } from "../src/db";
+import { connect, type Db } from "../src/connect";
 import { migrateStore } from "../src/migrate";
 import { createSyncLog, STALE_AFTER_MINUTES } from "../src/sync-log";
 
@@ -13,7 +13,6 @@ describe.skipIf(!url)("the send run log", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
   const ams = createSyncLog(db, "ams");
-  const gsa = createSyncLog(db, "gsa");
   const startedMinutesAgo = (id: number, minutes: number) =>
     db.execute(sql`update ams2027.sync_runs set started_at = now() - make_interval(mins => ${minutes}) where id = ${id}`);
 
@@ -22,12 +21,10 @@ describe.skipIf(!url)("the send run log", { timeout: 60_000 }, () => {
   });
   beforeEach(async () => {
     await db.execute(sql`delete from ams2027.sync_runs`);
-    await db.execute(sql`delete from gsa2026.sync_runs`);
   });
   afterAll(async () => {
     // CI loads the e2e programme into this same database, and a running row left here would refuse its first send.
     await db?.execute(sql`delete from ams2027.sync_runs`);
-    await db?.execute(sql`delete from gsa2026.sync_runs`);
     await conn?.close();
   });
 
@@ -83,11 +80,5 @@ describe.skipIf(!url)("the send run log", { timeout: 60_000 }, () => {
     const runs = await ams.runs();
     expect(runs).toHaveLength(10);
     expect(runs.map((r) => r.id)).toEqual([...runs.map((r) => r.id)].sort((a, b) => b - a));
-  });
-
-  test("each society has its own log", async () => {
-    expect(await ams.start()).not.toBeNull();
-    expect(await gsa.start()).not.toBeNull();
-    expect(await gsa.runs()).toHaveLength(1);
   });
 });

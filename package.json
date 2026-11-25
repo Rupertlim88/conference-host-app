@@ -12,7 +12,8 @@
     "test": "turbo run test",
     "deps": "node scripts/dependencies.mjs",
     "deps:check": "node scripts/dependencies.mjs --check",
-    "test:scripts": "node --test scripts/*.test.mjs .claude/skills/verify-host-app/scripts/*.test.mjs"
+    "test:scripts": "node --test scripts/*.test.mjs .claude/skills/verify-host-app/scripts/*.test.mjs",
+    "ties": "node scripts/claude-ties.mjs"
   },
   "devDependencies": {
     "prettier": "3.9.6",

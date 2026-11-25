@@ -2,7 +2,7 @@
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { ConsoleShell } from "@/components/console/console-shell";
+import { ConsoleShell } from "@/features/console-frame";
 
 import { renderApp } from "../render";
 

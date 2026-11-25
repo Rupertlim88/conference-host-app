@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { HomeView } from "@/components/views/home-view";
+import { HomeView } from "@/features/frame";
 
 import { meeting } from "../fixtures";
 import { renderApp } from "../render";

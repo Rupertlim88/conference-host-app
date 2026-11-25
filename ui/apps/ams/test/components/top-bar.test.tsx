@@ -2,7 +2,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { TopBar } from "@/components/top-bar";
+import { TopBar } from "@/features/frame";
 
 import { renderApp } from "../render";
 
@@ -21,4 +21,10 @@ test("the menu opens on the app's sections and closes when one is chosen", async
   expect(within(menu).getAllByRole("link")).toHaveLength(8);
   fireEvent.click(within(menu).getByRole("link", { name: "My Schedule" }));
   await waitFor(() => expect(screen.queryByRole("dialog")).not.toBeInTheDocument());
+});
+
+test("the open menu's close button is named in the app's own words", async () => {
+  renderApp(<TopBar signOut={null} />);
+  fireEvent.click(screen.getByRole("button", { name: "Menu" }));
+  expect(await screen.findByRole("button", { name: "Close menu" })).toBeInTheDocument();
 });

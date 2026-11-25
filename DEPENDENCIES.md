@@ -10,10 +10,10 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 
 | Tool | Declared | Used |
 | --- | --- | --- |
-| Node.js | >=24 (package.json engines) | not pinned (CI) |
+| Node.js | >=24 (package.json engines) | 24 (CI) |
 | npm | 10.9.3 (package.json packageManager) | 10.9.3 |
 | Python | >=3.12 (pyproject.toml) | not pinned (CI) |
-| uv | not used (CI) | latest uv at CI time (not pinned) |
+| uv | setup-uv@v6 (CI) | latest uv at CI time (not pinned) |
 | Java | >=11 (backend/verification/pinned-tools.json) | not pinned (the machine's own install) |
 | TLA+ tools (tla2tools.jar, the TLC model checker) | 1.7.4 (backend/verification/pinned-tools.json) | 1.7.4, SHA-256 936a262061c914694dfd669a543be24573c45d5aa0ff20a8b96b23d01e050e88 |
 
@@ -31,7 +31,6 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 | ams | @trpc/server | ^11.18.0 | 11.18.0 | runtime |
 | ams | better-auth | 1.7.1 | 1.7.1 | runtime |
 | ams | class-variance-authority | ^0.7.1 | 0.7.1 | runtime |
-| ams | clsx | ^2.1.1 | 2.1.1 | runtime |
 | ams | cn | ^0.5.2 | 0.5.2 | runtime |
 | ams | lucide-react | ^1.34.0 | 1.34.0 | runtime |
 | ams | next | 16.3.2 | 16.3.2 | runtime |
@@ -40,7 +39,6 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 | ams | react-dom | 19.2.8 | 19.2.8 | runtime |
 | ams | server-only | ^0.0.1 | 0.0.1 | runtime |
 | ams | shadcn | ^4.19.0 | 4.19.0 | runtime |
-| ams | tailwind-merge | ^3.6.0 | 3.6.0 | runtime |
 | ams | tw-animate-css | ^1.4.0 | 1.4.0 | runtime |
 | ams | zod | ^4.4.3 | 4.6.7 | runtime |
 | ams | @next/env | ^16.3.2 | 16.3.2 | dev |
@@ -57,39 +55,6 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 | ams | tailwindcss | ^4.3.3 | 4.3.3 | dev |
 | ams | typescript | ~5.9.3 | 5.9.3 | dev |
 | ams | vitest | ^4.1.11 | 4.1.11 | dev |
-| gsa | @base-ui/react | ^1.7.0 | 1.7.0 | runtime |
-| gsa | @tanstack/react-query | ^5.102.4 | 5.102.4 | runtime |
-| gsa | @trpc/client | ^11.18.0 | 11.18.0 | runtime |
-| gsa | @trpc/react-query | ^11.18.0 | 11.18.0 | runtime |
-| gsa | @trpc/server | ^11.18.0 | 11.18.0 | runtime |
-| gsa | better-auth | 1.7.1 | 1.7.1 | runtime |
-| gsa | class-variance-authority | ^0.7.1 | 0.7.1 | runtime |
-| gsa | clsx | ^2.1.1 | 2.1.1 | runtime |
-| gsa | cn | ^0.5.2 | 0.5.2 | runtime |
-| gsa | lucide-react | ^1.34.0 | 1.34.0 | runtime |
-| gsa | next | 16.3.2 | 16.3.2 | runtime |
-| gsa | next-intl | ^4.13.7 | 4.13.7 | runtime |
-| gsa | react | 19.2.8 | 19.2.8 | runtime |
-| gsa | react-dom | 19.2.8 | 19.2.8 | runtime |
-| gsa | server-only | ^0.0.1 | 0.0.1 | runtime |
-| gsa | shadcn | ^4.19.0 | 4.19.0 | runtime |
-| gsa | tailwind-merge | ^3.6.0 | 3.6.0 | runtime |
-| gsa | tw-animate-css | ^1.4.0 | 1.4.0 | runtime |
-| gsa | zod | ^4.4.3 | 4.6.7 | runtime |
-| gsa | @next/env | ^16.3.2 | 16.3.2 | dev |
-| gsa | @playwright/test | ^1.62.1 | 1.62.1 | dev |
-| gsa | @tailwindcss/postcss | ^4.3.3 | 4.3.3 | dev |
-| gsa | @testing-library/jest-dom | ^7.0.1 | 7.0.1 | dev |
-| gsa | @testing-library/react | ^16.3.3 | 16.3.3 | dev |
-| gsa | @types/node | 26.3.0 | 26.3.0 | dev |
-| gsa | @types/react | 19.2.18 | 19.2.18 | dev |
-| gsa | @types/react-dom | 19.2.5 | 19.2.5 | dev |
-| gsa | @vitejs/plugin-react | ^6.1.1 | 6.3.0 | dev |
-| gsa | eslint | 10.9.1 | 10.9.1 | dev |
-| gsa | jsdom | ^29.1.1 | 29.1.1 | dev |
-| gsa | tailwindcss | ^4.3.3 | 4.3.3 | dev |
-| gsa | typescript | ~5.9.3 | 5.9.3 | dev |
-| gsa | vitest | ^4.1.11 | 4.1.11 | dev |
 | @repo/host-contracts | zod | ^4.4.3 | 4.6.7 | runtime |
 | @repo/host-contracts | @types/node | 26.3.0 | 26.3.0 | dev |
 | @repo/host-contracts | eslint | 10.9.1 | 10.9.1 | dev |

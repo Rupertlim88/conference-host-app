@@ -1,6 +1,5 @@
-import { ProgramView } from "@/components/views/program-view";
-import { orNotFound } from "@/lib/or-not-found";
-import { serverApi } from "@/lib/server-api";
+import { ProgramView } from "@/features/programmes";
+import { orNotFound, serverApi } from "@/features/server";
 
 export default async function ProgramPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

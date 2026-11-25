@@ -2,8 +2,8 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 
-import { DeveloperView } from "@/components/views/developer-view";
-import { SendView } from "@/components/views/send-view";
+import { DeveloperView } from "@/features/developer";
+import { SendView } from "@/features/send";
 
 import { apiStatus, noChanges, syncRun } from "../fixtures";
 import { renderApp } from "../render";

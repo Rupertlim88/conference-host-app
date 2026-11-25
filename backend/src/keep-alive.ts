@@ -1,3 +1,4 @@
+// The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.
 import { createHash, timingSafeEqual } from "node:crypto";
 
 const digest = (text: string) => createHash("sha256").update(text).digest();

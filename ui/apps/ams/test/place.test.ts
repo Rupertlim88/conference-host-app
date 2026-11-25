@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
+import { placeOf } from "@/features/cards";
 
-import { placeOf } from "../lib/place";
 
 test("a room reads with its building in brackets", () => {
   expect(placeOf("403", "Colorado Convention Center")).toBe("403 (Colorado Convention Center)");

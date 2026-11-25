@@ -1,9 +1,9 @@
 import type { Person, SessionSummary } from "@repo/host-contracts";
 import { describe, expect, test } from "vitest";
 
-import { timeBlocks } from "../lib/blocks";
-import { byLetter, surnameOf } from "../lib/people";
-import { cardLabel, toneOf } from "../lib/tones";
+import { timeBlocks } from "@/features/calendar";
+import { byLetter, surnameOf } from "@/features/people";
+import { cardLabel, toneOf } from "@/features/cards";
 
 const session = (id: string, startsAt: string | null, endsAt: string | null, number = id): SessionSummary => ({
   id,

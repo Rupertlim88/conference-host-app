@@ -1,5 +1,5 @@
-import { HomeView } from "@/components/views/home-view";
-import { serverApi } from "@/lib/server-api";
+import { HomeView } from "@/features/frame";
+import { serverApi } from "@/features/server";
 
 export default async function HomePage() {
   const meeting = await (await serverApi()).meeting.get();

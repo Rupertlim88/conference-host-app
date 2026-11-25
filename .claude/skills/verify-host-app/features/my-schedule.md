@@ -23,7 +23,6 @@ Preconditions:
 - **Star.** Run `L ams /talks/493803 star --click "button=Add to My Schedule" --expect "button=Remove from My Schedule"`.
 - **Second view.** Run `L ams /schedule listed --expect "link=Snow Squall"`.
 - **Unstar.** Run `L ams /talks/493803 unstar --click "button=Remove from My Schedule" --expect "button=Add to My Schedule"`, then `L ams /schedule cleared --expect "heading=My Schedule"`. The `.aria.txt` has no `Snow Squall` link.
-- **GSA.** Repeat the star and second view with `L gsa /talks/16121 star --click "button=Add to My Schedule" --expect "button=Remove from My Schedule"` and `L gsa /schedule listed --expect "link=Multi-Objective Optimization"`.
 
 ## Gotchas
 
