@@ -12,14 +12,14 @@ Everything else is a lower level, written by Claude to carry out these specifica
 1. **Claude writes and changes the rules, always from the user's intent.** Claude may add, change or remove a rule in any of the host app's CLAUDE.md files to carry out what the user wants, without being asked to change that rule. A rule Claude writes says only what the user wants, as faithfully as Claude can tell, and keeps the user's own words wherever the user has given them. What the user says always wins: the user can change or overrule any rule at any time. Every change is reported in the chat (the rule to report every CLAUDE.md change in the chat). The CLAUDE.md files hold only rules: never status, progress, notes or the names of current implementations, apart from the one file and the how that each rule in a lowest-level CLAUDE.md names.
 
 ## Rules
-1. **The database is Supabase's PostgreSQL database, always on.**
+2. **The database is Supabase's PostgreSQL database, always on.**
 
 ## Security level
 
-2. **The host app's data layer meets OWASP ASVS 5.0 at Level 1.** Every Level 1 requirement of OWASP ASVS 5.0 applies to it.
+3. **The host app's data layer meets OWASP ASVS 5.0 at Level 1.** Every Level 1 requirement of OWASP ASVS 5.0 applies to it.
 
 ## The meeting's data
 
-3. **The meeting's data holds only what the public programme shows.** Fields the public programme does not show, such as reviewers' ratings, submitters' comments or internal notes, are removed before the data is stored anywhere, including the repository, and are never kept or shown. Withdrawn entries are left out.
+4. **The meeting's data holds only what the public programme shows.** Fields the public programme does not show, such as reviewers' ratings, submitters' comments or internal notes, are removed before the data is stored anywhere, including the repository, and are never kept or shown. Withdrawn entries are left out.
 
-4. **Data is gathered gently.** Where a society offers a public download, it is used; where pages must be read one by one, they are read slowly enough never to burden the society's site, and each page is read once and kept.
+5. **Data is gathered gently.** Where a society offers a public download, it is used; where pages must be read one by one, they are read slowly enough never to burden the society's site, and each page is read once and kept.

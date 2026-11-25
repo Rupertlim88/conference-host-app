@@ -15,16 +15,16 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### What this UI is
 
-1. **This UI is the demo for the American Meteorological Society (AMS).** It approximates the meeting app AMS attendees will use at the 107th Annual Meeting: the Confex Meeting App, on the web at ams.confex.com/ams/107ANNUAL/meetingapp.cgi and as a phone app. It follows that app's layout, screens and flow approximately, not exactly, at phone and computer sizes, with its own name and logo, and its name says it is a demo.
+2. **This UI is the demo for the American Meteorological Society (AMS).** It approximates the meeting app AMS attendees will use at the 107th Annual Meeting: the Confex Meeting App, on the web at ams.confex.com/ams/107ANNUAL/meetingapp.cgi and as a phone app. It follows that app's layout, screens and flow approximately, not exactly, at phone and computer sizes, with its own name and logo, and its name says it is a demo.
 
-2. **It carries the programme of the AMS 107th Annual Meeting (Denver, 10–14 January 2027) as published so far**, refreshed as AMS adds to it. It shows every talk and poster with its title, presenters, affiliations, session, day, time, room and abstract. Withdrawn entries are left out.
+3. **It carries the programme of the AMS 107th Annual Meeting (Denver, 10–14 January 2027) as published so far**, refreshed as AMS adds to it. It shows every talk and poster with its title, presenters, affiliations, session, day, time, room and abstract. Withdrawn entries are left out.
 
-3. **On every talk page, a related-talks panel shows the conference API's matches for that talk.** This panel is the point of the demo.
+4. **On every talk page, a related-talks panel shows the conference API's matches for that talk.** This panel is the point of the demo.
 
 ### Organisers
 
-4. **The organiser side approximates the Confex tools AMS uses to collect abstracts and build its programme**, from what is publicly known about them.
+5. **The organiser side approximates the Confex tools AMS uses to collect abstracts and build its programme**, from what is publicly known about them.
 
 ### This UI's further CLAUDE.md
 
-5. **This UI has one further CLAUDE.md, in its features folder, holding one rule for each feature.** Each feature of this UI is one file in that folder, tied to its rule there. The files the web framework needs in its own folders, such as its pages, which read what their address needs from the backend, hand over to one feature, and count with that feature's file.
+6. **This UI has one further CLAUDE.md, in its features folder, holding one rule for each feature.** Each feature of this UI is one file in that folder, tied to its rule there. The files the web framework needs in its own folders, such as its pages, which read what their address needs from the backend, hand over to one feature, and count with that feature's file.
