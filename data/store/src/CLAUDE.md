@@ -122,6 +122,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 15. **The demo is fixed to one abstract, which the developer console sets.** A shown talk with an abstract, not a
     break, can be fixed; any other is refused, and the setting stays. With none set, or when the fixed talk is later
-    withdrawn, the earliest such talk stands in. The setting is kept through reloads.
+    withdrawn, the demo's default abstract stands in: a highly cited AMS 2027 talk, kept in every sample, whose topic
+    reaches many fields. If that talk is not shown, the earliest such talk stands in. The setting is kept through
+    reloads.
     *How:* code alone: one row of settings, read and written through Drizzle.
     *File:* `demo-settings.ts`

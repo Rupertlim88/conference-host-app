@@ -31,7 +31,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 7. **The demo shows the base AMS meeting app or one of our versions of it, and a button switches between them.** The base is the meeting app as AMS has it, as the rules above describe. Each of our versions is the base with changes of any size: a list reordered, things moved to other places in the site, pages reorganised, or larger changes. Every change from the base is outlined in gold, so anyone can see what AMS has and what we changed. Several versions are kept side by side, so different options can be shown in a meeting, and a version is added, changed or removed without changing the base or the other versions. Our versions live inside this UI: a button on the screen, and a key, switch from the base to a version and between versions, with no change of UI.
 
-8. **The demo is fixed to one abstract, set in the developer console.** The demo opens as if the person using it were the author of one AMS 2027 abstract, the same for everyone, so that its results can be controlled. Our versions make their changes around that abstract, using the matching API's results for it.
+8. **The demo is fixed to one abstract, set in the developer console.** The demo opens as if the person using it were the author of one AMS 2027 abstract, the same for everyone, so that its results can be controlled. Until one is set, it is a paper that is cited a lot in AMS, so that everything is matched with respect to that. Our versions make their changes around that abstract, using the matching API's results for it.
 
 ### Organisers
 

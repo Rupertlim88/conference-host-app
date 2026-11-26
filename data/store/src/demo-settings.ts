@@ -6,7 +6,12 @@ import type { Db } from "./connect";
 import { toTalkSummary } from "./programme";
 import { SOCIETY_TABLES, type Society } from "./tables";
 
-export function createDemoSettings(db: Db, society: Society) {
+/** The demo's default abstract: Core Science Keynote 10.1, on satellite constraints on fire combustion and smoke
+ *  injection. Its presenter is highly cited, and its topic reaches 42 of the meeting's 44 programmes with abstracts, so
+ *  its matches cross many fields. Keynotes are always in the demo's sample. */
+export const DEFAULT_ABSTRACT = "498388";
+
+export function createDemoSettings(db: Db, society: Society, defaultTalkId: string = DEFAULT_ABSTRACT) {
   const t = SOCIETY_TABLES[society];
   /** A talk the demo can be fixed to: shown, not a break, and with an abstract. */
   const fixable = and(eq(t.talks.withdrawn, false), ne(t.talks.kind, "break"), ne(t.talks.abstract, ""));
@@ -17,10 +22,11 @@ export function createDemoSettings(db: Db, society: Society) {
   }
 
   return {
-    /** The abstract the developer console set, while it is still fixable; otherwise the earliest fixable talk. */
+    /** The abstract the developer console set, while it is still fixable; otherwise the default abstract, while it is
+     *  fixable; otherwise the earliest fixable talk. */
     async fixedAbstract(): Promise<TalkSummary | null> {
       const [setting] = await db.select().from(t.demoSettings);
-      const chosen = setting?.fixedTalkId ? await talkIfFixable(setting.fixedTalkId) : null;
+      const chosen = (setting?.fixedTalkId ? await talkIfFixable(setting.fixedTalkId) : null) ?? (await talkIfFixable(defaultTalkId));
       if (chosen) return chosen;
       const [first] = await db.select().from(t.talks).where(fixable).orderBy(asc(t.talks.startsAt), asc(t.talks.sort), asc(t.talks.id)).limit(1);
       return first ? toTalkSummary(first) : null;

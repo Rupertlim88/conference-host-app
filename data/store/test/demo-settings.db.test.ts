@@ -5,7 +5,7 @@ import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
 import { AmsFilesSchema, amsRows } from "../src/ams-rows";
 import { connect, type Db } from "../src/connect";
-import { createDemoSettings } from "../src/demo-settings";
+import { createDemoSettings, DEFAULT_ABSTRACT } from "../src/demo-settings";
 import { loadRows } from "../src/load";
 import { migrateStore } from "../src/migrate";
 import { amsTables } from "../src/tables";
@@ -30,7 +30,12 @@ describe.skipIf(!url)("the demo's fixed abstract", { timeout: 60_000 }, () => {
     await conn?.close();
   });
 
-  test("with nothing set, the demo is fixed to the earliest talk with an abstract", async () => {
+  test("with nothing set, the demo is fixed to its default abstract, a highly cited AMS keynote", async () => {
+    expect(DEFAULT_ABSTRACT).toBe("498388");
+    expect((await createDemoSettings(db, "ams", "477914").fixedAbstract())?.id).toBe("477914");
+  });
+
+  test("when the default abstract is not shown, the earliest talk with an abstract stands in", async () => {
     expect((await demo.fixedAbstract())?.id).toBe("464598");
   });
 
