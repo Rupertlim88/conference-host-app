@@ -1,28 +1,32 @@
 // Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.
 import type { Match, Restriction, RestrictionRequest } from "@repo/contracts";
-import { Id, type AroundAbstract, type AroundPool, type AroundPools, type TalkSummary } from "@repo/host-contracts";
-import type { DemoSettings, ProgrammeStore } from "@repo/host-store";
+import { Id, type AroundAbstract, type AroundPool, type AroundPools, type AroundScope } from "@repo/host-contracts";
+import { zonedDateTime, type DemoSettings, type ProgrammeStore } from "@repo/host-store";
 
 import type { ConferenceApi } from "./matching-api";
 
-/** The kinds of restriction our improvements show around the fixed abstract, asked for in one search. */
-export const AROUND_RESTRICTIONS: RestrictionRequest[] = [{ type: "subConference" }, { type: "day" }, { type: "timeBlock" }, { type: "session" }];
-
-/** The fixed abstract, its session's conferences, and the matching API's pools around it; the pools are null when the
- *  API cannot answer. */
-export async function aroundAbstract(store: ProgrammeStore, demo: DemoSettings, api: ConferenceApi): Promise<AroundAbstract> {
-  const abstract = await demo.fixedAbstract();
-  if (!abstract) return { abstract: null, abstractTrackIds: [], pools: null };
-  return aroundTalk(store, abstract, api);
+/** What our improvements ask the matching API for to show a page's places around an abstract: each kind the page
+ *  shows, with exactly the ones it shows, the abstract's own conferences left out, and each time block named as a
+ *  send names its sessions' start, on the meeting's clock with its offset. A kind with none left is left out. */
+export function restrictionsFor(scope: AroundScope, ownTrackIds: string[], timeZone: string): RestrictionRequest[] {
+  const own = new Set(ownTrackIds);
+  const otherConferences = scope.subConference?.filter((id) => !own.has(id)) ?? [];
+  return [
+    ...(otherConferences.length ? [{ type: "subConference" as const, ids: otherConferences }] : []),
+    ...(scope.day ? [{ type: "day" as const, ids: scope.day }] : []),
+    ...(scope.timeBlock ? [{ type: "timeBlock" as const, ids: scope.timeBlock.map((at) => zonedDateTime(new Date(at), timeZone)) }] : []),
+    ...(scope.session ? [{ type: "session" as const, ids: scope.session }] : []),
+  ];
 }
 
-/** Any talk taken as the attendee's abstract, as our improvements would see it: the tester's report asks this way. */
-export async function aroundTalk(store: ProgrammeStore, abstract: TalkSummary, api: ConferenceApi): Promise<AroundAbstract> {
-  const [session, answer] = await Promise.all([
-    abstract.sessionId ? store.session(abstract.sessionId) : null,
-    api.restricted(abstract.id, AROUND_RESTRICTIONS),
-  ]);
+/** The fixed abstract, its session's conferences, and the matching API's pools around it for what one page shows;
+ *  the pools are null when the API cannot answer. */
+export async function aroundAbstract(store: ProgrammeStore, demo: DemoSettings, api: ConferenceApi, scope: AroundScope): Promise<AroundAbstract> {
+  const abstract = await demo.fixedAbstract();
+  if (!abstract) return { abstract: null, abstractTrackIds: [], pools: null };
+  const [session, meeting] = await Promise.all([abstract.sessionId ? store.session(abstract.sessionId) : null, store.meeting()]);
   const abstractTrackIds = session?.trackIds ?? [];
+  const answer = await api.restricted(abstract.id, restrictionsFor(scope, abstractTrackIds, meeting.timeZone));
   if (answer.status === "unavailable") return { abstract, abstractTrackIds, pools: null };
   return { abstract, abstractTrackIds, pools: await poolsFrom(store, answer.matches) };
 }

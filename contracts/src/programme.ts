@@ -160,6 +160,27 @@ export type NameSection = z.infer<typeof NameSectionSchema>;
 export const AroundMatchSchema = RelatedMatchSchema.extend({ tracks: z.array(TrackSchema) });
 export type AroundMatch = z.infer<typeof AroundMatchSchema>;
 
+/** The ones of a kind a page shows, each named once: at least one, and at most a thousand, as many as the matching API
+ *  takes of a kind in one search. */
+const shownOf = (id: z.ZodType<string>) =>
+  z
+    .array(id)
+    .min(1)
+    .max(1000)
+    .refine((ids) => new Set(ids).size === ids.length, "names the same one twice")
+    .optional();
+
+/** What one page of our improvements shows around the fixed abstract, which is all it asks the matching API about,
+ *  by kind, each kind left out when the page shows none: the conferences its list shows by track id, its day by date,
+ *  its time blocks by their start instants, and its session by id. */
+export const AroundScopeSchema = z.strictObject({
+  subConference: shownOf(Id),
+  day: shownOf(z.iso.date()),
+  timeBlock: shownOf(z.iso.datetime()),
+  session: shownOf(Id),
+});
+export type AroundScope = z.infer<typeof AroundScopeSchema>;
+
 /** One of the matching API's pools around the abstract: which one, and its matches in the API's order. */
 const poolOf = (id: z.ZodType<string>) => z.strictObject({ id, matches: z.array(AroundMatchSchema).min(1) });
 

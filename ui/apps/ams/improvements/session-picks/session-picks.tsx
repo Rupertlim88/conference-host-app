@@ -14,7 +14,7 @@ export const sessionPicks: Change<"session.talks"> = {
   at: "session.talks",
   label: "sessionPicks",
   outlinesItself: true,
-  render: async ({ session }, label) => <SessionPicksView session={session} around={await aroundAbstract()} label={label} />,
+  render: async ({ session }, label) => <SessionPicksView session={session} around={await aroundAbstract({ session: [session.id] })} label={label} />,
 };
 
 /** The first talks the matching API lists in this session's pool that the session shows, as many as a session shows. */

@@ -21,7 +21,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    a short form for lists and a full one where a page shows more. The view around the abstract carries the conferences
    of the abstract's session, and the matching API's pools around it by kind: each other conference by its track id,
    each day by its date, each time block by its start instant and each session by its id, each pool holding at least
-   one match, with the conferences of each match's talk.
+   one match, with the conferences of each match's talk. A page asks for that view with what it shows, by kind: the
+   conferences by track id, its day by date, time blocks by their start instants and its session by id, each one once,
+   at most a thousand of a kind, and a kind it shows none of left out.
    *How:* code alone: zod schemas, with types inferred from them.
    *File:* `programme.ts`
 

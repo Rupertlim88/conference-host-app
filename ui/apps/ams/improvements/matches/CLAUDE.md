@@ -15,6 +15,6 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### One answer for each page
 
-2. **The improvements matched around the attendee's own abstract share one answer from the matching API on each page.** However many of them a page shows, the page asks the backend once for the matches around the fixed abstract, and each improvement takes what it needs from that one answer.
-   *How:* code alone: one server function, remembered for the length of the page's request, that asks the backend for its view around the fixed abstract.
+2. **The improvements matched around the attendee's own abstract share one answer from the matching API on each page.** However many of them a page shows, the page asks the backend once for the matches around the fixed abstract, naming only what the page shows: the conferences its list shows, its day and the start of each of the day's time blocks, or its session; and each improvement takes what it needs from that one answer. Both of the Meeting Calendar's improvements name a day the same way, so they share one answer.
+   *How:* code alone: one server function, remembered for the length of the page's request for each scope written as a string, that asks the backend for its view around the fixed abstract, and the calendar day's scope that both calendar improvements use.
    *File:* `matches.ts`

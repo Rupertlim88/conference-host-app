@@ -7,6 +7,7 @@ import {
   SHOWN_PER_PLACE,
   type AroundMatch,
   type AroundPools,
+  type AroundScope,
   type Place,
   type PlaceLayout,
   type Recommendations,
@@ -14,7 +15,7 @@ import {
 } from "@repo/host-contracts";
 import type { ProgrammeStore, SyncLog, TestSets } from "@repo/host-store";
 
-import { AROUND_RESTRICTIONS, poolsFrom } from "./around-abstract";
+import { poolsFrom, restrictionsFor } from "./around-abstract";
 import type { ConferenceApi } from "./matching-api";
 import { relatedFrom } from "./related";
 import { toPartnerTalk } from "./send";
@@ -60,6 +61,19 @@ export function placesAround(abstract: string, ownTrackIds: string[], sent: Talk
     if (talk.session) add("session", talk.session.id, talk.id);
   }
   return [...places.values()].sort((a, b) => LAYOUTS.indexOf(a.layout) - LAYOUTS.indexOf(b.layout) || a.key.localeCompare(b.key));
+}
+
+/** What the pages would ask the matching API about to show these places: each other conference Conferences and
+ *  Symposia lists, and each day, time block and session, each kind left out when no place is of it. */
+function scopeOf(places: PlaceToAsk[], listed: Set<string>): AroundScope {
+  const keys = (layout: PlaceLayout) => places.filter((p) => p.layout === layout).map((p) => p.key);
+  const kinds: AroundScope = {
+    subConference: keys("conference_outside").filter((id) => listed.has(id)),
+    day: keys("day"),
+    timeBlock: places.filter((p) => p.layout === "time_block").map((p) => new Date(p.start!).toISOString()),
+    session: keys("session"),
+  };
+  return Object.fromEntries(Object.entries(kinds).filter(([, ids]) => ids.length > 0));
 }
 
 /** What a place shows visitors with this abstract as the attendee's: the picks the pages make, from the same answers,
@@ -114,19 +128,22 @@ export type Report = { status: "ready"; report: Recommendations } | { status: "j
 export async function reportOn(abstractId: string, deps: RecommendationsDeps): Promise<Report> {
   const [abstract] = await deps.store.talkSummaries([abstractId]);
   if (!abstract) return null;
-  const [session, forSync, tracks, runs] = await Promise.all([
+  const [session, forSync, tracks, runs, meeting] = await Promise.all([
     abstract.sessionId ? deps.store.session(abstract.sessionId) : null,
     deps.store.talksForSync(),
     deps.store.tracks(),
     deps.log.runs(),
+    deps.store.meeting(),
   ]);
   const sent = forSync.map(toPartnerTalk).filter((t): t is TalkInput => t !== null);
   const sessionStart = new Map(sent.map((t) => [t.id, t.session?.start ?? null]));
   const listed = new Set(tracks.map((t) => t.id));
-  const toAsk = placesAround(abstract.id, session?.trackIds ?? [], sent);
+  const own = session?.trackIds ?? [];
+  const toAsk = placesAround(abstract.id, own, sent);
 
-  // What each place shows comes from one search of the restrictions the pages ask for.
-  const shown = await deps.api.restricted(abstract.id, [{ type: "conference" }, ...AROUND_RESTRICTIONS]);
+  // What each place shows comes from one search for exactly these places, asked as the pages ask for them.
+  const standard = restrictionsFor(scopeOf(toAsk, listed), own, meeting.timeZone);
+  const shown = await deps.api.restricted(abstract.id, [{ type: "conference" }, ...standard]);
   if (shown.status === "unavailable") return { status: "unavailable" };
   const [related, pools] = await Promise.all([relatedFrom(deps.store, shown.matches), poolsFrom(deps.store, shown.matches)]);
   const judging = new Set(toAsk.filter((place) => shown.judging.some((j) => showsFrom(place, j.restriction))));

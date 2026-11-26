@@ -46,7 +46,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 4. **The attendee app's requests read the programme through the store, and a missing item is "not found".** Who is
    signed in, the meeting, days, tracks, the programmes AMS's menu opens by code, Program Highlights' lists, the pages
    of names, sessions, talks, related talks, people, search, the guest's schedule, stars and notes, and, for our
-   improvements, the view around the demo's fixed abstract. Every input, and every answer that carries data, is checked against the host app's
+   improvements, the view around the demo's fixed abstract for what one page shows. Every input, and every answer that carries data, is checked against the host app's
    contract. Looking up a talk, session, track or person that does not exist, or a talk that is withdrawn, answers "not
    found", naming what kind of item was missing. Related talks are asked for only for a talk the attendee can see.
    *How:* code alone: tRPC procedures calling the store, with zod schemas from the host app's contract; related talks
@@ -63,14 +63,18 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `related.ts`
 
 6. **Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.**
-   One request asks the matching API for the fixed abstract's matches in four kinds of pool: each other conference,
-   each day, each time block and each session. Its pools are grouped by kind: a conference by its track, a day by its
-   date, a time block by its start instant and a session by its id. Each pool keeps the API's order, and each match
-   carries its talk, kind, score and reason, and the conferences its talk is in; a match to a talk this programme does
-   not show is left out, and so is a pool this programme cannot name. The conferences of the abstract's session are the
-   attendee's own. When the API cannot answer, the pools are left out, and the abstract and its conferences still show.
-   *How:* code alone: one restricted matches search, every page of it, with the abstract's session and each matched
-   talk and its conferences read from the store.
+   Each page asks only for what it shows: one request asks the matching API for the fixed abstract's matches under
+   exactly the restrictions the page shows, of four kinds: the other conferences its list shows, its day, the time
+   blocks of its day, and its session. The abstract's own conferences are never asked for, a kind the page shows none
+   of is left out, and a time block is named by its sessions' start as the send names it, on the meeting's clock with
+   its offset. The answer is grouped into pools by kind: a conference by its track, a day by its date, a time block by
+   its start instant and a session by its id. Each pool keeps the API's order, and each match carries its talk, kind,
+   score and reason, and the conferences its talk is in; a match to a talk this programme does not show is left out,
+   and so is a pool this programme cannot name. The conferences of the abstract's session are the attendee's own. When
+   the API cannot answer, the pools are left out, and the abstract and its conferences still show; a restriction the
+   API is still judging has no pool yet, so its box shows empty.
+   *How:* code alone: one restricted matches search, every page of it, with the abstract's session, the meeting's
+   time zone, and each matched talk and its conferences read from the store.
    *File:* `around-abstract.ts`
 
 ### The consoles
@@ -103,9 +107,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    in by its address and key. It is called at `/v1/conferences/<conference>/`, with the conference `ams-2027`, and the key as a bearer token.
    - **Requests.** Every request is checked against the conference API's contract before it is sent, and one that
      fails is never sent.
-   - **Matches by restriction.** A matches search names the restrictions to list the matches under, each kind with
-     the ones it asks for, or every one of its kind, at most a thousand of a kind to a search, as the contract allows,
-     split beyond that; it asks for pages of a thousand, reads every page, keeps the API's order, and keeps each
+   - **Matches by restriction.** A matches search names the restrictions to list the matches under, the whole
+     conference or each kind with exactly the ones it asks for, at most a thousand of a kind to a search, as the
+     contract allows, split beyond that; it asks for pages of a thousand, reads every page, keeps the API's order, and keeps each
      restriction the API is still judging; when one page fails, the whole search is unavailable.
    - **Every verdict.** A search for every verdict on a talk names the talks to judge it against as the talks
      restriction, which lists matches and non-matches alike, at most a thousand to a search, as the contract allows,
@@ -181,8 +185,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
     test set tests; when the matching API cannot answer, there is no report. While the matching API is still judging
     any place's talks, or anything a place shows, there is no partial report: the answer is 202, saying how many places
     are still being judged, to ask again shortly.
-    *How:* code alone: the same restricted search and picks the pages use for what is shown, in one search, and one
-    search of every verdict for each place, all made even while some are still being judged.
+    *How:* code alone: the same restrictions and picks the pages use for what is shown, in one search that names
+    exactly the places it reports, as the pages name them, and one search of every verdict for each place, all made
+    even while some are still being judged.
     *File:* `recommendations.ts`
 
 ### Staying on

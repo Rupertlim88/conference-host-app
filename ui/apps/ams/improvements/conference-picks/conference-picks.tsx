@@ -15,7 +15,9 @@ export const conferencePicks: Change<"programmes.list"> = {
   at: "programmes.list",
   label: "conferencePicks",
   outlinesItself: true,
-  render: async ({ tracks }, label) => <ConferencePicksView tracks={tracks} around={await aroundAbstract()} label={label} />,
+  render: async ({ tracks }, label) => (
+    <ConferencePicksView tracks={tracks} around={await aroundAbstract(tracks.length ? { subConference: tracks.map((t) => t.id) } : {})} label={label} />
+  ),
 };
 
 /** A conference that holds a match for the abstract, with the talks it shows, its best first. */

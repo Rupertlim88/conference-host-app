@@ -1,4 +1,4 @@
-import type { Match, Restriction } from "@repo/contracts";
+import type { Match, Restriction, RestrictionRequest } from "@repo/contracts";
 import {
   amsTables,
   connect,
@@ -91,13 +91,18 @@ const JUDGED_FROM_T1 = new Set(["T2", "T3", "T4"]);
 const TALKS: Restriction = { type: "talks" };
 const verdict = (basedOn: string, talkId: string, rank: number): Match => ({ ...result(basedOn, talkId, rank, TALKS), match: talkId !== "T2", shared: talkId === "T2" ? [] : ["intent"] });
 
-/** The matching API, which runs elsewhere, as a script; it records every search for verdicts. */
-function scripted(asked: { talkId: string; talks: string[] }[], over: Partial<ConferenceApi> = {}): ConferenceApi {
+/** Whether a search asked for this restriction, by kind and, where it names them, by id. */
+const askedFor = (asked: RestrictionRequest[], listed: Restriction) =>
+  asked.some((r) => r.type === listed.type && (!("ids" in r) || !("id" in listed) || (r.ids as string[]).includes(listed.id)));
+
+/** The matching API, which runs elsewhere, as a script: it lists only what a search asks for, and records every
+ *  search for verdicts and every restricted search. */
+function scripted(asked: { talkId: string; talks: string[] }[], over: Partial<ConferenceApi> = {}, searched: RestrictionRequest[][] = []): ConferenceApi {
   return {
     restricted: async (talkId, restrictions) => {
-      const kinds = new Set(restrictions.map((r) => r.type));
+      searched.push(restrictions);
       const listed = talkId === "T1" ? [...conferenceT1, ...aroundT1] : [];
-      return { status: "ok", matches: listed.filter((m) => kinds.has(m.restriction!.type)), judging: [] };
+      return { status: "ok", matches: listed.filter((m) => askedFor(restrictions, m.restriction!)), judging: [] };
     },
     verdicts: async (talkId, talks) => {
       asked.push({ talkId, talks });
@@ -153,6 +158,23 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
       ["session", "S2", ["T3", "T4", "T7", "T8"], ["T4"]],
       ["session", "S3", ["T5"], []],
     ]);
+  });
+
+  test("asks in one search for what each place shows, as the pages ask: the whole conference, and each other conference listed, day, time block and session by name", async () => {
+    const searched: RestrictionRequest[][] = [];
+    await ask("?abstract=T1", scripted([], {}, searched));
+    expect(searched).toEqual([
+      [
+        { type: "conference" },
+        { type: "subConference", ids: ["P3", "P4"] },
+        { type: "day", ids: ["2026-01-27", "2026-01-28"] },
+        { type: "timeBlock", ids: ["2026-01-27T13:45:00-06:00", "2026-01-28T09:00:00-06:00"] },
+        { type: "session", ids: ["S1", "S2", "S3"] },
+      ],
+    ]);
+    searched.length = 0;
+    await ask("?abstract=T3", scripted([], {}, searched));
+    expect(searched[0]![1]).toEqual({ type: "subConference", ids: ["P4"] });
   });
 
   test("asks for every verdict on each place's pool, passes each on as the API gave it, and marks the rest not judged", async () => {
