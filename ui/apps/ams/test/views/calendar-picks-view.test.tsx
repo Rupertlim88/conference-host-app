@@ -37,7 +37,9 @@ const sessionLinks = (root: HTMLElement = document.body) =>
     .getAllByRole("link")
     .map((a) => a.getAttribute("href"));
 const headings = () => screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-const outlineOf = (label: string) => screen.getByText(label).closest("section")!;
+/** The gold outline whose label reads exactly this, however the label's words are split into elements. */
+const outlineOf = (label: string) =>
+  screen.getByText((_, el) => el?.textContent === label && ![...el.children].some((child) => child.textContent === label)).closest("section")!;
 /** The base's list for these sessions, as HTML, to compare with what our improvements show. */
 function amsList(sessions = day) {
   const { container, unmount } = renderApp(<DayList sessions={sessions} />);

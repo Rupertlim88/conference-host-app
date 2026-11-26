@@ -31,7 +31,10 @@ export function CalendarPicksView({ sessions, around, label }: { sessions: Sessi
         <GoldOutline
           label={
             <>
-              {label} · <When start={block.startsAt} mode="time" />
+              {label} ·{" "}
+              <span className="whitespace-nowrap">
+                <When start={block.startsAt} mode="time" />
+              </span>
             </>
           }
         >
