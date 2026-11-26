@@ -8,8 +8,9 @@ The host app wants a **fixed set of match types** that the API knows in advance.
 
 ## What every type shares
 
-- **Asker:** whose interests to match.
-  - For now: one talk, the demo's fixed abstract, talk 498388.
+- **Asker:** whose interests to match. The host app uses two kinds of asker, and always says which one an edit uses:
+  - **The talk on the screen**, for `overall`: "talks related to this talk".
+  - **The attendee's own abstract**, for the other four: "picked for your abstract". In the demo this is the fixed abstract, talk 498388.
   - Possibly several talks together (like `likeTalks`), and later every talk.
 - **Pools:**
   - The API builds them itself from the programme the partner already sent: each talk's session, start time and conferences.
@@ -39,12 +40,13 @@ The host app wants a **fixed set of match types** that the API knows in advance.
 2. **`per-conference`**
    - **Pools:** one per conference, 49 in AMS 2027. A talk in a joint session counts in each of its conferences.
    - **Default:** 1.
-   - **Host app uses it for:** ranking the whole Conferences and Symposia list, each conference with its best match and reason.
+   - **Always leaves out the asker's own conferences** (the conferences of the asker's session). This is part of the type, not a filter, because its purpose is to point the attendee to other conferences.
+   - **Host app uses it for:** ranking the Conferences and Symposia list, each other conference with its best match and reason.
 
-3. **`per-conference-day`**
-   - **Pools:** one per conference per day, 221.
-   - **Default:** 2, from different sessions.
-   - **Host app uses it for:** a conference's page, where the sessions holding matches come first within each day.
+3. **`per-day`**
+   - **Pools:** one per day, 7 in AMS 2027 (January 5 and 9 to 14). Each pool is every talk that day, across all conferences.
+   - **Default:** 3, from different sessions.
+   - **Host app uses it for:** the attendee's best talks on each day of the meeting.
 
 4. **`per-time-block`**
    - **Pools:** one per start time, by day and start time, 95. Each pool is every talk in a session that starts then, across all conferences.
@@ -70,8 +72,8 @@ The host app wants a **fixed set of match types** that the API knows in advance.
 | Order | Type | Filters | Host app |
 |---|---|---|---|
 | 1 | `per-time-block` | none | Meeting Calendar |
-| 2 | `per-conference` | none | Conferences list |
-| 3 | `per-conference-day` | none | A conference's page |
+| 2 | `per-conference` | none (own conferences always left out) | Conferences list |
+| 3 | `per-day` | none | Each day's best talks |
 | 4 | `overall` | `outsideOwnConferences` | A session page: related sessions elsewhere |
 | 5 | `per-session` | `format: poster` | Poster sessions: the board to visit first |
 | 6 (optional) | `per-time-block` | `outsideOwnConferences` | The cross-field pick of each time block |
@@ -85,7 +87,7 @@ The host app wants a **fixed set of match types** that the API knows in advance.
 |---|---|
 | `overall` | already done today |
 | `per-conference` | 49 |
-| `per-conference-day` | 221 |
+| `per-day` | 7 |
 | `per-time-block` | 95 |
 | `per-session` | up to 921. Suggest judging only sessions where some talk is close enough at all, and leaving the rest empty. |
 
@@ -111,7 +113,7 @@ This is only a sketch. The API's own rules and contract tests decide the real sh
 POST /v1/conferences/{conference}/matches:search
 {
   "likeTalks": ["498388"],
-  "type": "per-time-block",               // overall | per-conference | per-conference-day | per-time-block | per-session
+  "type": "per-time-block",               // overall | per-conference | per-day | per-time-block | per-session
   "outsideOwnConferences": false,
   "format": "poster",                     // optional: poster | talk
   "kind": "unexpected",                   // optional, as today
@@ -131,7 +133,7 @@ POST /v1/conferences/{conference}/matches:search
 Suggested pool keys:
 - `per-time-block`: the start time.
 - `per-conference`: the conference id.
-- `per-conference-day`: the conference id and the date.
+- `per-day`: the date.
 - `per-session`: the session id.
 
 ## Questions for the API side
