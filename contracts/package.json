@@ -7,13 +7,15 @@
   "scripts": {
     "test": "vitest run",
     "check-types": "tsc --noEmit",
-    "lint": "eslint . --max-warnings 0"
+    "lint": "eslint . --max-warnings 0",
+    "json-schema": "tsx src/cli/json-schema.ts"
   },
   "dependencies": { "zod": "^4.4.3" },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",
     "@types/node": "26.3.0",
+    "tsx": "^4.23.13",
     "eslint": "10.9.1",
     "typescript": "~5.9.3",
     "vitest": "^4.1.11"

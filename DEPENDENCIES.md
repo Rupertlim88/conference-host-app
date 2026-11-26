@@ -58,6 +58,7 @@ from `package.json` / `package-lock.json`, `pyproject.toml` / `uv.lock`,
 | @repo/host-contracts | zod | ^4.4.3 | 4.6.7 | runtime |
 | @repo/host-contracts | @types/node | 26.3.0 | 26.3.0 | dev |
 | @repo/host-contracts | eslint | 10.9.1 | 10.9.1 | dev |
+| @repo/host-contracts | tsx | ^4.23.13 | 4.23.13 | dev |
 | @repo/host-contracts | typescript | ~5.9.3 | 5.9.3 | dev |
 | @repo/host-contracts | vitest | ^4.1.11 | 4.1.11 | dev |
 | @repo/host-backend | @trpc/server | ^11.18.0 | 11.18.0 | runtime |

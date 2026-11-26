@@ -43,3 +43,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
    shows visitors is fixed in one place, which the pages and the report both read.
    *How:* code alone: one schema for each form.
    *File:* `tester.ts`
+
+6. **The tester's forms are published as JSON Schema too, made from the same forms and never edited by hand.** The
+   programme map, the test set, the reply to a test set and the report on each abstract tested each have a JSON Schema
+   file, so that a program in any language can check them against the host app's own forms. A command writes the
+   files from the forms, and a check fails whenever a file differs from what the forms give.
+   *How:* code alone: zod's own conversion to JSON Schema, run by a command, and a test that compares each file with it.
+   *File:* `json-schema/`

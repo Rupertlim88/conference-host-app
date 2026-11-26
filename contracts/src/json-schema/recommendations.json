@@ -1,0 +1,91 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "abstract": {
+      "type": "string",
+      "pattern": "^[A-Za-z0-9._-]{1,64}$"
+    },
+    "sentProgrammeVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "matchesProgrammeVersion": {
+      "type": [
+        "string",
+        "null"
+      ]
+    },
+    "places": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "layout": {
+            "type": "string",
+            "enum": [
+              "related",
+              "conference_outside",
+              "conference_inside",
+              "day",
+              "time_block",
+              "session"
+            ]
+          },
+          "key": {
+            "type": "string"
+          },
+          "pool": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,64}$"
+            }
+          },
+          "shown": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,64}$"
+            }
+          },
+          "verdicts": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "propertyNames": {
+                "type": "string"
+              },
+              "additionalProperties": {}
+            }
+          },
+          "notJudged": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "pattern": "^[A-Za-z0-9._-]{1,64}$"
+            }
+          }
+        },
+        "required": [
+          "layout",
+          "key",
+          "pool",
+          "shown",
+          "verdicts",
+          "notJudged"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "abstract",
+    "sentProgrammeVersion",
+    "matchesProgrammeVersion",
+    "places"
+  ],
+  "additionalProperties": false
+}
