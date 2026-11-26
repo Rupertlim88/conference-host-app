@@ -17,8 +17,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 2. **The meeting has its own schema in the database, and sign-in has a schema of its own.** The meeting's schema
    holds its meeting, tracks, sessions, talks, people, who gives which talk, the pages of names, the demo's settings,
-   stars, notes and send runs. A track says whether the conferences list shows it, and sessions and talks carry Program
-   Highlights' marks. Sessions
+   stars, notes, send runs, every talk AMS publishes with its people, and the latest test set. A track says whether
+   the conferences list shows it, and sessions and talks carry Program Highlights' marks. Sessions
    and talks keep the published programme beside the live one, so that every organiser's change can be shown and undone.
    Sign-in's tables (users, sessions, accounts, verifications) sit in their own schema, and an account is unique by
    issuer and account id.
@@ -72,22 +72,40 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `time.ts`
 
 9. **Loading puts back the published programme in one step, and keeps stars, notes and sign-ins.** The
-   meeting, tracks, sessions, talks and people are written as both the live and the published programme, the pages of
-   names are written afresh, and anything no longer in the files is removed. It all happens in one transaction, so a failed load changes nothing. It undoes
+   meeting, tracks and sessions are written as both the live and the published programme, every talk AMS publishes is
+   written with its people as the whole programme, the pages of names are written afresh, and anything no longer in the
+   files is removed. The demo then holds the latest test set's talks, or the sample's until a test set arrives, as both
+   live and published. It all happens in one transaction, so a failed load changes nothing. It undoes
    organisers' edits.
-   *How:* code alone: one transaction of upserts in chunks of 500; the `load` command migrates first.
+   *How:* code alone: one transaction of writes in chunks of 500, holding the talks as a test set does; the `load`
+   command migrates first.
    *File:* `load.ts`
 
 10. **The demo carries a sample: every track and session, with five talks with an abstract from each track.** The
     five are spread evenly through the track's talks in time order, so that every day of the meeting holds some, and a
     talk counts for every track it is in. Breaks and the talks on Program
     Highlights' lists are always kept, and count against no track. People stay only with a talk that stays.
-    *How:* code alone; the `load` command applies it to AMS's files before loading.
+    *How:* code alone; the `load` command works it out from AMS's files, and loading holds its talks until a test set
+    arrives.
     *File:* `sample.ts`
+
+11. **The store keeps AMS's whole published programme beside the talks the demo holds.** Every talk AMS publishes is
+    kept with its session, start and conferences, so that a test set can choose any of them and the programme map can
+    list them all; the attendee app never reads it, and it holds only what the public programme shows.
+    *How:* code alone; the `load` command writes it from AMS's files, in the same step as the programme.
+    *File:* `whole-programme.ts`
+
+12. **The latest test set says which talks the demo holds.** Storing a test set replaces the one before it, and in the
+    same step makes the demo hold exactly its talks, taken from the whole published programme, with every session and
+    conference kept, and fixes the demo to its first abstract. Holding restarts the demo's programme: organisers'
+    edits go away, and stars and notes stay. Until a test set arrives, the demo holds the sample; loading again keeps
+    the latest test set and holds its talks.
+    *How:* code alone: one transaction.
+    *File:* `test-set.ts`
 
 ### Reading and writing
 
-11. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
+13. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
     zone, tracks, sessions, talks and people; the conferences list leaves out the listings of organisations. It finds a
     programme AMS's menu opens by its code, reads Program Highlights' lists and the pages of names, and gives the
     conferences each of a set of talks is in. A person is listed only while one of their talks is shown.
@@ -98,12 +116,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *How:* code alone: SQL through Drizzle; every read filters out withdrawn talks.
     *File:* `programme.ts`
 
-12. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
+14. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
     stars and unstars talks and sessions, and sees their schedule. A note saved blank is deleted.
     *How:* code alone: every read and write is filtered by the guest's id.
     *File:* `guest-data.ts`
 
-13. **Organisers see every talk with how it differs from the published programme, and their edits never cross.**
+15. **Organisers see every talk with how it differs from the published programme, and their edits never cross.**
     - **Reading:** papers in pages of 50, filtered by status (all, scheduled, withdrawn, changed) and search, where a
       page past the end gives the last page; sessions with their count of shown talks and whether they changed,
       leaving out the listings' organisations; the
@@ -115,7 +133,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *How:* code alone: SQL through Drizzle, with `SELECT … FOR UPDATE` on the session a move or a change edits.
     *File:* `organiser.ts`
 
-14. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
+16. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
     when no other is running; it ends as sent or failed, or as interrupted when it is taken over, and only a running
     one can end. Its error is kept to 500
     characters. The last ten runs are listed.
@@ -124,7 +142,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### The demo's settings
 
-15. **The demo is fixed to one abstract, which the developer console sets.** A shown talk with an abstract, not a
+17. **The demo is fixed to one abstract, which the developer console sets.** A shown talk with an abstract, not a
     break, can be fixed; any other is refused, and the setting stays. With none set, or when the fixed talk is later
     withdrawn, the demo's default abstract stands in: a highly cited AMS 2027 talk, kept in every sample, whose topic
     reaches many fields. If that talk is not shown, the earliest such talk stands in. The setting is kept through

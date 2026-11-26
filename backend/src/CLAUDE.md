@@ -19,9 +19,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
    at once, and every wrong one is named in a single error. A blank optional setting counts as unset. Web addresses
    must be encrypted (https) unless they stay on this machine. The matching API's address and key come together or not
    at all, as do Google's client id and secret; the key has at least 16 characters, the sign-in secret at least 32, and
-   the keep-alive's secret, when set, at least 16. From the settings it builds one backend: the store, the matching API
-   for the meeting's conference (or none, when no address is set), sign-in, the keep-alive, and one router joining the
-   attendee app's and the consoles' requests. The developer console is told only the API's address, without any query
+   the keep-alive's secret, when set, at least 16, and the tester's token, when set, at least 32. From the settings it
+   builds one backend: the store, the matching API for the meeting's conference (or none, when no address is set),
+   sign-in, the keep-alive, the tester's requests, and one router joining the attendee app's and the consoles'
+   requests. The developer console is told only the API's address, without any query
    or credentials, and whether a key is set: never the key. An unexpected error in a request from the browser is logged
    on the server.
    *How:* code alone: the settings are parsed with zod into typed values once, and one backend is built from them on
@@ -103,8 +104,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
      fails is never sent.
    - **Matches by pool.** A matches search names the kinds of pool to list the matches in, asks for pages of a
      thousand and reads every page; when one page fails, the whole search is unavailable.
-   - **Time limits.** A matches search waits 3 seconds in all, across its pages, a connection test 5 seconds, a talks
-     write a minute, and a write also stops when its send's deadline passes.
+   - **Every verdict.** A search for every verdict on a talk names the talks to judge it against, at most a thousand
+     to a search, as the contract allows, asks for matches and non-matches alike, with no pools, and reads every page;
+     when one fails, every verdict is unavailable.
+   - **Time limits.** A matches search waits 3 seconds in all, across its pages, a search for every verdict 10 seconds
+     for each thousand talks, a connection test 5 seconds, a talks write a minute, and a write also stops when its
+     send's deadline passes.
    - **Answers.** Every answer is checked against the contract. A refused write reports its status, its problem title
      and its first five errors.
    - **The connection test** sends one matches search for a talk, writes nothing, keeps no body, and reports one of:
@@ -135,9 +140,48 @@ Everything else is a lower level, written by Claude to carry out these specifica
    model-checked with TLA+ (the verify-send-runs skill).
    *File:* `send.ts`
 
+### The tester
+
+11. **Every request from a tester needs the secret token, and with no token set the tester's requests are switched off.**
+    A request without the right token is refused, and so is every tester request while no token is set; the token is
+    a setting, kept secret like the matching API's key. An unexpected error tells the tester only that something went
+    wrong, and is logged on the server.
+    *How:* code alone: one check every tester request passes, comparing the bearer token in constant time.
+    *File:* `tester-token.ts`
+
+12. **The programme map lists every time block, session and conference of AMS's whole published programme, with its talks.**
+    A time block is every session that starts at the same time on one day, on the meeting's clock, and a lone session
+    is a block of its own. Every session lists its talks, and every conference lists its talks, a joint session's talk
+    under each conference it belongs to. Times are the meeting's clock, to the minute, and ids are AMS's. Before the
+    whole programme is loaded, the map answers that it is not loaded yet.
+    *How:* code alone, from the store's whole published programme.
+    *File:* `programme-map.ts`
+
+13. **A test set is checked, stored, held and sent to the matching API.** It names the conference, the abstracts to
+    test, the first being the demo's fixed abstract, and the talks for the demo to hold. It is refused, with a plain
+    message, when it names another conference, lists nothing, names a talk the published programme does not have, or
+    an abstract to test that is not among its talks or has no abstract to match. Once it is stored and held, the
+    programme is sent to the matching API as one run, and the answer gives the programme version that send returned.
+    While another send runs, or when the send fails, the test set stays held and the answer says so.
+    *How:* code alone: the store holds the test set, then the send runs as the organiser console's does.
+    *File:* `test-set.ts`
+
+14. **For each abstract tested, the host app reports what each place chose from, what it shows, and every verdict the matching API gave.**
+    The places are the abstract's related talks; each other conference; each of the abstract's own conferences, for
+    the tester only, which shows nothing; each day; each time block; and each session. For each place it gives the
+    held talks the place chose from, the talks it shows visitors, in order and exactly as the pages show them, every
+    verdict the matching API has for the abstract against those talks, passed on as the API gave it, and each of those
+    talks that has no verdict, marked as not judged. It also gives the programme version of the last send and of the
+    matches. The held talks a place chooses from are those the send carries, placed as the matching API places them,
+    the abstract itself left out, and a place that holds none is left out. It reports only on an abstract the stored
+    test set tests; when the matching API cannot answer, there is no report.
+    *How:* code alone: the same pooled search and picks the pages use for what is shown, and one search of every
+    verdict for each place.
+    *File:* `recommendations.ts`
+
 ### Staying on
 
-11. **The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.** A
+15. **The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.** A
     request without the secret, or with the wrong one, or when no secret is set, is refused and touches nothing. A
     failure answers only "The database read failed", and the error is logged on the server.
     *How:* code alone: Vercel's daily cron calls it with the secret; the secret is compared in constant time; it runs

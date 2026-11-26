@@ -21,6 +21,39 @@ const textArray = (name: string) =>
     .default(sql`'{}'::text[]`);
 const instant = (name: string) => timestamp(name, { withTimezone: true, mode: "date" });
 
+/** A talk as AMS publishes it. The talks the demo holds add their live state to these; AMS's whole programme keeps
+ *  them as they are. */
+const publishedTalkColumns = () => ({
+  id: text("id").primaryKey(),
+  sessionId: text("session_id"),
+  number: text("number").notNull().default(""),
+  title: text("title").notNull(),
+  abstract: text("abstract").notNull().default(""),
+  kind: text("kind").notNull(),
+  startsAt: instant("starts_at"),
+  endsAt: instant("ends_at"),
+  room: text("room").notNull().default(""),
+  building: text("building").notNull().default(""),
+  booth: text("booth").notNull().default(""),
+  presentingAuthor: text("presenting_author").notNull().default(""),
+  authorLine: text("author_line").notNull().default(""),
+  affiliations: textArray("affiliations"),
+  doi: text("doi").notNull().default(""),
+  citation: text("citation").notNull().default(""),
+  trackIds: textArray("track_ids"),
+  sort: integer("sort").notNull().default(0),
+  // Program Highlights' lists of talks: core science keynotes, new fellows and supplementary materials.
+  coreKeynote: boolean("core_keynote").notNull().default(false),
+  newFellow: boolean("new_fellow").notNull().default(false),
+  supplementary: boolean("supplementary").notNull().default(false),
+});
+
+const personColumns = () => ({
+  id: text("id").primaryKey(),
+  name: text("name").notNull(),
+  affiliation: text("affiliation").notNull().default(""),
+});
+
 /** The same tables in one Postgres schema per society, so each society's data stays apart. */
 function societyTables(schemaName: string) {
   const schema = pgSchema(schemaName);
@@ -72,31 +105,12 @@ function societyTables(schemaName: string) {
     (t) => [index().on(t.startsAt)],
   );
 
+  /** The talks the demo holds, as the attendee app shows them. */
   const talks = schema.table(
     "talks",
     {
-      id: text("id").primaryKey(),
+      ...publishedTalkColumns(),
       sessionId: text("session_id").references(() => sessions.id),
-      number: text("number").notNull().default(""),
-      title: text("title").notNull(),
-      abstract: text("abstract").notNull().default(""),
-      kind: text("kind").notNull(),
-      startsAt: instant("starts_at"),
-      endsAt: instant("ends_at"),
-      room: text("room").notNull().default(""),
-      building: text("building").notNull().default(""),
-      booth: text("booth").notNull().default(""),
-      presentingAuthor: text("presenting_author").notNull().default(""),
-      authorLine: text("author_line").notNull().default(""),
-      affiliations: textArray("affiliations"),
-      doi: text("doi").notNull().default(""),
-      citation: text("citation").notNull().default(""),
-      trackIds: textArray("track_ids"),
-      sort: integer("sort").notNull().default(0),
-      // Program Highlights' lists of talks: core science keynotes, new fellows and supplementary materials.
-      coreKeynote: boolean("core_keynote").notNull().default(false),
-      newFellow: boolean("new_fellow").notNull().default(false),
-      supplementary: boolean("supplementary").notNull().default(false),
       /** Taken out of the programme by an organiser: every attendee read leaves it out. */
       withdrawn: boolean("withdrawn").notNull().default(false),
       // The published programme's session, time, place and order, written only by the loader.
@@ -110,11 +124,7 @@ function societyTables(schemaName: string) {
     (t) => [index().on(t.sessionId), index().on(t.startsAt)],
   );
 
-  const people = schema.table("people", {
-    id: text("id").primaryKey(),
-    name: text("name").notNull(),
-    affiliation: text("affiliation").notNull().default(""),
-  });
+  const people = schema.table("people", personColumns());
 
   const talkPeople = schema.table(
     "talk_people",
@@ -194,7 +204,50 @@ function societyTables(schemaName: string) {
     ],
   );
 
-  return { schema, meeting, tracks, sessions, talks, people, talkPeople, infoLists, demoSettings, stars, notes, syncRuns };
+  // AMS's whole published programme: every talk it publishes, with its people, written only by the loader. The demo's
+  // sessions and tracks are always whole, so these need only the talks. The attendee app never reads them.
+  const wholeTalks = schema.table("whole_talks", publishedTalkColumns());
+  const wholePeople = schema.table("whole_people", personColumns());
+  const wholeTalkPeople = schema.table(
+    "whole_talk_people",
+    {
+      talkId: text("talk_id")
+        .notNull()
+        .references(() => wholeTalks.id, { onDelete: "cascade" }),
+      personId: text("person_id")
+        .notNull()
+        .references(() => wholePeople.id, { onDelete: "cascade" }),
+    },
+    (t) => [primaryKey({ columns: [t.talkId, t.personId] })],
+  );
+
+  /** The latest test set, in one row: the talks the demo holds and the abstracts to test, the first being the demo's. */
+  const testSet = schema.table("test_set", {
+    id: smallint("id").primaryKey().default(1),
+    conference: text("conference").notNull(),
+    askers: textArray("askers"),
+    talks: textArray("talks"),
+    storedAt: instant("stored_at").notNull().defaultNow(),
+  });
+
+  return {
+    schema,
+    meeting,
+    tracks,
+    sessions,
+    talks,
+    people,
+    talkPeople,
+    infoLists,
+    demoSettings,
+    stars,
+    notes,
+    syncRuns,
+    wholeTalks,
+    wholePeople,
+    wholeTalkPeople,
+    testSet,
+  };
 }
 
 export const amsTables = societyTables("ams2027");
@@ -217,6 +270,10 @@ export const {
   stars: amsStars,
   notes: amsNotes,
   syncRuns: amsSyncRuns,
+  wholeTalks: amsWholeTalks,
+  wholePeople: amsWholePeople,
+  wholeTalkPeople: amsWholeTalkPeople,
+  testSet: amsTestSet,
 } = amsTables;
 
 export const authSchema = pgSchema("sign_in");

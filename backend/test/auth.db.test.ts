@@ -15,6 +15,7 @@ const config: HostConfig = {
   authSecret: "s".repeat(32),
   authUrl: "http://localhost:3001",
   cronSecret: null,
+  testerToken: null,
   google: null,
   api: null,
 };

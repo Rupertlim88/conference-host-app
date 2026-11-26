@@ -1,5 +1,5 @@
 // In our improvements, each day of the Meeting Calendar starts with the attendee's best talks that day.
-import type { AroundAbstract, AroundMatch, AroundPools } from "@repo/host-contracts";
+import { SHOWN_PER_PLACE, type AroundAbstract, type AroundMatch, type AroundPools } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 
@@ -17,13 +17,10 @@ export const dayPicks: Change<"calendar.beforeDay"> = {
   render: async ({ date }, label) => <DayPicksView date={date} around={await aroundAbstract()} label={label} />,
 };
 
-/** How many talks a day picks at most. */
-const MOST_PICKS = 3;
-
 /** The first three talks the matching API lists in its pool for this day, which holds one talk from each session, the
  *  better score first; never padded. */
 export function picksOn(date: string, pools: AroundPools): AroundMatch[] {
-  return (pools.day.find((pool) => pool.id === date)?.matches ?? []).slice(0, MOST_PICKS);
+  return (pools.day.find((pool) => pool.id === date)?.matches ?? []).slice(0, SHOWN_PER_PLACE.day);
 }
 
 /** The day's best talks for the abstract in a gold outline, empty on a day with none; one line when the matching API

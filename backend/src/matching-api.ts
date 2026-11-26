@@ -17,9 +17,15 @@ export const CONFERENCE_IDS: Record<Society, string> = { ams: "ams-2027" };
 
 export type PooledAnswer = { status: "ok"; matches: Match[] } | { status: "unavailable" };
 
+/** The most talks one matches search may name, as the conference API's contract allows. */
+export const TALKS_PER_SEARCH = 1000;
+
 export interface ConferenceApi {
   /** The matches for a talk that the matching API lists in these kinds of pool: every page of one matches search. */
   pooled(talkId: string, pools: PoolType[]): Promise<PooledAnswer>;
+  /** Every verdict the matching API has for a talk against these talks, matches or not, as it gave them: every page
+   *  of one search for each thousand talks. */
+  verdicts(talkId: string, talks: string[]): Promise<PooledAnswer>;
   /** Writes talks; stops when `signal` aborts or the API takes longer than a minute. */
   writeTalks(req: TalksWriteRequest, signal?: AbortSignal): Promise<TalksWriteResponse>;
   /** One matches:search for a talk, to test the address and the key. Writes nothing, and keeps no body. */
@@ -69,6 +75,7 @@ export function checkTalksWrite(req: TalksWriteRequest): void {
 /** Used when no API address is set: every matches search is unavailable. */
 export const unconfiguredApi: ConferenceApi = {
   pooled: async () => ({ status: "unavailable" }),
+  verdicts: async () => ({ status: "unavailable" }),
   writeTalks: async () => {
     throw new ApiNotSet();
   },
@@ -90,22 +97,43 @@ export function conferenceApi(opts: {
       signal,
     });
 
+  /** Every page of one matches search, in pages of a thousand, all before the deadline; null when a page fails. */
+  async function everyPage(ask: object, deadline: AbortSignal): Promise<Match[] | null> {
+    const matches: Match[] = [];
+    let pageToken: string | undefined;
+    do {
+      const body = { ...ask, pageSize: 1000, ...(pageToken ? { pageToken } : {}) };
+      const res = await post("matches:search", checked(MatchesSearchRequestSchema, body), deadline);
+      if (!res.ok) return null;
+      const page = MatchesSearchResponseSchema.safeParse(await res.json());
+      if (!page.success) return null;
+      matches.push(...page.data.matches);
+      pageToken = page.data.nextPageToken;
+    } while (pageToken);
+    return matches;
+  }
+
   return {
     async pooled(talkId, pools) {
-      // One time limit covers every page.
-      const deadline = AbortSignal.timeout(opts.timeoutMs ?? 3000);
+      try {
+        // One time limit covers every page.
+        const matches = await everyPage({ likeTalks: [talkId], pools }, AbortSignal.timeout(opts.timeoutMs ?? 3000));
+        return matches ? { status: "ok", matches } : { status: "unavailable" };
+      } catch {
+        return { status: "unavailable" };
+      }
+    },
+
+    async verdicts(talkId, talks) {
       const matches: Match[] = [];
       try {
-        let pageToken: string | undefined;
-        do {
-          const ask = { likeTalks: [talkId], pools, pageSize: 1000, ...(pageToken ? { pageToken } : {}) };
-          const res = await post("matches:search", checked(MatchesSearchRequestSchema, ask), deadline);
-          if (!res.ok) return { status: "unavailable" };
-          const page = MatchesSearchResponseSchema.safeParse(await res.json());
-          if (!page.success) return { status: "unavailable" };
-          matches.push(...page.data.matches);
-          pageToken = page.data.nextPageToken;
-        } while (pageToken);
+        for (let i = 0; i < talks.length; i += TALKS_PER_SEARCH) {
+          const ask = { likeTalks: [talkId], talks: talks.slice(i, i + TALKS_PER_SEARCH), include: "all" };
+          // Each search has the conference API's own time limit, across its pages.
+          const found = await everyPage(ask, AbortSignal.timeout(opts.timeoutMs ?? 10_000));
+          if (!found) return { status: "unavailable" };
+          matches.push(...found);
+        }
         return { status: "ok", matches };
       } catch {
         return { status: "unavailable" };

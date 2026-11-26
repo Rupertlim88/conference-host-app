@@ -1,5 +1,5 @@
 // In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.
-import type { AroundAbstract, AroundPool, RelatedMatch, SessionSummary } from "@repo/host-contracts";
+import { SHOWN_PER_PLACE, type AroundAbstract, type AroundPool, type RelatedMatch, type SessionSummary } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
@@ -82,9 +82,6 @@ function PickItem({ pick }: { pick: Recommendation }) {
   );
 }
 
-/** How many sessions a time block recommends at most. */
-const MOST_PICKS = 2;
-
 /** A session recommended at the top of its time block: the session of a talk the matching API lists in its pool for
  *  that block, for the fixed abstract. */
 export interface Recommendation {
@@ -126,7 +123,7 @@ function recommendIn(groups: TimeBlock[], pools: AroundPool[]): CalendarBlock {
       const session = sessions.find((s) => s.id === m.talk.sessionId);
       return session ? [{ session, kind: m.kind, reason: m.reason, talkAt: m.talk.startsAt }] : [];
     })
-    .slice(0, MOST_PICKS);
+    .slice(0, SHOWN_PER_PLACE.time_block);
   const picked = new Set(picks.map((p) => p.session.id));
   const rest = groups
     .map((g) => ({ ...g, sessions: g.sessions.filter((s) => !picked.has(s.id)) }))

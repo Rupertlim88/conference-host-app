@@ -109,6 +109,60 @@ describe("conferenceApi.pooled", () => {
   });
 });
 
+describe("conferenceApi.verdicts", () => {
+  const judged = (talk: string, rank: number) => ({ ...match, talk, rank, match: false, shared: [], score: 0.1, description: "Nothing shared." });
+
+  test("asks matches:search for every verdict on these talks, with no pools, and returns each as the API gave it", async () => {
+    const answers = [judged("T2", 1), { ...match, talk: "T3", rank: 2 }];
+    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: answers }) }));
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
+    expect(await api.verdicts("T1", ["T2", "T3", "T4"])).toEqual({ status: "ok", matches: answers });
+    expect(seen.map((s) => s.body)).toEqual([{ likeTalks: ["T1"], talks: ["T2", "T3", "T4"], include: "all", pageSize: 1000 }]);
+  });
+
+  test("reads every page, in order", async () => {
+    const { url, seen } = await serve(() =>
+      seen.length === 1
+        ? { status: 200, body: JSON.stringify({ matches: [judged("T2", 1)], nextPageToken: TOKEN }) }
+        : { status: 200, body: JSON.stringify({ matches: [judged("T3", 2)] }) },
+    );
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
+    expect(await api.verdicts("T1", ["T2", "T3"])).toEqual({ status: "ok", matches: [judged("T2", 1), judged("T3", 2)] });
+    expect(seen[1]!.body).toEqual({ likeTalks: ["T1"], talks: ["T2", "T3"], include: "all", pageSize: 1000, pageToken: TOKEN });
+  });
+
+  test("asks about at most a thousand talks at a time, the contract's limit, and joins the answers", async () => {
+    const talks = Array.from({ length: 2500 }, (_, i) => `T${i + 10}`);
+    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [judged(`T${seen.length}`, 1)] }) }));
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
+    const got = await api.verdicts("T1", talks);
+    expect(seen.map((s) => (s.body as { talks: string[] }).talks.length)).toEqual([1000, 1000, 500]);
+    expect(seen.flatMap((s) => (s.body as { talks: string[] }).talks)).toEqual(talks);
+    expect(got).toEqual({ status: "ok", matches: [judged("T1", 1), judged("T2", 1), judged("T3", 1)] });
+  });
+
+  test("with no talks to ask about, asks nothing", async () => {
+    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [] }) }));
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
+    expect(await api.verdicts("T1", [])).toEqual({ status: "ok", matches: [] });
+    expect(seen).toEqual([]);
+  });
+
+  test("a failed page, a bad answer or a slow search makes every verdict unavailable", async () => {
+    for (const answer of [
+      { status: 500, body: "{}" },
+      { status: 200, body: JSON.stringify({ matches: [{ talk: "T2" }] }) },
+      { status: 200, body: JSON.stringify({ matches: [] }), delayMs: 300 },
+    ]) {
+      const { url } = await serve(() => answer);
+      const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026", timeoutMs: 100 });
+      expect(await api.verdicts("T1", ["T2"])).toEqual({ status: "unavailable" });
+      await new Promise<void>((r) => server!.close(() => r()));
+      server = null;
+    }
+  });
+});
+
 describe("conferenceApi.check", () => {
   test("asks matches:search for one talk and reports the status and whether the answer was valid", async () => {
     const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [match] }) }));

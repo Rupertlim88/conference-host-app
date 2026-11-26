@@ -1,6 +1,6 @@
 // Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.
 import type { Match, Pool, PoolType } from "@repo/contracts";
-import { Id, type AroundAbstract, type AroundPool, type AroundPools } from "@repo/host-contracts";
+import { Id, type AroundAbstract, type AroundPool, type AroundPools, type TalkSummary } from "@repo/host-contracts";
 import type { DemoSettings, ProgrammeStore } from "@repo/host-store";
 
 import type { ConferenceApi } from "./matching-api";
@@ -13,6 +13,11 @@ export const AROUND_POOLS = ["subConference", "day", "timeBlock", "session"] sat
 export async function aroundAbstract(store: ProgrammeStore, demo: DemoSettings, api: ConferenceApi): Promise<AroundAbstract> {
   const abstract = await demo.fixedAbstract();
   if (!abstract) return { abstract: null, abstractTrackIds: [], pools: null };
+  return aroundTalk(store, abstract, api);
+}
+
+/** Any talk taken as the attendee's abstract, as our improvements would see it: the tester's report asks this way. */
+export async function aroundTalk(store: ProgrammeStore, abstract: TalkSummary, api: ConferenceApi): Promise<AroundAbstract> {
   const [session, answer] = await Promise.all([
     abstract.sessionId ? store.session(abstract.sessionId) : null,
     api.pooled(abstract.id, AROUND_POOLS),

@@ -19,6 +19,7 @@ describe("readConfig", () => {
       google: null,
       api: null,
       cronSecret: null,
+      testerToken: null,
     });
   });
   test("refuses an unknown society and a short secret", () => {
@@ -50,6 +51,11 @@ describe("readConfig", () => {
     expect(readConfig(base).cronSecret).toBeNull();
     expect(readConfig({ ...base, CRON_SECRET: "c".repeat(16) }).cronSecret).toBe("c".repeat(16));
     expect(() => readConfig({ ...base, CRON_SECRET: "short" })).toThrow(/CRON_SECRET/);
+  });
+  test("the tester's token is optional, and at least 32 characters when set", () => {
+    expect(readConfig({ ...base, TESTER_TOKEN: "" }).testerToken).toBeNull();
+    expect(readConfig({ ...base, TESTER_TOKEN: "t".repeat(32) }).testerToken).toBe("t".repeat(32));
+    expect(() => readConfig({ ...base, TESTER_TOKEN: "t".repeat(31) })).toThrow(/TESTER_TOKEN/);
   });
   test("Google sign-in needs both its client id and secret", () => {
     const google = { GOOGLE_CLIENT_ID: "id", GOOGLE_CLIENT_SECRET: "secret" };
