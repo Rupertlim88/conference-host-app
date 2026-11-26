@@ -1,7 +1,12 @@
-import { ProgramsView } from "@/features/programmes";
-import { serverApi } from "@/features/server";
+import { ProgramsView } from "@/base/programmes";
+import { serverApi } from "@/shared/server";
+import { ChangePoint } from "@/versions/change";
 
 export default async function ProgramsPage() {
   const tracks = await (await serverApi()).tracks.list();
-  return <ProgramsView tracks={tracks} />;
+  return (
+    <ChangePoint at="programmes.list" props={{ tracks }}>
+      <ProgramsView tracks={tracks} />
+    </ChangePoint>
+  );
 }

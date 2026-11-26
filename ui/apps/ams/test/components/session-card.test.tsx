@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { SessionCard } from "@/features/cards";
+import { SessionCard } from "@/base/cards";
 
 import { sessionSummary } from "../fixtures";
 import { renderApp } from "../render";

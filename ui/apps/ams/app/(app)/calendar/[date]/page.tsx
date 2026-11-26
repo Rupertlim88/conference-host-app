@@ -1,5 +1,5 @@
-import { CalendarDayView } from "@/features/calendar";
-import { orNotFound, serverApi } from "@/features/server";
+import { CalendarDayView } from "@/base/calendar";
+import { orNotFound, serverApi } from "@/shared/server";
 
 export default async function CalendarDayPage({ params }: { params: Promise<{ date: string }> }) {
   const { date } = await params;

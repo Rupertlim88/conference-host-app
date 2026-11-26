@@ -1,0 +1,342 @@
+{
+  "app": {
+    "name": "Isobar Meetings 2027 (Demo)",
+    "shortName": "Isobar 2027",
+    "tagline": "A demo conference app showing the AMS 107th Annual Meeting programme.",
+    "skip": "Skip to content"
+  },
+  "nav": {
+    "schedule": "My Schedule",
+    "search": "Search",
+    "menu": "Menu",
+    "close": "Close menu",
+    "organiser": "Organiser console",
+    "developer": "Developer console"
+  },
+  "auth": {
+    "signOut": "Sign Out",
+    "withGoogle": "Sign in with Google",
+    "title": "Sign in to the demo",
+    "intro": "This demo is open to anyone with a Google account.",
+    "unavailable": "Google sign-in is not set up on this copy of the demo.",
+    "failed": "Sign-in did not finish. Please try again."
+  },
+  "time": {
+    "meeting": "MST",
+    "local": "Local",
+    "switchTo": "Show times in {zone}"
+  },
+  "home": {
+    "welcome": "Welcome to the 107th AMS Annual Meeting",
+    "intro": "Explore the programme with the tiles below or the menu."
+  },
+  "calendar": {
+    "empty": "No sessions on this day."
+  },
+  "programs": {
+    "title": "Conferences and Symposia",
+    "sessions": "{count, plural, =0 {No sessions} one {# session} other {# sessions}}"
+  },
+  "session": {
+    "description": "Description",
+    "organizers": "Organizers",
+    "presentations": "Presentations",
+    "related": "View Related",
+    "none": "No presentations listed."
+  },
+  "talk": {
+    "abstract": "Abstract",
+    "noAbstract": "No abstract was published for this presentation.",
+    "session": "Session",
+    "booth": "Poster {booth}",
+    "citation": "Citation"
+  },
+  "related": {
+    "title": "Related talks",
+    "subtitle": "Picked for you by the conference API",
+    "loading": "Finding related talks…",
+    "none": "No related talks for this talk yet.",
+    "unavailable": "Related talks are unavailable right now.",
+    "unexpected": "Unexpected match",
+    "core": "Close match"
+  },
+  "star": {
+    "add": "Add to My Schedule",
+    "remove": "Remove from My Schedule"
+  },
+  "people": {
+    "title": "People",
+    "talks": "Presentations",
+    "letter": "Show people starting with {letter}"
+  },
+  "search": {
+    "title": "Search",
+    "placeholder": "Search titles, abstracts, numbers and names",
+    "submit": "Search",
+    "talks": "Presentations",
+    "sessions": "Sessions",
+    "people": "People",
+    "nothing": "Nothing matches “{q}”.",
+    "hint": "Type at least two characters.",
+    "tooLong": "Type at most 100 characters."
+  },
+  "schedule": {
+    "title": "My Schedule",
+    "empty": "You have not starred anything yet. Use the star on a talk or session to add it here.",
+    "talks": "Presentations",
+    "sessions": "Sessions"
+  },
+  "errors": {
+    "notFound": "We could not find that page.",
+    "home": "Back to Home",
+    "generic": "Something went wrong.",
+    "retry": "Try again"
+  },
+  "console": {
+    "nav": "Console",
+    "attendee": "Attendee app",
+    "pages": "Pages",
+    "page": "Page {page} of {pages}",
+    "previous": "Previous page",
+    "next": "Next page",
+    "noTime": "No time set",
+    "cancel": "Cancel",
+    "viewAttendee": "View in the attendee app",
+    "status": {
+      "scheduled": "Scheduled",
+      "withdrawn": "Withdrawn",
+      "moved": "Moved",
+      "rescheduled": "Rescheduled",
+      "published": "Published",
+      "changed": "Changed"
+    },
+    "changes": {
+      "title": "Changes from the published programme",
+      "moved": "{n, plural, one {# paper moved} other {# papers moved}}",
+      "rescheduled": "{n, plural, one {# paper rescheduled} other {# papers rescheduled}}",
+      "withdrawn": "{n, plural, one {# paper withdrawn} other {# papers withdrawn}}",
+      "sessions": "{n, plural, one {# session changed} other {# sessions changed}}",
+      "none": "No changes: the programme matches the published one."
+    },
+    "runState": {
+      "running": "Running",
+      "sent": "Sent",
+      "failed": "Failed",
+      "interrupted": "Interrupted"
+    },
+    "send": {
+      "confirm": "Send the programme to the conference API now?",
+      "now": "Send now",
+      "sending": "Sending the programme…",
+      "sent": "Sent {sent} papers: {added} added, {changed} changed, {withdrawn} withdrawn.",
+      "failed": "The send failed: {error}",
+      "interrupted": "The send was interrupted.",
+      "running": "A send is already running. Try again when it has finished.",
+      "error": "The send could not start. Please try again."
+    },
+    "failed": "That did not save. Please try again.",
+    "noSessionsMatch": "No sessions match."
+  },
+  "organiser": {
+    "name": "Isobar Program Builder (Demo)",
+    "papers": "Papers",
+    "sessions": "Sessions",
+    "send": "Send to API",
+    "searchPapers": "Search papers",
+    "searchSessions": "Search sessions",
+    "search": "Search",
+    "status": "Status",
+    "filter": {
+      "all": "All papers",
+      "scheduled": "Scheduled",
+      "withdrawn": "Withdrawn",
+      "changed": "Changed"
+    },
+    "paperCount": "{total, plural, one {# paper} other {# papers}}",
+    "sessionCount": "{total, plural, one {# session} other {# sessions}}",
+    "noPapers": "No papers match.",
+    "noSessions": "No sessions match.",
+    "column": {
+      "number": "Number",
+      "title": "Title",
+      "presenter": "Presenter",
+      "session": "Session",
+      "time": "Time (Mountain)",
+      "room": "Room",
+      "papers": "Papers",
+      "status": "Status"
+    },
+    "paper": {
+      "eyebrow": "Paper {number}",
+      "status": "Status",
+      "presenter": "Presenter",
+      "session": "Session",
+      "time": "Time (Mountain)",
+      "room": "Room",
+      "noSession": "Not in a session",
+      "move": "Move to another session",
+      "findSession": "Find a session",
+      "find": "Find",
+      "moveTo": "Move to {number}",
+      "here": "This paper's session",
+      "withdraw": "Withdraw paper",
+      "restore": "Restore paper"
+    },
+    "session": {
+      "eyebrow": "Session {number}",
+      "status": "Status",
+      "time": "Time (Mountain)",
+      "room": "Room",
+      "edit": "Time and room",
+      "date": "Date",
+      "start": "Start (Mountain)",
+      "end": "End (Mountain)",
+      "save": "Save session",
+      "saved": "Session saved",
+      "endBeforeStart": "The end must be after the start.",
+      "outsideMeeting": "Pick a day during the meeting, or a day either side.",
+      "papers": "Papers in this session",
+      "incompleteTime": "Give a date and a start time together, or leave all three times empty."
+    },
+    "sendPage": {
+      "intro": "Sends the programme as it stands now, withdrawn papers left out. The conference API matches the papers again, and the related talks in the attendee app follow.",
+      "button": "Send programme",
+      "runs": "Recent sends",
+      "noRuns": "No sends yet.",
+      "column": {
+        "started": "Started (Mountain)",
+        "result": "Result",
+        "sent": "Sent",
+        "added": "Added",
+        "changed": "Changed",
+        "withdrawn": "Withdrawn",
+        "note": "Note"
+      }
+    }
+  },
+  "developer": {
+    "name": "Isobar Developer Console (Demo)",
+    "title": "Developer console",
+    "status": "Status",
+    "address": "Conference API address",
+    "key": "API key",
+    "lastSend": "Last send",
+    "set": "Set",
+    "notSet": "Not set",
+    "noneYet": "None yet",
+    "lastRun": "{state}, {at}",
+    "test": "Test connection",
+    "testing": "Testing the connection…",
+    "result": {
+      "ok": "Connection works ({status}, {ms} ms).",
+      "notSet": "No API address or key is set.",
+      "refusedKey": "The API refused the key ({status}).",
+      "noProgramme": "The API does not know this conference ({status}).",
+      "noTalks": "There is no programme to test with.",
+      "unreachable": "Could not reach the API.",
+      "unexpected": "The API gave an unexpected answer ({status})."
+    },
+    "sendAgain": "Send programme again",
+    "reset": "Reset to published programme",
+    "resetConfirm": "Undo every organiser change and restore withdrawn papers?",
+    "resetNow": "Reset now",
+    "resetting": "Resetting the programme…",
+    "resetDone": "Programme reset: {talks, plural, one {# paper} other {# papers}} and {sessions, plural, one {# session} other {# sessions}} put back.",
+    "fixed": {
+      "title": "The demo's abstract",
+      "none": "No talk with an abstract yet.",
+      "label": "Talk id",
+      "submit": "Fix the demo to this talk",
+      "saving": "Saving…",
+      "refused": "That talk cannot be the demo's abstract: it must be shown, and have an abstract."
+    }
+  },
+  "info": {
+    "day": "Day",
+    "time": "Time",
+    "place": "Place"
+  },
+  "menu": {
+    "home": "Home",
+    "search": "Search",
+    "programs": "Conferences and Symposia",
+    "events": "Events",
+    "calendar": "Meeting Calendar",
+    "committees": "Participating Program Committees",
+    "officers": "Officers of the 107th Annual Meeting",
+    "exhibitHall": "Main Exhibit Hall",
+    "careerFair": "Career Resource and Graduate School Fair",
+    "sponsors": "Sponsor Index",
+    "support": "Technical Support",
+    "highlights": {
+      "title": "Program Highlights",
+      "people-themed": "People Themed",
+      "supplementary": "Supplementary Materials",
+      "keynotes": "Core Science Keynotes",
+      "new-fellows": "New Fellows",
+      "posters": "Posters",
+      "presidential": "Presidential Conference",
+      "town-halls": "Town Hall Meetings"
+    },
+    "information": {
+      "title": "General Information",
+      "faqs": "FAQs",
+      "presenters": "Information for Presenters",
+      "policies": "Policies",
+      "accessibility": "Inclusion and Accessibility",
+      "green-meetings": "Green Meetings",
+      "social-media": "Social Media",
+      "slack": "Slack",
+      "press": "Press",
+      "clear-cache": "How to Clear Cache"
+    },
+    "resources": {
+      "title": "Attendee Resources",
+      "registration": "Registration",
+      "health-resources": "Health Resources",
+      "wellness-rooms": "Wellness Rooms",
+      "safety-tips": "Safety Tips",
+      "transportation": "Transportation",
+      "local-restaurants": "Local Restaurants and Attractions"
+    }
+  },
+  "ourWords": {
+    "faqs": "At a meeting, this page answers the questions attendees ask most. The demo leaves its content to the society.",
+    "presenters": "At a meeting, this page tells presenters how to prepare and upload their talks and posters. The demo leaves its content to the society.",
+    "policies": "At a meeting, this page sets out the society's policies for everyone who attends. The demo leaves its content to the society.",
+    "accessibility": "At a meeting, this page describes how the meeting is made accessible to all. The demo leaves its content to the society.",
+    "green-meetings": "At a meeting, this page explains what the society does to reduce the meeting's footprint. The demo leaves its content to the society.",
+    "social-media": "At a meeting, this page lists where to follow and share the meeting online. The demo leaves its content to the society.",
+    "slack": "At a meeting, this page explains how to join the attendees' chat workspace. The demo leaves its content to the society.",
+    "press": "At a meeting, this page tells journalists how to cover the meeting. The demo leaves its content to the society.",
+    "clear-cache": "At a meeting, this page explains how to clear a browser's cache when the app shows old information. The demo leaves its content to the society.",
+    "registration": "At a meeting, this page explains how to register and what registration includes. The demo leaves its content to the society.",
+    "health-resources": "At a meeting, this page lists health services for attendees. The demo leaves its content to the society.",
+    "wellness-rooms": "At a meeting, this page says where attendees can rest, pray or nurse. The demo leaves its content to the society.",
+    "safety-tips": "At a meeting, this page gives safety advice and how to report a concern. The demo leaves its content to the society.",
+    "transportation": "At a meeting, this page explains how to reach the venue and get around the city. The demo leaves its content to the society.",
+    "local-restaurants": "At a meeting, this page suggests places to eat and things to see nearby. The demo leaves its content to the society.",
+    "support": "At a meeting, this page says how to get help with the meeting app. The demo leaves its content to the society."
+  },
+  "lists": {
+    "empty": "Nothing is listed here yet."
+  },
+  "versions": {
+    "showing": "Showing: {name}",
+    "switchTo": "Switch to {name}",
+    "base": "AMS's meeting app",
+    "improvements": "Our improvements",
+    "bar": "Demo",
+    "hint": "or press Control",
+    "change": {
+      "relatedTalks": "Our change: related talks",
+      "programmeOrder": "Our change: conferences ordered around your abstract"
+    }
+  },
+  "improvements": {
+    "orderedAround": "Ordered around your abstract: {abstract}",
+    "unavailable": "The matching API cannot answer right now, so AMS's order stays.",
+    "noAbstract": "The demo has no abstract to order around yet.",
+    "matches": "{count, plural, one {# related talk} other {# related talks}}"
+  }
+}

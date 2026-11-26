@@ -106,12 +106,29 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
     expect((await ams.search("__")).talks).toEqual([]);
   });
 
-  test("session kinds are counted, and a kind lists its sessions in start order", async () => {
-    expect(await ams.sessionKinds()).toEqual([
-      { kind: "Joint Session", sessions: 1 },
-      { kind: "Session", sessions: 1 },
+  test("a programme AMS's menu opens by name is found by its code, with its sessions", async () => {
+    const hall = await ams.trackByCode("EXHIBITHALL");
+    expect(TrackDetailSchema.parse(hall)).toMatchObject({ id: "1947", title: "Main Exhibit Hall" });
+    expect(hall?.sessions.map((s) => s.id)).toEqual(["75206"]);
+    expect(await ams.trackByCode("EVENT")).toBeNull();
+  });
+
+  test("each highlight list gives its sessions or its shown talks", async () => {
+    expect((await ams.highlight("themed")).sessions.map((s) => s.id)).toEqual(["73193"]);
+    expect((await ams.highlight("keynotes")).talks.map((t) => t.id)).toEqual(["470089"]);
+    expect((await ams.highlight("supplementary")).talks.map((t) => t.id)).toEqual(["464598"]);
+    expect(await ams.highlight("fellows")).toEqual({ sessions: [], talks: [] });
+    expect(await ams.highlight("posters")).toEqual({ sessions: [], talks: [] });
+  });
+
+  test("a page of names comes back heading by heading, in order", async () => {
+    expect(await ams.namePage("officers")).toEqual([
+      { heading: "Local Organizing Committee", lines: ["Melissa Burt and Scott Mackaro, Co-Chairs", "Stephanie Herring"] },
     ]);
-    expect((await ams.sessionsOfKind("Joint Session")).map((s) => s.id)).toEqual(["73193"]);
-    expect(await ams.sessionsOfKind("Nope")).toEqual([]);
+  });
+
+  test("matches are counted by the tracks they are in, and unknown talks count for none", async () => {
+    expect(await ams.matchesByTrack(["464598", "470089", "463094", "nope"])).toEqual({ "1878": 2, "1912": 1 });
+    expect(await ams.matchesByTrack([])).toEqual({});
   });
 });

@@ -43,7 +43,7 @@ test.describe("signed in", () => {
     await context.addCookies(cookies);
   });
 
-  test("home leads to the calendar, a session and a talk with related talks", async ({ page }) => {
+  test("home leads to the calendar, a session and a talk, and Our improvements add related talks", async ({ page }) => {
     await page.goto("/");
     await expect(page.getByRole("heading", { name: "Welcome to the 107th AMS Annual Meeting" })).toBeVisible();
     await page.getByRole("link", { name: "Meeting Calendar" }).first().click();
@@ -58,6 +58,11 @@ test.describe("signed in", () => {
     await expect(page.getByRole("heading", { level: 1 })).toContainText("J1.2 - What is a Snow Squall?");
     await expect(page.getByText("Monday, January 11, 2027")).toBeVisible();
     await expect(page.getByText("8:45 AM - 9:00 AM")).toBeVisible();
+    // AMS's meeting app has no related talks; Our improvements add them in a gold outline.
+    await expect(page.getByRole("region", { name: "Related talks" })).toHaveCount(0);
+    await page.getByRole("button", { name: "Switch to Our improvements" }).click();
+    await expect(page.getByText("Our change: related talks")).toBeVisible();
+    await page.goto("/talks/484769");
     const related = page.getByRole("region", { name: "Related talks" });
     await expect(related.getByRole("link").first()).toBeVisible();
   });

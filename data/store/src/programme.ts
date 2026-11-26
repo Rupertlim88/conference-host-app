@@ -1,19 +1,23 @@
 // The attendee app sees only the talks that are not withdrawn.
 import type {
   Day,
+  Highlight,
+  HighlightList,
   Meeting,
+  MenuProgramme,
+  NamePage,
+  NameSection,
   Person,
   PersonDetail,
   SearchResults,
   SessionDetail,
-  SessionKind,
   SessionSummary,
   TalkDetail,
   TalkSummary,
   Track,
   TrackDetail,
 } from "@repo/host-contracts";
-import { and, arrayContains, asc, eq, exists, ilike, inArray, or, sql } from "drizzle-orm";
+import { and, arrayContains, asc, eq, exists, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 
 import type { Db } from "./connect";
 import { SOCIETY_TABLES, type Society, type SocietyTables } from "./tables";
@@ -91,6 +95,17 @@ export function createProgramme(db: Db, society: Society) {
     return m;
   }
 
+  async function trackWhere(where: SQL): Promise<TrackDetail | null> {
+    const [track] = await db.select().from(t.tracks).where(where);
+    if (!track) return null;
+    const sessions = await db
+      .select()
+      .from(t.sessions)
+      .where(arrayContains(t.sessions.trackIds, [track.id]))
+      .orderBy(...sessionOrder);
+    return { id: track.id, code: track.code, title: track.title, sessions: sessions.map(toSessionSummary) };
+  }
+
   async function timeZone(): Promise<string> {
     return (await meeting()).timeZone;
   }
@@ -128,34 +143,49 @@ export function createProgramme(db: Db, society: Society) {
       return rows.map(toSessionSummary);
     },
 
-    async sessionKinds(): Promise<SessionKind[]> {
-      return db
-        .select({ kind: t.sessions.kind, sessions: sql<number>`count(*)::int` })
-        .from(t.sessions)
-        .where(sql`${t.sessions.kind} <> ''`)
-        .groupBy(t.sessions.kind)
-        .orderBy(t.sessions.kind);
-    },
-
-    async sessionsOfKind(kind: string): Promise<SessionSummary[]> {
-      const rows = await db.select().from(t.sessions).where(eq(t.sessions.kind, kind)).orderBy(...sessionOrder);
-      return rows.map(toSessionSummary);
-    },
-
+    /** The conferences list: every track but the listings of organisations, in AMS's order. */
     async tracks(): Promise<Track[]> {
-      const rows = await db.select().from(t.tracks).orderBy(asc(t.tracks.sort));
+      const rows = await db.select().from(t.tracks).where(eq(t.tracks.listed, true)).orderBy(asc(t.tracks.sort));
       return rows.map(({ id, code, title }) => ({ id, code, title }));
     },
 
     async track(id: string): Promise<TrackDetail | null> {
-      const [track] = await db.select().from(t.tracks).where(eq(t.tracks.id, id));
-      if (!track) return null;
-      const sessions = await db
-        .select()
-        .from(t.sessions)
-        .where(arrayContains(t.sessions.trackIds, [id]))
-        .orderBy(...sessionOrder);
-      return { id: track.id, code: track.code, title: track.title, sessions: sessions.map(toSessionSummary) };
+      return trackWhere(eq(t.tracks.id, id));
+    },
+
+    /** A programme AMS's menu opens by name, such as Events or the exhibit hall. */
+    async trackByCode(code: MenuProgramme): Promise<TrackDetail | null> {
+      return trackWhere(eq(t.tracks.code, code));
+    },
+
+    /** One of Program Highlights' lists: its sessions, or its shown talks. */
+    async highlight(list: HighlightList): Promise<Highlight> {
+      if (list === "themed" || list === "posters") {
+        const where = list === "themed" ? eq(t.sessions.peopleThemed, true) : eq(t.sessions.format, "Poster");
+        const rows = await db.select().from(t.sessions).where(where).orderBy(...sessionOrder);
+        return { sessions: rows.map(toSessionSummary), talks: [] };
+      }
+      const flag = { supplementary: t.talks.supplementary, keynotes: t.talks.coreKeynote, fellows: t.talks.newFellow }[list];
+      const rows = await db.select().from(t.talks).where(and(shown, eq(flag, true))).orderBy(asc(t.talks.startsAt), asc(t.talks.sort));
+      return { sessions: [], talks: rows.map(toTalkSummary) };
+    },
+
+    /** The officers or committees page: each heading with its lines of names, in order. */
+    async namePage(page: NamePage): Promise<NameSection[]> {
+      return db
+        .select({ heading: t.infoLists.heading, lines: t.infoLists.lines })
+        .from(t.infoLists)
+        .where(eq(t.infoLists.page, page))
+        .orderBy(asc(t.infoLists.position));
+    },
+
+    /** How many of these talks, among the shown ones, fall in each track. */
+    async matchesByTrack(talkIds: string[]): Promise<Record<string, number>> {
+      if (talkIds.length === 0) return {};
+      const rows = await db.select({ trackIds: t.talks.trackIds }).from(t.talks).where(and(shown, inArray(t.talks.id, talkIds)));
+      const counts: Record<string, number> = {};
+      for (const track of rows.flatMap((r) => r.trackIds)) counts[track] = (counts[track] ?? 0) + 1;
+      return counts;
     },
 
     async session(id: string): Promise<SessionDetail | null> {

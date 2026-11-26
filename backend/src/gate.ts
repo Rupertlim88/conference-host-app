@@ -1,6 +1,6 @@
 // Every request passes one gate: only a signed-in guest gets in, and errors never show their insides.
 import type { Viewer } from "@repo/host-contracts";
-import { authTables, type Db, type GuestData, type OrganiserStore, type ProgrammeStore, type SyncLog } from "@repo/host-store";
+import { authTables, type Db, type DemoSettings, type GuestData, type OrganiserStore, type ProgrammeStore, type SyncLog } from "@repo/host-store";
 import { initTRPC, TRPCError } from "@trpc/server";
 import type { BetterAuthOptions } from "better-auth";
 import { drizzleAdapter } from "better-auth/adapters/drizzle";
@@ -42,6 +42,7 @@ export interface Context {
   store: ProgrammeStore & GuestData;
   organiser: OrganiserStore;
   log: SyncLog;
+  demo: DemoSettings;
   api: ConferenceApi;
   settings: ApiSettings;
   viewer: (Viewer & { id: string }) | null;

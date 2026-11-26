@@ -1,6 +1,6 @@
 # Isobar Meetings 2027 (Demo), the AMS app
 
-The host app's AMS version. It approximates the Confex Meeting App that AMS attendees will use at the 107th Annual Meeting (Denver, 10 to 14 January 2027), and shows that meeting's programme as published so far, from `@repo/host-backend`. Times show in Mountain time. Every talk page has a related-talks panel filled by the conference API.
+The host app's AMS version. It approximates the Confex Meeting App that AMS attendees will use at the 107th Annual Meeting (Denver, 10 to 14 January 2027), and shows a sample of that meeting's programme as published so far, from `@repo/host-backend`: every session, and five talks with an abstract from each conference. Times show in Mountain time. It opens as AMS's meeting app: AMS's buttons and pages, and nothing more. The demo bar at the bottom, or pressing Control on its own, switches to Our improvements, where every change shows in a gold outline: each talk page gains a related-talks panel filled by the conference API, and Conferences and Symposia is ordered around the demo's abstract, which the developer console sets.
 
 ## Run it locally
 

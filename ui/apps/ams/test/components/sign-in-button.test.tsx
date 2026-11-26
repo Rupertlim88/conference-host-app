@@ -7,7 +7,7 @@ import { expect, test, vi } from "vitest";
 const social = vi.fn();
 vi.mock("better-auth/react", () => ({ createAuthClient: () => ({ signIn: { social }, signOut: vi.fn() }) }));
 
-const { SignInButton } = await import("@/features/sign-in");
+const { SignInButton } = await import("@/shared/sign-in");
 const { renderApp } = await import("../render");
 
 test("the guest is offered Google sign-in by name", () => {

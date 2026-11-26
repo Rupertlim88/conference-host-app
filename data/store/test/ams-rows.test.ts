@@ -50,7 +50,7 @@ describe("amsRows", () => {
   });
 
   test("programmes become tracks", () => {
-    expect(rows.tracks.map((t) => t.code).sort()).toEqual(["EDUCATION", "MIDDLE", "TOWNHALL", "TROPICAL"]);
+    expect(rows.tracks.map((t) => t.code).sort()).toEqual(["EDUCATION", "EXHIBITHALL", "MIDDLE", "TOWNHALL", "TROPICAL"]);
   });
 
   test("a session gets its number, slot time, room, chairs and tracks", () => {
@@ -104,6 +104,28 @@ describe("amsRows", () => {
   });
 });
 
+describe("AMS's listings, highlights and pages of names", () => {
+  test("a listing of organisations is a track that the conferences list leaves out", () => {
+    expect(rows.tracks.find((t) => t.id === "1947")).toMatchObject({ code: "EXHIBITHALL", listed: false });
+    expect(rows.tracks.find((t) => t.id === "1878")).toMatchObject({ listed: true });
+    expect(rows.sessions.find((s) => s.id === "75206")).toMatchObject({ title: "AccuWeather, Inc.", trackIds: ["1947"], startsAt: null });
+  });
+
+  test("each highlight list marks its sessions and talks, and nothing else", () => {
+    expect(rows.sessions.filter((s) => s.peopleThemed).map((s) => s.id)).toEqual(["73193"]);
+    expect(rows.talks.filter((t) => t.supplementary).map((t) => t.id)).toEqual(["464598"]);
+    expect(rows.talks.filter((t) => t.coreKeynote).map((t) => t.id)).toEqual(["470089"]);
+    expect(rows.talks.filter((t) => t.newFellow)).toEqual([]);
+  });
+
+  test("the officers and committees pages keep their headings and lines in order", () => {
+    expect(rows.infoLists).toEqual([
+      { page: "officers", position: 0, heading: "Local Organizing Committee", lines: ["Melissa Burt and Scott Mackaro, Co-Chairs", "Stephanie Herring"] },
+      { page: "committees", position: 0, heading: "41st Conference on Hydrology", lines: ["Eric Anderson, Molly Woloszyn"] },
+    ]);
+  });
+});
+
 describe("amsRows on the public download's stray spaces", () => {
   const raw = JSON.parse(readFileSync(join(import.meta.dirname, "fixtures/ams-slice.json"), "utf8"));
   const event = { ...raw.Session[0], id: "74577", FinalNumber: "Event ", FinalSessionNumber: "", Type: "Event", Title: " Local Chapter Officers' Breakfast " };
@@ -118,7 +140,7 @@ describe("amsRows on the public download's stray spaces", () => {
 
 describe("checking the files", () => {
   test("files that do not have AMS's form are refused before anything is mapped", () => {
-    expect(() => amsRows({ Paper: [{ id: 1 }], Session: [], SlotData: [], Program: [] })).toThrow(ZodError);
+    expect(() => amsRows({ ...files, Paper: [{ id: 1 }] })).toThrow(ZodError);
     expect(() => amsRows({ Paper: [] })).toThrow(ZodError);
   });
 });

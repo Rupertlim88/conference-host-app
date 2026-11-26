@@ -118,7 +118,9 @@ export function createOrganiserStore(db: Db, society: Society) {
 
     async sessions(input: { q: string; page: number }): Promise<SessionList> {
       const like = likeText(input.q);
-      const where = input.q ? or(ilike(t.sessions.number, like), ilike(t.sessions.title, like)) : undefined;
+      // A listing's entries, such as the exhibit hall's organisations, are not programme sessions.
+      const inProgramme = sql`exists (select 1 from ${t.tracks} where ${t.tracks.listed} and ${t.tracks.id} = any(${t.sessions.trackIds}))`;
+      const where = and(inProgramme, input.q ? or(ilike(t.sessions.number, like), ilike(t.sessions.title, like)) : undefined);
       const shownTalks = db
         .select({ sessionId: t.talks.sessionId, n: sql<number>`count(*)::int`.as("n") })
         .from(t.talks)

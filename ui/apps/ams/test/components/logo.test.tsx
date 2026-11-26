@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { Logo } from "@/features/frame";
+import { Logo } from "@/base/frame";
 
 import { renderApp } from "../render";
 

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { listParams } from "@/features/console-frame";
+import { listParams } from "@/consoles/console-frame";
 
 test("reads search, status and page from the address", () => {
   expect(listParams({ q: " storm ", status: "withdrawn", page: "3" })).toEqual({ q: "storm", status: "withdrawn", page: 3 });

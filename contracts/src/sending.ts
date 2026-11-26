@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 import { ChangesSchema, Total } from "./organiser";
-import { Instant } from "./programme";
+import { Id, Instant } from "./programme";
 
 export const SyncRunStateSchema = z.enum(["running", "sent", "failed", "interrupted"]);
 export type SyncRunState = z.infer<typeof SyncRunStateSchema>;
@@ -50,3 +50,6 @@ export const ApiStatusSchema = z.strictObject({
   changes: ChangesSchema,
 });
 export type ApiStatus = z.infer<typeof ApiStatusSchema>;
+
+/** The talk the developer console fixes the demo to. */
+export const FixedAbstractInputSchema = z.strictObject({ talkId: Id });

@@ -1,1 +1,1 @@
-export { FramedNotFound as default } from "@/features/errors";
+export { FramedNotFound as default } from "@/shared/errors";

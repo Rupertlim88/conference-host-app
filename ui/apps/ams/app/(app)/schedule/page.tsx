@@ -1,5 +1,5 @@
-import { ScheduleView } from "@/features/my-schedule";
-import { serverApi } from "@/features/server";
+import { ScheduleView } from "@/base/my-schedule";
+import { serverApi } from "@/shared/server";
 
 // The guest's stars change between visits, so this page is never cached.
 export const dynamic = "force-dynamic";

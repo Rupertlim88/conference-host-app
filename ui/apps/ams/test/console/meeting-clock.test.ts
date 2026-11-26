@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { meetingClock } from "@/features/console-frame";
+import { meetingClock } from "@/consoles/console-frame";
 
 
 test("an instant reads as the date and 24-hour time in the meeting's zone", () => {

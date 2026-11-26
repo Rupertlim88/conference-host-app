@@ -4,7 +4,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { beforeEach, expect, test } from "vitest";
 
-import { TimeZoneSwitch, When } from "@/features/meeting-time";
+import { TimeZoneSwitch, When } from "@/shared/meeting-time";
 
 import { renderApp } from "../render";
 

@@ -2,7 +2,7 @@
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { DayStrip } from "@/features/calendar";
+import { DayStrip } from "@/base/calendar";
 
 import { days } from "../fixtures";
 import { renderApp } from "../render";

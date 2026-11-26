@@ -5,6 +5,7 @@ export type { MeetingRow, PersonRow, SessionRow, SocietyRows, TalkKind, TalkRow,
 export { authTables } from "./tables";
 export { createProgramme, type ProgrammeStore } from "./programme";
 export { createGuestData, type GuestData } from "./guest-data";
+export { createDemoSettings, type DemoSettings } from "./demo-settings";
 export { createOrganiserStore, type OrganiserStore, type Placement, type PlacementFacts } from "./organiser";
 export { zonedInstant } from "./time";
 export { createSyncLog, STALE_AFTER_MINUTES, type SyncCounts, type SyncLog } from "./sync-log";

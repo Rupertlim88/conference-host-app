@@ -1,1 +1,1 @@
-export { NotFoundPage as default } from "@/features/errors";
+export { NotFoundPage as default } from "@/shared/errors";

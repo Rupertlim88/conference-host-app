@@ -1,5 +1,5 @@
 import { migrateStore } from "@repo/host-store/migrate";
-import { amsTables, connect, createOrganiserStore, createGuestData, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
+import { amsTables, connect, createDemoSettings, createOrganiserStore, createGuestData, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
 import { TRPCError } from "@trpc/server";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
@@ -29,6 +29,7 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
       store,
       organiser: createOrganiserStore(db, "ams"),
       log: createSyncLog(db, "ams"),
+      demo: createDemoSettings(db, "ams"),
       api: api({ status: "unavailable" }),
       settings: { apiAddress: null, keySet: false },
       viewer,
@@ -97,9 +98,33 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
     expect(await c.notes.get({ targetKind: "talk", targetId: "T2" })).toBeNull();
   });
 
-  test("session kinds", async () => {
+  test("the programmes AMS's menu opens by name, the highlight lists and the pages of names", async () => {
     const c = caller({});
-    expect(await c.sessions.kinds()).toEqual([{ kind: "Session", sessions: 1 }]);
-    expect((await c.sessions.ofKind({ kind: "Session" })).map((s) => s.id)).toEqual(["S1"]);
+    expect((await c.tracks.list()).map((t) => t.id)).toEqual(["P1"]);
+    expect((await c.tracks.byCode({ code: "EXHIBITHALL" })).sessions.map((s) => s.id)).toEqual(["B1"]);
+    await expect(c.tracks.byCode({ code: "EVENT" })).rejects.toMatchObject({ code: "NOT_FOUND" });
+    expect((await c.highlights.get({ list: "themed" })).sessions.map((s) => s.id)).toEqual(["S1"]);
+    expect((await c.highlights.get({ list: "keynotes" })).talks.map((t) => t.id)).toEqual(["T2"]);
+    expect(await c.names.get({ page: "officers" })).toEqual([{ heading: "Local Organizing Committee", lines: ["Ada Author, Chair"] }]);
+  });
+
+  test("our improvements see the fixed abstract and how its matches fall across the tracks", async () => {
+    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
+    const around = await caller({ api: api({ status: "ok", matches: [match] }) }).improvements.aroundAbstract();
+    expect(around).toEqual({ abstract: expect.objectContaining({ id: "T1" }), matchesByTrack: { P1: 1 } });
+    const down = await caller({}).improvements.aroundAbstract();
+    expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), matchesByTrack: null });
+  });
+
+  test("the developer console fixes the demo to a talk, and names why a talk is refused", async () => {
+    const c = caller({});
+    expect((await c.developer.fixedAbstract())?.id).toBe("T1");
+    expect((await c.developer.setFixedAbstract({ talkId: "T2" })).id).toBe("T2");
+    expect((await c.improvements.aroundAbstract()).abstract?.id).toBe("T2");
+    await expect(c.developer.setFixedAbstract({ talkId: "nope" })).rejects.toMatchObject({
+      code: "BAD_REQUEST",
+      message: "That talk cannot be the demo's abstract: it must be shown, and have an abstract.",
+    });
+    await c.developer.setFixedAbstract({ talkId: "T1" });
   });
 });

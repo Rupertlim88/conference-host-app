@@ -41,6 +41,8 @@ function societyTables(schemaName: string) {
     code: text("code").notNull().default(""),
     title: text("title").notNull(),
     sort: integer("sort").notNull(),
+    /** False for a listing of organisations, such as the exhibit hall, which the conferences list leaves out. */
+    listed: boolean("listed").notNull().default(true),
   });
 
   const sessions = schema.table(
@@ -58,6 +60,8 @@ function societyTables(schemaName: string) {
       room: text("room").notNull().default(""),
       building: text("building").notNull().default(""),
       trackIds: textArray("track_ids"),
+      /** On Program Highlights' list of the meeting's PEOPLE-themed sessions. */
+      peopleThemed: boolean("people_themed").notNull().default(false),
       // The published programme's time and place, written only by the loader. Organiser edits change the
       // columns above; a reset copies these back.
       pubStartsAt: instant("pub_starts_at"),
@@ -89,6 +93,10 @@ function societyTables(schemaName: string) {
       citation: text("citation").notNull().default(""),
       trackIds: textArray("track_ids"),
       sort: integer("sort").notNull().default(0),
+      // Program Highlights' lists of talks: core science keynotes, new fellows and supplementary materials.
+      coreKeynote: boolean("core_keynote").notNull().default(false),
+      newFellow: boolean("new_fellow").notNull().default(false),
+      supplementary: boolean("supplementary").notNull().default(false),
       /** Taken out of the programme by an organiser: every attendee read leaves it out. */
       withdrawn: boolean("withdrawn").notNull().default(false),
       // The published programme's session, time, place and order, written only by the loader.
@@ -120,6 +128,24 @@ function societyTables(schemaName: string) {
     },
     (t) => [primaryKey({ columns: [t.talkId, t.personId] }), index().on(t.personId)],
   );
+
+  /** The meeting's pages of names, officers and committees: each heading with its lines, in order. */
+  const infoLists = schema.table(
+    "info_lists",
+    {
+      page: text("page").notNull(),
+      position: integer("position").notNull(),
+      heading: text("heading").notNull(),
+      lines: textArray("lines"),
+    },
+    (t) => [primaryKey({ columns: [t.page, t.position] })],
+  );
+
+  /** The demo's own settings, in one row: the abstract the demo is fixed to. */
+  const demoSettings = schema.table("demo_settings", {
+    id: smallint("id").primaryKey().default(1),
+    fixedTalkId: text("fixed_talk_id"),
+  });
 
   const stars = schema.table(
     "stars",
@@ -168,7 +194,7 @@ function societyTables(schemaName: string) {
     ],
   );
 
-  return { schema, meeting, tracks, sessions, talks, people, talkPeople, stars, notes, syncRuns };
+  return { schema, meeting, tracks, sessions, talks, people, talkPeople, infoLists, demoSettings, stars, notes, syncRuns };
 }
 
 export const amsTables = societyTables("ams2027");
@@ -186,6 +212,8 @@ export const {
   talks: amsTalks,
   people: amsPeople,
   talkPeople: amsTalkPeople,
+  infoLists: amsInfoLists,
+  demoSettings: amsDemoSettings,
   stars: amsStars,
   notes: amsNotes,
   syncRuns: amsSyncRuns,

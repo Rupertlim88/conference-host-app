@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { SignInView } from "@/features/sign-in";
+import { SignInView } from "@/shared/sign-in";
 
 import { renderApp } from "../render";
 

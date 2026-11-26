@@ -1,6 +1,6 @@
-import { OrganiserSessionsView } from "@/features/organiser-sessions";
-import { listParams } from "@/features/console-frame";
-import { serverApi } from "@/features/server";
+import { OrganiserSessionsView } from "@/consoles/organiser-sessions";
+import { listParams } from "@/consoles/console-frame";
+import { serverApi } from "@/shared/server";
 
 type Params = Promise<Record<string, string | string[] | undefined>>;
 

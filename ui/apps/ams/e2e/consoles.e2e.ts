@@ -23,12 +23,12 @@ async function resetProgramme(page: Page) {
 
 const status = (page: Page) => page.getByRole("definition").first();
 
-test("the attendee menu leads to both consoles", async ({ page }) => {
+test("the demo bar leads to both consoles", async ({ page }) => {
   await page.goto("/");
-  await page.getByRole("complementary").getByRole("link", { name: "Organiser console" }).click();
+  await page.getByRole("complementary", { name: "Demo" }).getByRole("link", { name: "Organiser console" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Papers" })).toBeVisible();
   await page.goto("/");
-  await page.getByRole("complementary").getByRole("link", { name: "Developer console" }).click();
+  await page.getByRole("complementary", { name: "Demo" }).getByRole("link", { name: "Developer console" }).click();
   await expect(page.getByRole("heading", { level: 1, name: "Developer console" })).toBeVisible();
 });
 

@@ -137,6 +137,29 @@ export type RelatedTalks = z.infer<typeof RelatedTalksSchema>;
 export const ViewerSchema = z.strictObject({ name: z.string(), email: z.string(), image: z.string().nullable() });
 export type Viewer = z.infer<typeof ViewerSchema>;
 
-export const SessionKindSchema = z.strictObject({ kind: z.string(), sessions: z.int().min(1) });
-export type SessionKind = z.infer<typeof SessionKindSchema>;
-export const KindInputSchema = z.strictObject({ kind: z.string().trim().min(1).max(100).refine(noNul, NUL_MESSAGE) });
+/** The programmes AMS's menu opens by name, as AMS's programme codes. */
+export const MenuProgrammeSchema = z.enum(["EVENT", "EXHIBITHALL", "CAREERFAIR", "SPONSORS", "PRESIDENTIAL", "TOWNHALL"]);
+export type MenuProgramme = z.infer<typeof MenuProgrammeSchema>;
+export const CodeInputSchema = z.strictObject({ code: MenuProgrammeSchema });
+
+/** Program Highlights' lists that the programme's own data marks. */
+export const HighlightListSchema = z.enum(["themed", "supplementary", "keynotes", "fellows", "posters"]);
+export type HighlightList = z.infer<typeof HighlightListSchema>;
+export const HighlightInputSchema = z.strictObject({ list: HighlightListSchema });
+export const HighlightSchema = z.strictObject({ sessions: z.array(SessionSummarySchema), talks: z.array(TalkSummarySchema) });
+export type Highlight = z.infer<typeof HighlightSchema>;
+
+/** The meeting's pages of names: each heading with its lines of names, in order. */
+export const NamePageSchema = z.enum(["officers", "committees"]);
+export type NamePage = z.infer<typeof NamePageSchema>;
+export const NamePageInputSchema = z.strictObject({ page: NamePageSchema });
+export const NameSectionSchema = z.strictObject({ heading: z.string(), lines: z.array(z.string()) });
+export type NameSection = z.infer<typeof NameSectionSchema>;
+
+/** The demo's fixed abstract, and how many of the matching API's matches for it fall in each track; the counts are
+ *  null when the API cannot answer. */
+export const AroundAbstractSchema = z.strictObject({
+  abstract: TalkSummarySchema.nullable(),
+  matchesByTrack: z.record(Id, z.int().min(1)).nullable(),
+});
+export type AroundAbstract = z.infer<typeof AroundAbstractSchema>;

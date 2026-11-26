@@ -1,5 +1,5 @@
-import { PersonView } from "@/features/people";
-import { orNotFound, serverApi } from "@/features/server";
+import { PersonView } from "@/base/people";
+import { orNotFound, serverApi } from "@/shared/server";
 
 export default async function PersonPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

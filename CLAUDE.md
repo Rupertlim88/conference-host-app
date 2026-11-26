@@ -90,7 +90,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 27. **Any matching API can be plugged in, as long as it speaks the conference API's contract.** Any API can connect to the host app, not only the conference API: an API is chosen by its address and key, set in the host app. Every request the host app sends has exactly the form the conference API's contract asks for, and is checked against that contract before it is sent, so any API that takes the conference API's contract can be plugged in without changing the host app.
 
-28. **The host app sends the programme to a matching API and uses what it returns in two places: each talk's related talks, and our versions of the meeting app.** Everything else the host app needs is built now. What a matching API returns is shown in the related-talks panel on each talk page, which shows the API's matches for that talk, and it shapes our versions of the meeting app around the demo's one fixed abstract. Any other processing of what an API returns is added later.
+28. **The host app sends the programme to a matching API and uses what it returns in two places: each talk's related talks, and our versions of the meeting app.** Everything else the host app needs is built now. What a matching API returns is shown, in our improvements, in the related-talks panel on each talk page, which shows the API's matches for that talk, and it shapes our versions of the meeting app around the demo's one fixed abstract. Any other processing of what an API returns is added later.
 
 # Rules for the whole app (from the global CLAUDE.md, except where the host app's rules about the CLAUDE.md files say otherwise; its rules about the CLAUDE.md files are replaced by the host app's own, above)
 

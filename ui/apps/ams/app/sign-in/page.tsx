@@ -2,8 +2,8 @@ import { getHostServer } from "@repo/host-backend";
 import { headers } from "next/headers";
 import { redirect } from "next/navigation";
 
-import { firstParam } from "@/features/app";
-import { SignInButton, SignInView } from "@/features/sign-in";
+import { firstParam } from "@/shared/app";
+import { SignInButton, SignInView } from "@/shared/sign-in";
 
 export default async function SignInPage({ searchParams }: { searchParams: Promise<{ error?: string | string[] }> }) {
   const server = getHostServer();

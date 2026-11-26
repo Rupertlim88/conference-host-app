@@ -1,8 +1,8 @@
 import { getTranslations } from "next-intl/server";
 
-import { ConsoleShell } from "@/features/console-frame";
-import { SignOutButton } from "@/features/sign-in";
-import { serverApi } from "@/features/server";
+import { ConsoleShell } from "@/consoles/console-frame";
+import { SignOutButton } from "@/shared/sign-in";
+import { serverApi } from "@/shared/server";
 
 // Any signed-in guest may use the organiser console: this is a demo (CLAUDE.md rule 6).
 export default async function OrganiserLayout({ children }: { children: React.ReactNode }) {

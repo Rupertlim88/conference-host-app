@@ -14,10 +14,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ## The user's specification of the forms that pass between the host app's parts
 
 2. **The attendee app and the backend pass the programme in fixed forms.** Ids are 1–64 letters, digits, dots,
-   underscores or hyphens. Search takes 2–100 characters; a session kind asked for 1–100; a note at most 5,000; no text
-   sent in may hold a NUL character. The meeting, days, tracks, session kinds, sessions, talks, people, search results,
-   schedule, notes, the signed-in guest and related talks each have fixed forms: a short form for lists and a full one
-   where a page shows more.
+   underscores or hyphens. Search takes 2–100 characters; a note at most 5,000; no text sent in may hold a NUL
+   character. Only the programmes AMS's menu opens by name, Program Highlights' lists and the two pages of names can be
+   asked for. The meeting, days, tracks, sessions, talks, people, search results, schedule, notes, the signed-in guest,
+   related talks, highlight lists, pages of names and the view around the demo's fixed abstract each have fixed forms:
+   a short form for lists and a full one where a page shows more.
    *How:* code alone: zod schemas, with types inferred from them.
    *File:* `programme.ts`
 
@@ -29,6 +30,6 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `organiser.ts`
 
 4. **A send and the developer console's checks have fixed forms.** A send run's state and counts, the connection
-   test's outcome and HTTP status, and the API status the developer console shows.
+   test's outcome and HTTP status, the API status the developer console shows, and the talk the demo is fixed to.
    *How:* code alone: zod schemas.
    *File:* `sending.ts`

@@ -1,7 +1,5 @@
-import { HomeView } from "@/features/frame";
-import { serverApi } from "@/features/server";
+import { HomeView } from "@/base/menu";
 
-export default async function HomePage() {
-  const meeting = await (await serverApi()).meeting.get();
-  return <HomeView meeting={meeting} />;
+export default function HomePage() {
+  return <HomeView />;
 }

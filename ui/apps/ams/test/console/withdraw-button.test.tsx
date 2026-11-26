@@ -15,10 +15,10 @@ const mutation = (name: string) => ({
     isError: false,
   }),
 });
-vi.mock("@/features/connection", () => ({ trpc: { organiser: { talks: { withdraw: mutation("withdraw"), restore: mutation("restore") } } } }));
+vi.mock("@/shared/connection", () => ({ trpc: { organiser: { talks: { withdraw: mutation("withdraw"), restore: mutation("restore") } } } }));
 vi.mock("next/navigation", () => ({ useRouter: () => ({ refresh: () => {} }) }));
 
-const { WithdrawButton } = await import("@/features/organiser-papers");
+const { WithdrawButton } = await import("@/consoles/organiser-papers");
 const { renderApp } = await import("../render");
 
 test("a saved withdrawal shows Restore at once, and a second press restores", () => {

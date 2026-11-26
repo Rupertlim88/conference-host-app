@@ -1,6 +1,6 @@
-import { StarButton } from "@/features/my-schedule";
-import { orNotFound, serverApi } from "@/features/server";
-import { SessionView } from "@/features/session";
+import { StarButton } from "@/base/my-schedule";
+import { orNotFound, serverApi } from "@/shared/server";
+import { SessionView } from "@/base/session";
 
 export default async function SessionPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

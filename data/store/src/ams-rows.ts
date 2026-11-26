@@ -1,7 +1,7 @@
 // AMS's files become the host app's programme: its sessions, talks, people and tracks.
 import { z } from "zod";
 
-import { type PersonRow, type SessionRow, type SocietyRows, type TalkKind, type TalkRow } from "./load";
+import { type InfoListRow, type PersonRow, type SessionRow, type SocietyRows, type TalkKind, type TalkRow } from "./load";
 
 // The public download pads some values with spaces ("Event "); every text value is trimmed where it enters.
 const text = z.string().nullish().transform((v) => (v ?? "").trim());
@@ -45,13 +45,24 @@ const SlotSchema = z.object({
 
 const ProgramSchema = z.object({ id: z.string(), ProgramCode: z.string(), Title: title });
 
-/** The four committed AMS files: Paper, Session, SlotData and Program. Other fields are ignored. */
+const ids = z.array(z.string());
+const HighlightsSchema = z.object({ themed: ids, supplementary: ids, keynotes: ids, fellows: ids });
+const NameSectionsSchema = z.array(z.object({ heading: title, lines: z.array(title) }));
+const MeetingInfoSchema = z.object({ officers: NameSectionsSchema, committees: NameSectionsSchema });
+
+/** The committed AMS files: the programme's Paper, Session, SlotData and Program, its highlight lists and its pages of
+ *  names. Other fields are ignored. */
 export const AmsFilesSchema = z.object({
   Paper: z.array(PaperSchema),
   Session: z.array(SessionSchema),
   SlotData: z.array(SlotSchema),
   Program: z.array(ProgramSchema),
+  Highlights: HighlightsSchema,
+  MeetingInfo: MeetingInfoSchema,
 });
+
+/** Programmes that list organisations, not talks; each has its own button, so the conferences list leaves it out. */
+const LISTINGS = new Set(["EXHIBITHALL", "CAREERFAIR", "SPONSORS"]);
 export type AmsFiles = z.infer<typeof AmsFilesSchema>;
 
 const MEETING = {
@@ -101,13 +112,16 @@ function personId(name: string): string {
     .replace(/^-|-$/g, "");
 }
 
-/** AMS's four files, checked against their form, as the host app's programme. */
+/** AMS's files, checked against their form, as the host app's programme. */
 export function amsRows(raw: unknown): SocietyRows {
   const files: AmsFiles = AmsFilesSchema.parse(raw);
   const slots = new Map(files.SlotData.map((s) => [s.id, s]));
   const slotOf = (entries: string[]) => idsOf(entries, "SlotData").map((id) => slots.get(id)).find(Boolean);
   const programIds = new Set(files.Program.map((p) => p.id));
   const tracksOf = (entries: string[]) => idsOf(entries, "Program").filter((id) => programIds.has(id));
+  const on = (list: string[]) => new Set(list);
+  const themed = on(files.Highlights.themed);
+  const [supplementary, keynotes, fellows] = [on(files.Highlights.supplementary), on(files.Highlights.keynotes), on(files.Highlights.fellows)];
 
   const sessions: SessionRow[] = files.Session.map((s) => {
     const slot = slotOf(s.ParentList_SlotData);
@@ -124,6 +138,7 @@ export function amsRows(raw: unknown): SocietyRows {
       room: slot?.Room_Name ?? "",
       building: slot?.Property_Name ?? "",
       trackIds: tracksOf(s.ParentList_ParentEntries),
+      peopleThemed: themed.has(s.id),
     };
   });
   const sessionIds = new Set(sessions.map((s) => s.id));
@@ -158,6 +173,9 @@ export function amsRows(raw: unknown): SocietyRows {
       citation: htmlToText(p.EntryCitation_apa),
       trackIds: tracksOf(p.ParentList_ParentEntries),
       sort: 0,
+      coreKeynote: keynotes.has(p.id),
+      newFellow: fellows.has(p.id),
+      supplementary: supplementary.has(p.id),
     };
   });
 
@@ -172,11 +190,14 @@ export function amsRows(raw: unknown): SocietyRows {
 
   return {
     meeting: MEETING,
-    tracks: files.Program.map((p, i) => ({ id: p.id, code: p.ProgramCode, title: p.Title, sort: i })),
+    tracks: files.Program.map((p, i) => ({ id: p.id, code: p.ProgramCode, title: p.Title, sort: i, listed: !LISTINGS.has(p.ProgramCode) })),
     sessions,
     talks,
     people: [...people.values()],
     talkPeople,
+    infoLists: (["officers", "committees"] as const).flatMap((page) =>
+      files.MeetingInfo[page].map((section, position): InfoListRow => ({ page, position, ...section })),
+    ),
   };
 }
 

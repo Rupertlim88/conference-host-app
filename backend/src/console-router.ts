@@ -3,6 +3,7 @@ import {
   ApiStatusSchema,
   ChangesSchema,
   ConnectionTestSchema,
+  FixedAbstractInputSchema,
   IdInputSchema,
   MoveTalkInputSchema,
   OrganiserSessionDetailSchema,
@@ -14,6 +15,7 @@ import {
   SyncRunSchema,
   TalkListInputSchema,
   TalkListSchema,
+  TalkSummarySchema,
 } from "@repo/host-contracts";
 import { zonedInstant } from "@repo/host-store";
 import { TRPCError } from "@trpc/server";
@@ -129,4 +131,13 @@ export const developerRouter = router({
     };
   }),
   reset: viewerProcedure.output(ResetResultSchema).mutation(({ ctx }) => ctx.organiser.resetToPublished()),
+  fixedAbstract: viewerProcedure.output(TalkSummarySchema.nullable()).query(({ ctx }) => ctx.demo.fixedAbstract()),
+  setFixedAbstract: viewerProcedure
+    .input(FixedAbstractInputSchema)
+    .output(TalkSummarySchema)
+    .mutation(async ({ ctx, input }) => {
+      const talk = await ctx.demo.setFixedAbstract(input.talkId);
+      if (talk) return talk;
+      throw new TRPCError({ code: "BAD_REQUEST", message: "That talk cannot be the demo's abstract: it must be shown, and have an abstract." });
+    }),
 });

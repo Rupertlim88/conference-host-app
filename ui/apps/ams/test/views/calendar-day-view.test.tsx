@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { CalendarDayView } from "@/features/calendar";
+import { CalendarDayView } from "@/base/calendar";
 
 import { days, sessionSummary } from "../fixtures";
 import { renderApp } from "../render";

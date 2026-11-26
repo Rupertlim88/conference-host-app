@@ -2,7 +2,7 @@
 import { renderToStaticMarkup } from "react-dom/server";
 import { expect, test } from "vitest";
 
-import { GlobalError } from "@/features/errors";
+import { GlobalError } from "@/shared/errors";
 
 test("a failure in the root layout still says something went wrong in English, with Try again, as the main region", () => {
   const html = renderToStaticMarkup(<GlobalError reset={() => {}} retry={() => {}} />);

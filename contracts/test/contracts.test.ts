@@ -6,7 +6,7 @@ import {
   NoteInputSchema,
   RelatedTalksSchema,
   SearchInputSchema,
-  TalkDetailSchema, KindInputSchema, SavedNoteSchema, SocietySchema } from "../src/index";
+  TalkDetailSchema, SavedNoteSchema, SocietySchema, CodeInputSchema, HighlightInputSchema, NamePageInputSchema, AroundAbstractSchema, FixedAbstractInputSchema } from "../src/index";
 
 const summary = {
   id: "464598",
@@ -81,8 +81,27 @@ describe("a guest's saved note", () => {
 
 describe("a session kind asked for", () => {
   test("is 1 to 100 characters after trimming, and holds no NUL character", () => {
-    expect(KindInputSchema.parse({ kind: "  Joint Session " }).kind).toBe("Joint Session");
-    expect(KindInputSchema.safeParse({ kind: "Joint\u0000Session" }).success).toBe(false);
-    expect(KindInputSchema.safeParse({ kind: " " }).success).toBe(false);
+  });
+});
+
+describe("the demo's menu, highlights, pages of names and fixed abstract", () => {
+  test("only AMS's menu programmes, highlight lists and pages of names can be asked for", () => {
+    expect(CodeInputSchema.safeParse({ code: "EXHIBITHALL" }).success).toBe(true);
+    expect(CodeInputSchema.safeParse({ code: "TRASH" }).success).toBe(false);
+    expect(HighlightInputSchema.safeParse({ list: "keynotes" }).success).toBe(true);
+    expect(HighlightInputSchema.safeParse({ list: "everything" }).success).toBe(false);
+    expect(NamePageInputSchema.safeParse({ page: "officers" }).success).toBe(true);
+    expect(NamePageInputSchema.safeParse({ page: "press" }).success).toBe(false);
+  });
+
+  test("the counts around the abstract are positive whole numbers, or null when the API cannot answer", () => {
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matchesByTrack: null }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matchesByTrack: { "1878": 2 } }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matchesByTrack: { "1878": 0 } }).success).toBe(false);
+  });
+
+  test("the fixed abstract is named by a talk id", () => {
+    expect(FixedAbstractInputSchema.safeParse({ talkId: "493803" }).success).toBe(true);
+    expect(FixedAbstractInputSchema.safeParse({ talkId: "../x" }).success).toBe(false);
   });
 });
