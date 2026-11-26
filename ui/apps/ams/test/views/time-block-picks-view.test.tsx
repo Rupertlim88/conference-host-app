@@ -38,9 +38,14 @@ const sessionLinks = (root: HTMLElement = document.body) =>
     .getAllByRole("link")
     .map((a) => a.getAttribute("href"));
 const headings = () => screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent);
-/** The gold outline whose label reads exactly this, however the label's words are split into elements. */
-const outlineOf = (label: string) =>
-  screen.getByText((_, el) => el?.textContent === label && ![...el.children].some((child) => child.textContent === label)).closest("section")!;
+/** Every gold outline on the page, in page order. */
+const outlines = () => screen.getAllByText(LABEL).map((label) => label.closest("section")!);
+/** The page without its gold outlines, as HTML: what is left must be AMS's own day. */
+function outsideOutlines(container: HTMLElement) {
+  const copy = container.cloneNode(true) as HTMLElement;
+  for (const label of within(copy).getAllByText(LABEL)) label.closest("section")!.remove();
+  return copy.innerHTML;
+}
 /** The base's list for these sessions, as HTML, to compare with what our improvements show. */
 function amsList(sessions = day) {
   const { container, unmount } = renderApp(<DayList sessions={sessions} />);
@@ -49,23 +54,30 @@ function amsList(sessions = day) {
   return html;
 }
 
-test("a time block with recommendations starts with them in a gold outline that opens with the block's time as a heading", () => {
+test("every time block opens with its gold box, the block's time as a heading, then its recommendations", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
-  const outline = outlineOf(LABEL);
-  expect(within(outline).getByRole("heading", { level: 2 })).toHaveTextContent(/^8:30 AM$/);
-  expect(sessionLinks(outline)).toEqual(["/sessions/77136", "/sessions/76096"]);
-  expect(screen.getAllByText(/^Our change/)).toHaveLength(1);
+  expect(outlines()).toHaveLength(3);
+  const picked = outlines()[1]!;
+  expect(within(picked).getByRole("heading", { level: 2 })).toHaveTextContent(/^8:30 AM$/);
+  expect(sessionLinks(picked)).toEqual(["/sessions/77136", "/sessions/76096"]);
 });
 
-test("the rest of the block follows in AMS's order without them, and other blocks stay as AMS has them", () => {
+test("a block with no recommendation opens with its box empty, and the rest of the block stays as AMS has it", () => {
+  renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
+  const [early, , late] = outlines();
+  expect(early!.textContent).toBe(`${LABEL}7:00 AM`);
+  expect(late!.textContent).toBe(`${LABEL}10:00 AM`);
+});
+
+test("the rest of each block follows its box in AMS's order, without the recommended sessions", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
   expect(sessionLinks()).toEqual(["/sessions/77355", "/sessions/77136", "/sessions/76096", "/sessions/76879", "/sessions/75349"]);
-  expect(headings()).toEqual(["7:00 AM - 8:30 AM", "8:30 AM", "8:30 AM - 10:00 AM", "10:00 AM - 10:45 AM"]);
+  expect(headings()).toEqual(["7:00 AM", "7:00 AM - 8:30 AM", "8:30 AM", "8:30 AM - 10:00 AM", "10:00 AM", "10:00 AM - 10:45 AM"]);
 });
 
 test("each recommendation says whether it is a close or unexpected match, its related talks, the reason and when the first is", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
-  const [first, second] = within(outlineOf(LABEL)).getAllByRole("listitem");
+  const [first, second] = within(outlines()[1]!).getAllByRole("listitem");
   expect(first).toHaveTextContent("Close match");
   expect(first).toHaveTextContent("2 related talks");
   expect(first).toHaveTextContent("Both count a record year of severe weather.");
@@ -76,26 +88,31 @@ test("each recommendation says whether it is a close or unexpected match, its re
   expect(second).toHaveTextContent("First related talk at 8:30 AM");
 });
 
-test("a day whose blocks hold no match stays exactly as AMS has it", () => {
+test("a day whose blocks hold no match opens every block with its box empty, and otherwise stays exactly as AMS has it", () => {
   const base = amsList();
   const elsewhere = [match("493803", "77102", "15:45", 0.9, "core", "On another day.")];
   const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ matches: elsewhere })} label={LABEL} />);
-  expect(container.innerHTML).toBe(base);
+  expect(outlines().map((o) => o.textContent)).toEqual([`${LABEL}7:00 AM`, `${LABEL}8:30 AM`, `${LABEL}10:00 AM`]);
+  expect(outsideOutlines(container)).toBe(base);
 });
 
-test("when the matching API cannot answer, the calendar stays as AMS has it, and one gold note says so", () => {
+test("when the matching API cannot answer, every block's box is empty, the day stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
   const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ matches: null })} label={LABEL} />);
-  expect(within(outlineOf(LABEL)).getByText("The matching API cannot answer right now, so no sessions are recommended around your abstract and the calendar stays as AMS has it.")).toBeInTheDocument();
-  expect(screen.getAllByText(/^Our change/)).toHaveLength(1);
-  expect(container.innerHTML).toContain(base);
+  expect(outlines().map((o) => o.textContent)).toEqual([
+    `${LABEL}The matching API cannot answer right now, so no sessions are recommended around your abstract and the calendar stays as AMS has it.`,
+    `${LABEL}7:00 AM`,
+    `${LABEL}8:30 AM`,
+    `${LABEL}10:00 AM`,
+  ]);
+  expect(outsideOutlines(container)).toBe(base);
 });
 
-test("with no abstract to recommend around, the calendar stays as AMS has it, and one gold note says so", () => {
+test("with no abstract to recommend around, every block's box is empty, the day stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
   const { container } = renderApp(<CalendarPicksView sessions={day} around={{ abstract: null, abstractTrackIds: [], matches: null }} label={LABEL} />);
-  expect(within(outlineOf(LABEL)).getByText("The demo has no abstract to recommend sessions around yet.")).toBeInTheDocument();
-  expect(container.innerHTML).toContain(base);
+  expect(outlines().map((o) => o.textContent)).toEqual([`${LABEL}The demo has no abstract to recommend sessions around yet.`, `${LABEL}7:00 AM`, `${LABEL}8:30 AM`, `${LABEL}10:00 AM`]);
+  expect(outsideOutlines(container)).toBe(base);
 });
 
 test("a day with no sessions says so", () => {
