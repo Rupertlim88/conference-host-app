@@ -17,7 +17,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 2. **The meeting has its own schema in the database, and sign-in has a schema of its own.** The meeting's schema
    holds its meeting, tracks, sessions, talks, people, who gives which talk, the pages of names, the demo's settings,
-   stars, notes and send runs. A track says whether the conferences list shows it, and sessions and talks carry Program
+   stars, notes, send runs, every talk AMS publishes with its people, and the latest test set. A track says whether the conferences list shows it, and sessions and talks carry Program
    Highlights' marks. Sessions
    and talks keep the published programme beside the live one, so that every organiser's change can be shown and undone.
    Sign-in's tables (users, sessions, accounts, verifications) sit in their own schema, and an account is unique by
@@ -72,31 +72,36 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `time.ts`
 
 9. **Loading puts back the published programme in one step, and keeps stars, notes and sign-ins.** The
-   meeting, tracks, sessions, talks and people are written as both the live and the published programme, the pages of
-   names are written afresh, and anything no longer in the files is removed. It all happens in one transaction, so a failed load changes nothing. It undoes
+   meeting, tracks and sessions are written as both the live and the published programme, every talk AMS publishes is
+   written with its people as the whole programme, the pages of names are written afresh, and anything no longer in the
+   files is removed. The demo then holds the latest test set's talks, or the sample's until a test set arrives, as both
+   live and published. It all happens in one transaction, so a failed load changes nothing. It undoes
    organisers' edits.
-   *How:* code alone: one transaction of upserts in chunks of 500; the `load` command migrates first.
+   *How:* code alone: one transaction of writes in chunks of 500, holding the talks as a test set does; the `load`
+   command migrates first.
    *File:* `load.ts`
 
 10. **The demo carries a sample: every track and session, with five talks with an abstract from each track.** The
     five are spread evenly through the track's talks in time order, so that every day of the meeting holds some, and a
     talk counts for every track it is in. Breaks and the talks on Program
     Highlights' lists are always kept, and count against no track. People stay only with a talk that stays.
-    *How:* code alone; the `load` command applies it to AMS's files before loading.
+    *How:* code alone; the `load` command works it out from AMS's files, and loading holds its talks until a test set
+    arrives.
     *File:* `sample.ts`
 
 11. **The store keeps AMS's whole published programme beside the talks the demo holds.** Every talk AMS publishes is
     kept with its session, start and conferences, so that a test set can choose any of them and the programme map can
     list them all; the attendee app never reads it, and it holds only what the public programme shows.
     *How:* code alone; the `load` command writes it from AMS's files, in the same step as the programme.
-    *File:* needed
+    *File:* `whole-programme.ts`
 
 12. **The latest test set says which talks the demo holds.** Storing a test set replaces the one before it, and in the
     same step makes the demo hold exactly its talks, taken from the whole published programme, with every session and
-    conference kept, and fixes the demo to its first abstract. Until a test set arrives, the demo holds the sample;
-    loading again keeps the latest test set and holds its talks.
+    conference kept, and fixes the demo to its first abstract. Holding restarts the demo's programme: organisers'
+    edits go away, and stars and notes stay. Until a test set arrives, the demo holds the sample; loading again keeps
+    the latest test set and holds its talks.
     *How:* code alone: one transaction.
-    *File:* needed
+    *File:* `test-set.ts`
 
 ### Reading and writing
 

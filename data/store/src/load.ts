@@ -4,6 +4,8 @@ import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 
 import type { Db } from "./connect";
 import type { SocietyTables } from "./tables";
+import { holdTalks } from "./test-set";
+import { writeWholeProgramme } from "./whole-programme";
 
 export type MeetingRow = Omit<SocietyTables["meeting"]["$inferSelect"], "id">;
 export type TrackRow = SocietyTables["tracks"]["$inferSelect"];
@@ -30,7 +32,7 @@ export interface SocietyRows {
 }
 
 
-type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
+export type Tx = Parameters<Parameters<Db["transaction"]>[0]>[0];
 const CHUNK = 500;
 
 /** Every column set from the incoming row on conflict. Column names come from our schema, never from data. */
@@ -58,7 +60,6 @@ const published = <R extends Placed>(r: R) => ({
   pubRoom: r.room,
   pubBuilding: r.building,
 });
-const publishedTalk = (r: TalkRow) => ({ ...published(r), pubSessionId: r.sessionId, pubSort: r.sort, withdrawn: false });
 
 export interface LoadCounts {
   tracks: number;
@@ -67,10 +68,11 @@ export interface LoadCounts {
   people: number;
 }
 
-/** Writes one society's programme in a single transaction, as both live and published, with no talk withdrawn.
- *  Rows not in `rows` are deleted, so a rerun leaves the same store and undoes organiser edits. The loader is the
- *  only writer of the published columns. */
-export async function loadRows(db: Db, t: SocietyTables, rows: SocietyRows): Promise<LoadCounts> {
+/** Writes one society's whole programme in a single transaction: the meeting, every track and session as both live
+ *  and published, and every talk with its people as AMS's whole programme. The demo then holds the latest test set's
+ *  talks, or, until one arrives, `sample`'s, as published and none withdrawn. Rows not in `rows` are deleted, so a
+ *  rerun leaves the same store and undoes organiser edits. The loader is the only writer of the published columns. */
+export async function loadRows(db: Db, t: SocietyTables, rows: SocietyRows, sample: Pick<SocietyRows, "talks"> = rows): Promise<LoadCounts> {
   await db.transaction(async (tx) => {
     await tx
       .insert(t.meeting)
@@ -78,21 +80,16 @@ export async function loadRows(db: Db, t: SocietyTables, rows: SocietyRows): Pro
       .onConflictDoUpdate({ target: t.meeting.id, set: rows.meeting });
     await upsert(tx, t.tracks, t.tracks.id, rows.tracks);
     await upsert(tx, t.sessions, t.sessions.id, rows.sessions.map(published));
-    await upsert(tx, t.talks, t.talks.id, rows.talks.map(publishedTalk));
-    await upsert(tx, t.people, t.people.id, rows.people);
+    await writeWholeProgramme(tx, t, rows);
 
     await tx.delete(t.infoLists);
     if (rows.infoLists.length) await tx.insert(t.infoLists).values(rows.infoLists);
 
-    await tx.delete(t.talkPeople);
-    for (let i = 0; i < rows.talkPeople.length; i += CHUNK) {
-      await tx.insert(t.talkPeople).values(rows.talkPeople.slice(i, i + CHUNK));
-    }
+    const [latest] = await tx.select({ talks: t.testSet.talks }).from(t.testSet);
+    await holdTalks(tx, t, latest?.talks ?? sample.talks.map((r) => r.id));
 
     const keep = (ids: string[]) => (ids.length ? ids : ["\u0000"]);
-    await tx.delete(t.talks).where(notInArray(t.talks.id, keep(rows.talks.map((r) => r.id))));
     await tx.delete(t.sessions).where(notInArray(t.sessions.id, keep(rows.sessions.map((r) => r.id))));
-    await tx.delete(t.people).where(notInArray(t.people.id, keep(rows.people.map((r) => r.id))));
     await tx.delete(t.tracks).where(notInArray(t.tracks.id, keep(rows.tracks.map((r) => r.id))));
   });
 

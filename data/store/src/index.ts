@@ -9,3 +9,5 @@ export { createDemoSettings, type DemoSettings } from "./demo-settings";
 export { createOrganiserStore, type OrganiserStore, type Placement, type PlacementFacts } from "./organiser";
 export { zonedInstant } from "./time";
 export { createSyncLog, STALE_AFTER_MINUTES, type SyncCounts, type SyncLog } from "./sync-log";
+export { createWholeProgramme, type WholeProgramme, type WholeProgrammeStore, type WholeSession, type WholeTalk } from "./whole-programme";
+export { createTestSets, type TestSets } from "./test-set";
