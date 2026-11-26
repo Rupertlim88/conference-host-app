@@ -7,29 +7,39 @@ import { SessionCard } from "@/base/cards";
 import { When } from "@/shared/meeting-time";
 import { cn } from "@/shared/ui/utils";
 
-/** One day of the Meeting Calendar: the day, the meeting's days, and the day's sessions grouped by time. */
-export function CalendarDayView({ date, days, sessions }: { date: string; days: Day[]; sessions: SessionSummary[] }) {
-  const t = useTranslations("calendar");
+/** One day of the Meeting Calendar: the day, the meeting's days, and the day's list, which our versions may change. */
+export function CalendarDayView({ date, days, children }: { date: string; days: Day[]; children: React.ReactNode }) {
   const format = useFormatter();
-  const blocks = timeBlocks(sessions);
   return (
     <>
       <h1 className="text-center text-lg text-heading">{format.dateTime(new Date(`${date}T12:00:00Z`), { weekday: "long", month: "long", day: "numeric", year: "numeric", timeZone: "UTC" })}</h1>
       <DayStrip days={days} current={date} />
-      {blocks.length === 0 && <p className="text-center text-sm text-muted-foreground">{t("empty")}</p>}
-      {blocks.map((block) => (
-        <section key={`${block.startsAt}-${block.endsAt}`} className="mb-5">
-          <h2 className="mb-2 text-center font-semibold text-heading">
-            <When start={block.startsAt} end={block.endsAt} mode="range" />
-          </h2>
-          <div className="space-y-2">
-            {block.sessions.map((session) => (
-              <SessionCard key={session.id} session={session} />
-            ))}
-          </div>
-        </section>
-      ))}
+      {children}
     </>
+  );
+}
+
+/** The day's sessions grouped by time, or that the day has none. */
+export function DayList({ sessions }: { sessions: SessionSummary[] }) {
+  const t = useTranslations("calendar");
+  const blocks = timeBlocks(sessions);
+  if (blocks.length === 0) return <p className="text-center text-sm text-muted-foreground">{t("empty")}</p>;
+  return blocks.map((block) => <TimeBlockSessions key={`${block.startsAt}-${block.endsAt}`} block={block} />);
+}
+
+/** One group of the day: its time range, then its sessions. */
+export function TimeBlockSessions({ block }: { block: TimeBlock }) {
+  return (
+    <section className="mb-5">
+      <h2 className="mb-2 text-center font-semibold text-heading">
+        <When start={block.startsAt} end={block.endsAt} mode="range" />
+      </h2>
+      <div className="space-y-2">
+        {block.sessions.map((session) => (
+          <SessionCard key={session.id} session={session} />
+        ))}
+      </div>
+    </section>
   );
 }
 
