@@ -3,7 +3,7 @@
 import { fileURLToPath } from "node:url";
 
 const APPS = {
-  ams: { dir: "ui/apps/ams", port: 3001, name: "Isobar Meetings 2027", conference: "ams-2027", schema: "ams2027", sampleTalk: "487641" },
+  ams: { dir: "ui/apps/ams", port: 3001, name: "Isobar Meetings 2027", conference: "ams-2027", schema: "ams2027", sampleTalk: "493803" },
 };
 
 export function appFor(society) {

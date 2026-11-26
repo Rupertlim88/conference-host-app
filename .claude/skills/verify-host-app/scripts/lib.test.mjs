@@ -11,7 +11,7 @@ test("the AMS app has its folder, port, name and conference id", () => {
     name: "Isobar Meetings 2027",
     conference: "ams-2027",
     schema: "ams2027",
-    sampleTalk: "487641",
+    sampleTalk: "493803",
   });
 });
 
