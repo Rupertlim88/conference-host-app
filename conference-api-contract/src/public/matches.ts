@@ -1,3 +1,4 @@
+// Every field of a matches request, and of its answer, is checked as tightly as it can be.
 import { z } from "zod";
 
 import { PartnerIdSchema, ProgrammeVersionSchema } from "./ids";
@@ -57,8 +58,33 @@ export function matchAgreesWithShared(result: { match: boolean; shared: string[]
   }
 }
 
+/** The five kinds of pool a match can be listed in, and how many each lists at most. */
+export const POOL_SIZES = { conference: 10, subConference: 2, day: 5, timeBlock: 2, session: 2 } as const;
+export const PoolTypeSchema = z.enum(["conference", "subConference", "day", "timeBlock", "session"]);
+export type PoolType = z.infer<typeof PoolTypeSchema>;
+
+/** The pool a result is listed in: the whole conference, or one sub-conference (a track as the talks name it), day
+ *  (the conference's local date), time block (when its sessions start, with the offset) or session. */
+export const PoolSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("conference") }),
+  z.strictObject({ type: z.literal("subConference"), id: text(1, 100) }),
+  z.strictObject({ type: z.literal("day"), id: z.iso.date() }),
+  z.strictObject({ type: z.literal("timeBlock"), id: z.iso.datetime({ offset: true }) }),
+  z.strictObject({ type: z.literal("session"), id: PartnerIdSchema }),
+]);
+export type Pool = z.infer<typeof PoolSchema>;
+
+/** A pooled result is a match, ranked within as many as its pool lists. */
+function fitsItsPool(result: { match: boolean; rank: number; pool?: Pool }, ctx: z.RefinementCtx): void {
+  if (result.pool === undefined) return;
+  if (!result.match) ctx.addIssue({ code: "custom", path: ["pool"], message: "pools list only matches" });
+  if (result.rank > POOL_SIZES[result.pool.type]) {
+    ctx.addIssue({ code: "custom", path: ["rank"], message: "is beyond the number its pool lists" });
+  }
+}
+
 /** A result from matches:search, judged from the asker's talk named in "basedOn". "person" is there only when
- *  asking by people. */
+ *  asking by people, and "pool" only when asking with pools. */
 export const MatchSchema = z
   .strictObject({
     person: PartnerIdSchema.optional(),
@@ -66,11 +92,13 @@ export const MatchSchema = z
     talk: PartnerIdSchema,
     kind: MatchKindSchema,
     rank: z.int().min(1).max(1_000_000),
+    pool: PoolSchema.optional(),
     score: ScoreSchema,
     ...explanationFields,
     programmeVersion: ProgrammeVersionSchema,
   })
-  .superRefine(matchAgreesWithShared);
+  .superRefine(matchAgreesWithShared)
+  .superRefine(fitsItsPool);
 export type Match = z.infer<typeof MatchSchema>;
 
 /** A match from matches:fromText, which never names a person. */
@@ -94,12 +122,28 @@ export const MatchesSearchRequestSchema = z
     kind: MatchKindSchema.optional(),
     minScore: ScoreSchema.optional(),
     topPerPerson: z.int().min(1).max(1000).optional(),
+    pools: z
+      .array(PoolTypeSchema)
+      .min(1)
+      .max(PoolTypeSchema.options.length)
+      .refine((pools) => new Set(pools).size === pools.length, "names the same pool twice")
+      .meta({ uniqueItems: true })
+      .optional(),
+    perPool: z.int().min(1).max(Math.max(...Object.values(POOL_SIZES))).optional(),
     pageSize: z.int().min(1).max(1000).default(100),
     pageToken: PageTokenSchema.optional(),
   })
   .superRefine((request, ctx) => {
     if (request.people !== undefined && request.likeTalks !== undefined) {
       ctx.addIssue({ code: "custom", path: ["likeTalks"], message: "ask by people or by liked talks, not both" });
+    }
+    if (request.pools === undefined) {
+      if (request.perPool !== undefined) ctx.addIssue({ code: "custom", path: ["perPool"], message: "only with pools" });
+      return;
+    }
+    if (request.include === "all") ctx.addIssue({ code: "custom", path: ["include"], message: "pools list only matches" });
+    if (request.topPerPerson !== undefined) {
+      ctx.addIssue({ code: "custom", path: ["topPerPerson"], message: "pools set how many each lists" });
     }
   });
 export type MatchesSearchRequest = z.infer<typeof MatchesSearchRequestSchema>;

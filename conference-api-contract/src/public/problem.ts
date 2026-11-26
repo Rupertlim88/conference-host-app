@@ -1,3 +1,4 @@
+// Every refusal has one safe shape.
 import { z } from "zod";
 
 import { PartnerIdSchema, RequestIdSchema } from "./ids";

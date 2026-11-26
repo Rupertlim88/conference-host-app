@@ -1,15 +1,16 @@
+// What the data layer and the matching engines pass to each other is fixed.
 import { z } from "zod";
 
-import { JobIdSchema, ProgrammeVersionSchema } from "../public/ids";
-import { MatchKindSchema, explanationFields, matchAgreesWithShared } from "../public/matches";
+import { JobIdSchema, PartnerIdSchema, ProgrammeVersionSchema } from "../public/ids";
+import { MatchKindSchema, PoolSchema, explanationFields, matchAgreesWithShared } from "../public/matches";
 import { text } from "../public/text";
 
 /** The data layer's own ID for a talk. */
 const InternalIdSchema = z.int().min(1).max(Number.MAX_SAFE_INTEGER);
 
-/** What an engine may read of a talk: id, title, abstract, tracks and keywords, as the talk was sent. The author and
- *  presenter IDs let the run driver drop talks the anchor's presenters wrote; engines never read them. IDs are the
- *  data layer's own. */
+/** What an engine may read of a talk: id, title, abstract, tracks, keywords, and its session and the session's start
+ *  (null when the talk was sent without them), as the talk was sent. The author and presenter IDs let the run driver
+ *  drop talks the anchor's presenters wrote; engines never read them. Talk and person IDs are the data layer's own. */
 export const EngineTalkSchema = z
   .strictObject({
     id: InternalIdSchema,
@@ -17,6 +18,7 @@ export const EngineTalkSchema = z
     abstract: text(1, 10_000),
     tracks: z.array(text(1, 100)).max(20),
     keywords: z.array(text(1, 100)).max(50),
+    session: z.strictObject({ id: PartnerIdSchema, start: z.iso.datetime({ offset: true }).nullable() }).nullable(),
     authorIds: z.array(InternalIdSchema).max(200),
     presenterIds: z.array(InternalIdSchema).max(200),
   })
@@ -59,12 +61,22 @@ export type MatchingJob = z.infer<typeof MatchingJobSchema>;
 
 /** One engine judgment from an anchor talk to a candidate: match or not, what the two share, and the description
  *  written from the anchor's side. The data layer ranks results when it serves them. */
+/** The kinds of edge that join a match's two talks, seen from the anchor: the whole conference, each of the
+ *  candidate's sub-conferences (a talk names at most 20), its day, time block and session; each named once. */
+const EdgeKindsSchema = z
+  .array(PoolSchema)
+  .max(4 + 20)
+  .refine((pools) => new Set(pools.map((p) => JSON.stringify([p.type, "id" in p ? p.id : null]))).size === pools.length,
+    "names a pool twice")
+  .meta({ uniqueItems: true });
+
 export const MatchPairSchema = z
   .strictObject({
     anchor: InternalIdSchema,
     candidate: InternalIdSchema,
     score: z.number().min(0).max(1),
     kind: MatchKindSchema,
+    pools: EdgeKindsSchema,
     ...explanationFields,
   })
   .superRefine(matchAgreesWithShared)

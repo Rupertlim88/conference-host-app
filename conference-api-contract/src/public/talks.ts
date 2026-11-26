@@ -1,3 +1,4 @@
+// Every field of a talks write is checked as tightly as it can be.
 import { z } from "zod";
 
 import { JobIdSchema, PartnerIdSchema, ProgrammeVersionSchema } from "./ids";
@@ -32,6 +33,7 @@ export const SessionSchema = z.strictObject({
   id: PartnerIdSchema,
   title: text(1, 500).optional(),
   type: z.enum(["oral", "poster", "invited", "other"]).optional(),
+  start: z.iso.datetime({ offset: true }).optional(),
 });
 
 /** Every value that appears again after its first appearance, in order. */

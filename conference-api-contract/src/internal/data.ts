@@ -1,3 +1,4 @@
+// What the backend asks the data layer, and what it answers, is fixed.
 import { z } from "zod";
 
 import { PartnerIdSchema, RequestIdSchema } from "../public/ids";

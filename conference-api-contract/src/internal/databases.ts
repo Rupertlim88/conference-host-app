@@ -1,3 +1,4 @@
+// Each conference's database is named from its checked ID, so no two can share a name.
 import { z } from "zod";
 
 import { ConferenceIdSchema } from "../public/ids";

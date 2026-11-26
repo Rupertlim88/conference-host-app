@@ -7,6 +7,10 @@
       "abstract": "We measure heat.",
       "tracks": [],
       "keywords": [],
+      "session": {
+        "id": "G21",
+        "start": "2027-01-11T08:30:00-06:00"
+      },
       "authorIds": [],
       "presenterIds": []
     }
