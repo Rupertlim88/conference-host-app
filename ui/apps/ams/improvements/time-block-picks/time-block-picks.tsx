@@ -5,12 +5,14 @@ import { Fragment } from "react";
 
 import { DayList, TimeBlockSessions, timeBlocks, type TimeBlock } from "@/base/calendar";
 import { SessionCard } from "@/base/cards";
+import { aroundAbstract } from "@/improvements/matches/matches";
 import { When } from "@/shared/meeting-time";
 import { Badge } from "@/shared/ui/badge";
+import type { Change } from "@/versions/change";
 import { GoldOutline } from "@/versions/gold";
 
-/** The Meeting Calendar's day with each time block's recommendations at its top, each block's outline labelled with
- *  the change's label and the block's time. Without the abstract's matches, AMS's day stays, under one gold note. */
+/** The Meeting Calendar's day with each time block's recommendations at its top, each block's outline opening with the
+ *  block's start time as a heading, like AMS's own. Without the abstract's matches, AMS's day stays, under one gold note. */
 export function CalendarPicksView({ sessions, around, label }: { sessions: SessionSummary[]; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.calendarPicks");
   if (!around.abstract || !around.matches) {
@@ -28,16 +30,10 @@ export function CalendarPicksView({ sessions, around, label }: { sessions: Sessi
   return blocks.map((block) => (
     <Fragment key={block.startsAt}>
       {block.picks.length > 0 && (
-        <GoldOutline
-          label={
-            <>
-              {label} ·{" "}
-              <span className="whitespace-nowrap">
-                <When start={block.startsAt} mode="time" />
-              </span>
-            </>
-          }
-        >
+        <GoldOutline label={label}>
+          <h2 className="mb-2 text-center font-semibold text-heading">
+            <When start={block.startsAt} mode="time" />
+          </h2>
           <ul className="space-y-3">
             {block.picks.map((pick) => (
               <PickItem key={pick.session.id} pick={pick} />
@@ -51,6 +47,16 @@ export function CalendarPicksView({ sessions, around, label }: { sessions: Sessi
     </Fragment>
   ));
 }
+
+/** In place of the Meeting Calendar's day, the day with each time block's recommendations at its top. */
+export const timeBlockPicks: Change<"calendar.day"> = {
+  at: "calendar.day",
+  label: "calendarPicks",
+  outlinesItself: true,
+  render: async ({ sessions }, label) => (
+    <CalendarPicksView sessions={sessions} around={await aroundAbstract()} label={label} />
+  ),
+};
 
 /** A recommended session: its card, then the kind of match, how many related talks, when the first is, and why. */
 function PickItem({ pick }: { pick: Recommendation }) {

@@ -53,12 +53,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
     sessions from the meeting's start, or else the earliest day with sessions; with no sessions at all it goes home. A
     strip of days marks the current one. Sessions with the same start and end are grouped, earliest first; untimed
     sessions are left out; a day with none says so; an address that is not a date is "not found". The day's list is
-    a change point, where our versions can change it.
+    a change point, where our versions can change it. Above the day's list is a change point too.
     *How:* code alone; the calendar's pages count with this file.
     *File:* `calendar.tsx`
 
 6. **Conferences and Symposia lists every track, and each track lists its sessions by day.** The list leaves out the
-    listings of organisations, and its list is a change point, where our versions can reorder it. A track shows how many
+    listings of organisations, and its list is a change point, where our versions can change it. A track shows how many
     sessions it has, then its sessions under each day in meeting time, untimed ones last. The programmes AMS's menu opens
     by name (Events, Main Exhibit Hall, Career Resource and Graduate School Fair, Sponsor Index, Presidential Conference
     and Town Hall Meetings) open as track pages.
@@ -80,7 +80,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 9. **A session's page shows its time, place, chairs and talks.** Its tracks above the title; its label, then the
     title ("Session 5 - Wind Energy Forecasting", "Joint Session J1 - Decision Support I");
     a star; time and place; its description; its organisers; its presentations, or that none are listed; links to its
-    tracks.
+    tracks. Its list of talks is a change point, where our versions can change it.
     *How:* code alone; the session page counts with this file.
     *File:* `session.tsx`
 

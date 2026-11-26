@@ -1,0 +1,107 @@
+// In our improvements, Conferences and Symposia puts first the other conferences that hold a talk for the attendee's abstract, each with that talk and its reason.
+import type { AroundAbstract, AroundMatch, Track } from "@repo/host-contracts";
+import { useTranslations } from "next-intl";
+import Link from "next/link";
+
+import { aroundAbstract } from "@/improvements/matches/matches";
+import { When } from "@/shared/meeting-time";
+import { Badge } from "@/shared/ui/badge";
+import type { Change } from "@/versions/change";
+
+/** In place of the conferences list, the other conferences ranked for the abstract, then the rest in AMS's order. */
+export const conferencePicks: Change<"programmes.list"> = {
+  at: "programmes.list",
+  label: "conferencePicks",
+  render: async ({ tracks }) => <ConferencePicksView tracks={tracks} around={await aroundAbstract()} />,
+};
+
+/** A conference that holds a match for the abstract, with its best talk. */
+export interface ConferencePick {
+  track: Track;
+  best: AroundMatch;
+}
+
+/** The conferences ranked for the abstract: the other conferences holding its matches, the better best talk first, ties
+ *  in AMS's order; then every other conference in AMS's order, the attendee's own marked. */
+export function rankConferences(tracks: Track[], around: AroundAbstract): { picks: ConferencePick[]; rest: { track: Track; own: boolean }[] } {
+  const own = new Set(around.abstractTrackIds);
+  const picks = tracks
+    .filter((track) => !own.has(track.id))
+    .flatMap((track) => {
+      const held = (around.matches ?? []).filter((m) => m.tracks.some((t) => t.id === track.id));
+      return held.length > 0 ? [{ track, best: held.reduce((a, b) => (b.score > a.score ? b : a)) }] : [];
+    })
+    .sort((a, b) => b.best.score - a.best.score);
+  const picked = new Set(picks.map((p) => p.track.id));
+  return { picks, rest: tracks.filter((track) => !picked.has(track.id)).map((track) => ({ track, own: own.has(track.id) })) };
+}
+
+/** Conferences and Symposia's list, ranked for the demo's abstract; without the abstract's matches, AMS's order. */
+export function ConferencePicksView({ tracks, around }: { tracks: Track[]; around: AroundAbstract }) {
+  const t = useTranslations("improvements.conferencePicks");
+  const { picks, rest } = rankConferences(tracks, around);
+  const abstract = around.abstract;
+  return (
+    <>
+      <p className="mb-3 text-sm">
+        {!abstract
+          ? t("noAbstract")
+          : !around.matches
+            ? t("unavailable")
+            : t.rich("pickedFor", { abstract: [abstract.number, abstract.title].filter(Boolean).join(" "), b: (words) => <b>{words}</b> })}
+      </p>
+      {around.matches && picks.length === 0 && <p className="mb-3 text-sm">{t("none")}</p>}
+      {picks.length > 0 && (
+        <>
+          <ul className="mb-4 space-y-2">
+            {picks.map((pick) => (
+              <PickItem key={pick.track.id} pick={pick} />
+            ))}
+          </ul>
+          <h2 className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">{t("rest")}</h2>
+        </>
+      )}
+      <ul className="divide-y rounded-md border">
+        {rest.map(({ track, own }) => (
+          <li key={track.id}>
+            <Link href={`/programs/${track.id}`} className="block px-4 py-3 text-sm text-primary hover:bg-primary/5">
+              {track.title}
+              {own && (
+                <>
+                  {" "}
+                  <Badge variant="outline" className="ml-1 border-amber-400 bg-amber-50 text-amber-950">
+                    {t("yours")}
+                  </Badge>
+                </>
+              )}
+            </Link>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
+/** A conference ranked for the abstract: its name, then its best talk, the kind of match, when it is, and why. */
+function PickItem({ pick: { track, best } }: { pick: ConferencePick }) {
+  const t = useTranslations();
+  return (
+    <li className="rounded-md border border-amber-200 bg-white px-3 py-2 text-sm">
+      <Link href={`/programs/${track.id}`} className="font-semibold text-primary">
+        {track.title}
+      </Link>
+      <Link href={`/talks/${best.talk.id}`} className="mt-1 block text-heading hover:underline">
+        {best.talk.number && <span className="font-semibold">{best.talk.number}</span>} {best.talk.title}
+      </Link>
+      <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs text-muted-foreground">
+        <Badge variant={best.kind === "unexpected" ? "default" : "secondary"}>{best.kind === "unexpected" ? t("related.unexpected") : t("related.core")}</Badge>{" "}
+        {best.talk.startsAt && (
+          <span>
+            <When start={best.talk.startsAt} mode="date" /> · <When start={best.talk.startsAt} mode="time" />
+          </span>
+        )}
+      </p>
+      <p className="mt-1 text-xs">{t.rich("improvements.why", { reason: best.reason, b: (words) => <b>{words}</b> })}</p>
+    </li>
+  );
+}

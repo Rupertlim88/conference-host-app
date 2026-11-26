@@ -179,13 +179,19 @@ export function createProgramme(db: Db, society: Society) {
         .orderBy(asc(t.infoLists.position));
     },
 
-    /** How many of these talks, among the shown ones, fall in each track. */
-    async matchesByTrack(talkIds: string[]): Promise<Record<string, number>> {
+    /** The tracks each of these talks, among the shown ones, is in, by talk id, in the conferences list's order. */
+    async tracksOfTalks(talkIds: string[]): Promise<Record<string, Track[]>> {
       if (talkIds.length === 0) return {};
-      const rows = await db.select({ trackIds: t.talks.trackIds }).from(t.talks).where(and(shown, inArray(t.talks.id, talkIds)));
-      const counts: Record<string, number> = {};
-      for (const track of rows.flatMap((r) => r.trackIds)) counts[track] = (counts[track] ?? 0) + 1;
-      return counts;
+      const talks = await db.select({ id: t.talks.id, trackIds: t.talks.trackIds }).from(t.talks).where(and(shown, inArray(t.talks.id, talkIds)));
+      const trackIds = [...new Set(talks.flatMap((talk) => talk.trackIds))];
+      const tracks = trackIds.length
+        ? await db
+            .select({ id: t.tracks.id, code: t.tracks.code, title: t.tracks.title })
+            .from(t.tracks)
+            .where(inArray(t.tracks.id, trackIds))
+            .orderBy(asc(t.tracks.sort))
+        : [];
+      return Object.fromEntries(talks.map((talk) => [talk.id, tracks.filter((track) => talk.trackIds.includes(track.id))]));
     },
 
     async session(id: string): Promise<SessionDetail | null> {

@@ -156,11 +156,15 @@ export const NamePageInputSchema = z.strictObject({ page: NamePageSchema });
 export const NameSectionSchema = z.strictObject({ heading: z.string(), lines: z.array(z.string()) });
 export type NameSection = z.infer<typeof NameSectionSchema>;
 
-/** The demo's fixed abstract, its matches from the matching API, and how many of them fall in each track; the
- *  matches and the counts are null when the API cannot answer. */
+/** A match around the demo's fixed abstract: a related talk, with the conferences that talk is in. */
+export const AroundMatchSchema = RelatedMatchSchema.extend({ tracks: z.array(TrackSchema) });
+export type AroundMatch = z.infer<typeof AroundMatchSchema>;
+
+/** The demo's fixed abstract, the conferences of its session, which are the attendee's own, and its matches from the
+ *  matching API, each with the conferences its talk is in; the matches are null when the API cannot answer. */
 export const AroundAbstractSchema = z.strictObject({
   abstract: TalkSummarySchema.nullable(),
-  matches: z.array(RelatedMatchSchema).nullable(),
-  matchesByTrack: z.record(Id, z.int().min(1)).nullable(),
+  abstractTrackIds: z.array(Id),
+  matches: z.array(AroundMatchSchema).nullable(),
 });
 export type AroundAbstract = z.infer<typeof AroundAbstractSchema>;

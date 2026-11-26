@@ -1,13 +1,14 @@
 // A session's page shows its time, place, chairs and talks.
-import type { SessionDetail } from "@repo/host-contracts";
+import type { SessionDetail, TalkSummary } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { cardLabel, InfoBox, TalkCard } from "@/base/cards";
 import { PageTitle } from "@/base/frame";
 
-/** A session as the meeting app shows it: its conferences, title, star, when and where, description, organizers, presentations and related conferences. */
-export function SessionView({ session, star }: { session: SessionDetail; star: React.ReactNode }) {
+/** A session as the meeting app shows it: its conferences, title, star, when and where, description, organizers,
+ *  presentations and related conferences. Its list of talks comes from the page, so our versions can change it. */
+export function SessionView({ session, star, talks }: { session: SessionDetail; star: React.ReactNode; talks: React.ReactNode }) {
   const t = useTranslations("session");
   const format = useFormatter();
   // A plain session is titled by its kind, as AMS names it, and its number: "Session 5".
@@ -36,15 +37,7 @@ export function SessionView({ session, star }: { session: SessionDetail; star: R
       )}
       <section className="mb-5">
         <h2 className="mb-2 text-lg font-semibold text-heading">{t("presentations")}</h2>
-        {session.talks.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("none")}</p>
-        ) : (
-          <div className="space-y-2">
-            {session.talks.map((talk) => (
-              <TalkCard key={talk.id} talk={talk} />
-            ))}
-          </div>
-        )}
+        {talks}
       </section>
       {session.tracks.length > 0 && (
         <section>
@@ -61,5 +54,18 @@ export function SessionView({ session, star }: { session: SessionDetail; star: R
         </section>
       )}
     </>
+  );
+}
+
+/** A session's talks in order, each as a card, or that none are listed. */
+export function SessionTalks({ talks }: { talks: TalkSummary[] }) {
+  const t = useTranslations("session");
+  if (talks.length === 0) return <p className="text-sm text-muted-foreground">{t("none")}</p>;
+  return (
+    <div className="space-y-2">
+      {talks.map((talk) => (
+        <TalkCard key={talk.id} talk={talk} />
+      ))}
+    </div>
   );
 }

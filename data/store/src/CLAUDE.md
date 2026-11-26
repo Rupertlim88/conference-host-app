@@ -87,8 +87,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 11. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
     zone, tracks, sessions, talks and people; the conferences list leaves out the listings of organisations. It finds a
-    programme AMS's menu opens by its code, reads Program Highlights' lists and the pages of names, and counts how a set
-    of talks falls across the tracks. A person is listed only while one of their talks is shown.
+    programme AMS's menu opens by its code, reads Program Highlights' lists and the pages of names, and gives the
+    conferences each of a set of talks is in. A person is listed only while one of their talks is shown.
     A person who has no shown talk has no page either. Search covers talks, sessions and people, at most 50, 20 and 20.
     The talks a send carries are the same shown talks, with their session's title and format. The keep-alive's one
     trivial read is here, and so are the short forms of a session and a talk that every list shows.

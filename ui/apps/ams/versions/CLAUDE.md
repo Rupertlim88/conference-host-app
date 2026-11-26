@@ -28,9 +28,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    base a version may change, and holds each version's changes: the base changes nothing, and each other version's
    list of changes comes from its own folder. A change replaces what the base shows there, or adds to it. The chosen
    version is read on the server from the guest's choice, so a page never shows the base first. A change is outlined in
-   gold, with a short label saying what was changed, by the change point; a change that edits several parts of a page,
-   such as each time block of a calendar day, outlines each part itself. Where the version changes nothing, the base
-   shows as it is.
+   gold, with a short label saying what was changed, by the change point; a change that edits only parts of what the
+   base shows there, such as each time block of a calendar day or one talk of a session, outlines each part itself, and
+   adds no outline where it changes nothing. Where the version changes nothing, the base shows as it is.
    *How:* code alone: a server component reading the guest's cookie; the pages place the change points.
    *File:* `change.tsx`
 
