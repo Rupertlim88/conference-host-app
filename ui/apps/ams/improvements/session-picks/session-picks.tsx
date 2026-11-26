@@ -24,16 +24,23 @@ export function bestMatchIn(talks: TalkSummary[], matches: AroundMatch[]): Aroun
 }
 
 /** The session's talks in AMS's order, the one holding the best match for the abstract outlined in gold where it sits;
- *  with no such talk, or no answer from the matching API, AMS's list as it is. */
+ *  with no such talk, or no answer from the matching API, an empty gold box at the top of AMS's list. */
 export function SessionPicksView({ session, around, label }: { session: SessionDetail; around: AroundAbstract; label: string }) {
   const t = useTranslations();
+  const boxLabel = session.format === "Poster" ? t("improvements.sessionPicks.board") : label;
   const best = bestMatchIn(session.talks, around.matches ?? []);
-  if (!best) return <SessionTalks talks={session.talks} />;
+  if (!best)
+    return (
+      <>
+        <GoldOutline label={boxLabel} />
+        <SessionTalks talks={session.talks} />
+      </>
+    );
   return (
     <div className="space-y-2">
       {session.talks.map((talk) =>
         talk.id === best.talk.id ? (
-          <GoldOutline key={talk.id} label={session.format === "Poster" ? t("improvements.sessionPicks.board") : label}>
+          <GoldOutline key={talk.id} label={boxLabel}>
             <TalkCard talk={talk} />
             <p className="mt-1.5 text-xs">
               <Badge variant={best.kind === "unexpected" ? "default" : "secondary"}>{best.kind === "unexpected" ? t("related.unexpected") : t("related.core")}</Badge>

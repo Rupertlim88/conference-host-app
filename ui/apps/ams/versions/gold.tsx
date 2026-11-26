@@ -1,7 +1,7 @@
 // Every change is outlined in gold, with a label saying what changed.
 
-/** What a version changed, in a gold outline, with a label on its top edge saying what changed. */
-export function GoldOutline({ label, children }: { label: React.ReactNode; children: React.ReactNode }) {
+/** What a version changed, in a gold outline, with a label on its top edge saying what changed; empty with nothing to show. */
+export function GoldOutline({ label, children }: { label: React.ReactNode; children?: React.ReactNode }) {
   return (
     <section className="mt-4 mb-5 rounded-md border-2 border-amber-400 px-3 pb-3">
       {/* Shifted onto the top edge but kept in the flow, so a label that wraps on a phone pushes the change down. */}

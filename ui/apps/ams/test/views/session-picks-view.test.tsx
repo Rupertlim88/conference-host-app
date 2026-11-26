@@ -27,6 +27,12 @@ const talkLinks = () =>
     .getAllByRole("link")
     .map((a) => a.getAttribute("href"));
 const outlineOf = (label: string) => screen.getByText(label).closest("section")!;
+/** The page without its gold outline, as HTML: what is left must be AMS's own list. */
+function outsideOutline(container: HTMLElement, label = LABEL) {
+  const copy = container.cloneNode(true) as HTMLElement;
+  within(copy).getByText(label).closest("section")!.remove();
+  return copy.innerHTML;
+}
 /** The base's list of this session's talks, as HTML, to compare with what our improvements show. */
 function amsList(talks = session.talks) {
   const { container, unmount } = renderApp(<SessionTalks talks={talks} />);
@@ -55,20 +61,32 @@ test("in a poster session, the label says to visit that board first", () => {
   expect(screen.queryByText(LABEL)).not.toBeInTheDocument();
 });
 
-test("a session with no match for the abstract stays exactly as AMS has it", () => {
+test("a session with no match for the abstract opens its talks with an empty box to come for a talk, and its talks stay as AMS has them", () => {
   const base = amsList();
   const { container } = renderApp(<SessionPicksView session={session} around={around({ matches: [match(elsewhere, 0.99)] })} label={LABEL} />);
-  expect(container.innerHTML).toBe(base);
+  expect(outlineOf(LABEL).textContent).toBe(LABEL);
+  expect(container.firstElementChild).toBe(outlineOf(LABEL));
+  expect(outsideOutline(container)).toBe(base);
 });
 
-test("when the matching API cannot answer, the session stays exactly as AMS has it, with no note", () => {
+test("a poster session with no match opens its talks with an empty box to visit a board first", () => {
+  const poster = sessionDetail({ kind: "Poster Session", format: "Poster" });
+  const base = amsList(poster.talks);
+  const { container } = renderApp(<SessionPicksView session={poster} around={around({ matches: [match(elsewhere, 0.99)] })} label={LABEL} />);
+  expect(outlineOf("Our change: visit this board first").textContent).toBe("Our change: visit this board first");
+  expect(outsideOutline(container, "Our change: visit this board first")).toBe(base);
+});
+
+test("when the matching API cannot answer, the session shows the same empty box, with no note", () => {
   const base = amsList();
   const { container } = renderApp(<SessionPicksView session={session} around={around({ matches: null })} label={LABEL} />);
-  expect(container.innerHTML).toBe(base);
+  expect(outlineOf(LABEL).textContent).toBe(LABEL);
+  expect(outsideOutline(container)).toBe(base);
 });
 
-test("with no abstract, the session stays exactly as AMS has it", () => {
+test("with no abstract, the session shows the same empty box", () => {
   const base = amsList();
   const { container } = renderApp(<SessionPicksView session={session} around={{ abstract: null, abstractTrackIds: [], matches: null }} label={LABEL} />);
-  expect(container.innerHTML).toBe(base);
+  expect(outlineOf(LABEL).textContent).toBe(LABEL);
+  expect(outsideOutline(container)).toBe(base);
 });

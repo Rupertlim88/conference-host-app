@@ -19,7 +19,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    The session's talk that holds the matching API's best match for the fixed abstract is outlined in gold where it
    sits, so the session keeps its time order, with a label saying to come for that talk, whether it is a close or an
    unexpected match, and the reason. In a poster session the label says to visit that board first. A session with no
-   match, and every session when the matching API cannot answer, stays exactly as AMS has it.
+   match, and every session when the matching API cannot answer, shows an empty box with that label at the top of its
+   talks, which otherwise stay as AMS has them.
    *How:* code alone: the improvement's change to a session's list of talks, from the fixed abstract's matches in that
    session.
    *File:* `session-picks.tsx`
