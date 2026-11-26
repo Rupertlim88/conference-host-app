@@ -127,8 +127,10 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
     ]);
   });
 
-  test("matches are counted by the tracks they are in, and unknown talks count for none", async () => {
-    expect(await ams.matchesByTrack(["464598", "470089", "463094", "nope"])).toEqual({ "1878": 2, "1912": 1 });
-    expect(await ams.matchesByTrack([])).toEqual({});
+  test("each shown talk is given with the conferences it is in, and unknown talks with none", async () => {
+    const education = { id: "1878", code: "EDUCATION", title: "35th Conference on Education" };
+    const tropical = { id: "1912", code: "TROPICAL", title: "First Symposium on Tropical Meteorology and Climate" };
+    expect(await ams.tracksOfTalks(["464598", "470089", "463094", "nope"])).toEqual({ "464598": [education], "470089": [education], "463094": [tropical] });
+    expect(await ams.tracksOfTalks([])).toEqual({});
   });
 });

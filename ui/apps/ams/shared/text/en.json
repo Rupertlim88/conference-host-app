@@ -330,19 +330,25 @@
     "hint": "or press Control",
     "change": {
       "relatedTalks": "Our change: related talks",
-      "programmeOrder": "Our change: conferences ordered around your abstract",
+      "conferencePicks": "Our change: other conferences, ranked for your abstract",
       "calendarPicks": "Our change: recommended around your abstract"
     }
   },
   "improvements": {
-    "orderedAround": "Ordered around your abstract: {abstract}",
-    "unavailable": "The matching API cannot answer right now, so AMS's order stays.",
-    "noAbstract": "The demo has no abstract to order around yet.",
     "matches": "{count, plural, one {# related talk} other {# related talks}}",
     "calendarPicks": {
       "firstTalk": "First related talk at <time></time>",
       "unavailable": "The matching API cannot answer right now, so no sessions are recommended around your abstract and the calendar stays as AMS has it.",
       "noAbstract": "The demo has no abstract to recommend sessions around yet."
+    },
+    "why": "<b>Why:</b> {reason}",
+    "conferencePicks": {
+      "pickedFor": "Picked for your abstract: <b>{abstract}</b>",
+      "none": "No other conference holds a talk matched to your abstract yet.",
+      "rest": "The rest, in AMS's order",
+      "yours": "Your conference",
+      "unavailable": "The matching API cannot answer right now, so AMS's order stays.",
+      "noAbstract": "The demo has no abstract to order around yet."
     }
   }
 }

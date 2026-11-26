@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import type { AroundAbstract, RelatedMatch } from "@repo/host-contracts";
+import type { AroundAbstract, AroundMatch } from "@repo/host-contracts";
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
@@ -19,18 +19,19 @@ const coffee = sessionSummary({ id: "75349", number: "", kind: "Break", title: "
 const day = [coffee, panel, lightning, weather, breakfast];
 
 const LABEL = "Our change: recommended around your abstract";
-const match = (id: string, sessionId: string, startsAt: string, score: number, kind: RelatedMatch["kind"], reason: string): RelatedMatch => ({
+const match = (id: string, sessionId: string, startsAt: string, score: number, kind: AroundMatch["kind"], reason: string): AroundMatch => ({
   talk: talkSummary({ id, sessionId, startsAt: `2027-01-12T${startsAt}:00.000Z` }),
   kind,
   score,
   reason,
+  tracks: [],
 });
 const matches = [
   match("489412", "77136", "15:45", 0.7, "core", "Both review a year of hurricanes."),
   match("490001", "76096", "15:30", 0.9, "unexpected", "Lightning climatology uses the same records."),
   match("489233", "77136", "16:00", 0.85, "core", "Both count a record year of severe weather."),
 ];
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), matches, matchesByTrack: {}, ...over });
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], matches, ...over });
 
 const sessionLinks = (root: HTMLElement = document.body) =>
   within(root)
@@ -83,7 +84,7 @@ test("a day whose blocks hold no match stays exactly as AMS has it", () => {
 
 test("when the matching API cannot answer, the calendar stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ matches: null, matchesByTrack: null })} label={LABEL} />);
+  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ matches: null })} label={LABEL} />);
   expect(within(outlineOf(LABEL)).getByText("The matching API cannot answer right now, so no sessions are recommended around your abstract and the calendar stays as AMS has it.")).toBeInTheDocument();
   expect(screen.getAllByText(/^Our change/)).toHaveLength(1);
   expect(container.innerHTML).toContain(base);
@@ -91,7 +92,7 @@ test("when the matching API cannot answer, the calendar stays as AMS has it, and
 
 test("with no abstract to recommend around, the calendar stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={{ abstract: null, matches: null, matchesByTrack: null }} label={LABEL} />);
+  const { container } = renderApp(<CalendarPicksView sessions={day} around={{ abstract: null, abstractTrackIds: [], matches: null }} label={LABEL} />);
   expect(within(outlineOf(LABEL)).getByText("The demo has no abstract to recommend sessions around yet.")).toBeInTheDocument();
   expect(container.innerHTML).toContain(base);
 });

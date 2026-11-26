@@ -26,11 +26,11 @@ vi.mock("@/shared/server", () => ({
 
 const lightning = sessionSummary({ id: "76096", startsAt: "2027-01-12T15:30:00.000Z", endsAt: "2027-01-12T17:00:00.000Z" });
 const coffee = sessionSummary({ id: "75349", kind: "Break", startsAt: "2027-01-12T17:00:00.000Z", endsAt: "2027-01-12T17:45:00.000Z" });
-const match = { talk: talkSummary({ id: "490001", sessionId: "76096" }), kind: "core" as const, score: 0.9, reason: "Same records." };
+const match = { talk: talkSummary({ id: "490001", sessionId: "76096" }), kind: "core" as const, score: 0.9, reason: "Same records.", tracks: [] };
 
 beforeEach(() => {
   state.version = "improvements";
-  state.around = { abstract: talkSummary(), matches: [match], matchesByTrack: {} };
+  state.around = { abstract: talkSummary(), abstractTrackIds: [], matches: [match] };
 });
 
 test("in the base, a change point shows what the base has there", async () => {
@@ -42,7 +42,7 @@ test("in the base, a change point shows what the base has there", async () => {
 
 test("a version's change shows in place of the base, in a gold outline labelled with what it changed", async () => {
   renderApp(await ChangePoint({ at: "programmes.list", props: { tracks: [track()] }, children: <p>AMS's list</p> }));
-  expect(screen.getByText("Our change: conferences ordered around your abstract")).toBeInTheDocument();
+  expect(screen.getByText("Our change: other conferences, ranked for your abstract")).toBeInTheDocument();
   expect(screen.queryByText("AMS's list")).not.toBeInTheDocument();
 });
 
@@ -62,6 +62,6 @@ test("Our improvements show each improvement switched on in their list, at its o
 });
 
 test("two improvements at one change point are refused", () => {
-  const order: Change<"programmes.list"> = { at: "programmes.list", label: "programmeOrder", render: () => null };
+  const order: Change<"programmes.list"> = { at: "programmes.list", label: "conferencePicks", render: () => null };
   expect(() => changesFrom([order, { ...order }])).toThrow("Two improvements change programmes.list");
 });

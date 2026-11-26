@@ -59,11 +59,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *How:* code alone: one matches search per talk, joined to the store's talk summaries by talk id.
    *File:* `related.ts`
 
-6. **Our improvements see the demo's fixed abstract, and how the matching API's matches for it fall across the tracks.**
+6. **Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's matches for it with the conferences each is in.**
    The matches are the fixed abstract's related talks, up to twenty of them, each with its talk, kind, score and
-   reason, and each counts for every track it is in. When the API cannot answer, the matches and the counts are left
-   out, and the abstract still shows.
-   *How:* code alone: the related-talks file's matches, counted by the store.
+   reason, and the conferences its talk is in. The conferences of the abstract's session are the attendee's own. When
+   the API cannot answer, the matches are left out, and the abstract and its conferences still show.
+   *How:* code alone: the related-talks file's matches, with the abstract's session and each matched talk's conferences
+   read from the store.
    *File:* `around-abstract.ts`
 
 ### The consoles

@@ -58,7 +58,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *File:* `calendar.tsx`
 
 6. **Conferences and Symposia lists every track, and each track lists its sessions by day.** The list leaves out the
-    listings of organisations, and its list is a change point, where our versions can reorder it. A track shows how many
+    listings of organisations, and its list is a change point, where our versions can change it. A track shows how many
     sessions it has, then its sessions under each day in meeting time, untimed ones last. The programmes AMS's menu opens
     by name (Events, Main Exhibit Hall, Career Resource and Graduate School Fair, Sponsor Index, Presidential Conference
     and Town Hall Meetings) open as track pages.

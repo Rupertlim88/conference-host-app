@@ -7,22 +7,29 @@ import { MEETING_ZONE } from "@/shared/app";
 import { SessionCard } from "@/base/cards";
 import { PageTitle } from "@/base/frame";
 
-/** Every conference and symposium of the meeting, each leading to its programme. */
-export function ProgramsView({ tracks }: { tracks: Track[] }) {
+/** Conferences and Symposia: its title, then its list, which our versions may change. */
+export function ProgramsView({ children }: { children: React.ReactNode }) {
   const t = useTranslations("programs");
   return (
     <>
       <PageTitle>{t("title")}</PageTitle>
-      <ul className="divide-y rounded-md border">
-        {tracks.map((track) => (
-          <li key={track.id}>
-            <Link href={`/programs/${track.id}`} className="block px-4 py-3 text-sm text-primary hover:bg-primary/5">
-              {track.title}
-            </Link>
-          </li>
-        ))}
-      </ul>
+      {children}
     </>
+  );
+}
+
+/** Every conference and symposium of the meeting, each leading to its programme. */
+export function ProgramsList({ tracks }: { tracks: Track[] }) {
+  return (
+    <ul className="divide-y rounded-md border">
+      {tracks.map((track) => (
+        <li key={track.id}>
+          <Link href={`/programs/${track.id}`} className="block px-4 py-3 text-sm text-primary hover:bg-primary/5">
+            {track.title}
+          </Link>
+        </li>
+      ))}
+    </ul>
   );
 }
 
