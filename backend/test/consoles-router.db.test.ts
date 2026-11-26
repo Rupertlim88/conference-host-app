@@ -33,7 +33,7 @@ const rows = {
 const viewer = { id: "organiser-1", name: "Guest", email: "guest@example.com", image: null };
 const writes: string[] = [];
 const api: ConferenceApi = {
-  related: async () => ({ status: "unavailable" }),
+  pooled: async () => ({ status: "unavailable" }),
   writeTalks: async (req) => {
     writes.push(...req.talks.map((t) => t.id));
     return { programmeVersion: "pv_router", added: req.talks.length, changed: 0, withdrawn: 0, unchanged: 0, matchingJob: null };

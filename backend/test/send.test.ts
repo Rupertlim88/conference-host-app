@@ -91,7 +91,7 @@ describe("syncProgramme", () => {
   test("sends the programme in parts of 1,000 under one sync name, completing on the last", async () => {
     const sent: TalksWriteRequest[] = [];
     const api: ConferenceApi = {
-      related: async () => ({ status: "unavailable" }),
+      pooled: async () => ({ status: "unavailable" }),
     check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
       writeTalks: async (req, signal) => {
         expect(signal).toBe(stop);
@@ -111,7 +111,7 @@ describe("syncProgramme", () => {
   test("a talk that breaks the contract in a later part stops the send before any part is written", async () => {
     const sent: TalksWriteRequest[] = [];
     const api: ConferenceApi = {
-      related: async () => ({ status: "unavailable" }),
+      pooled: async () => ({ status: "unavailable" }),
       check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
       writeTalks: async (req) => {
         sent.push(req);

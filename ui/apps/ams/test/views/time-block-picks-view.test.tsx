@@ -6,7 +6,7 @@ import { expect, test } from "vitest";
 import { DayList } from "@/base/calendar";
 import { CalendarPicksView } from "@/improvements/time-block-picks/time-block-picks";
 
-import { sessionSummary, talkSummary } from "../fixtures";
+import { aroundPools, sessionSummary, talkSummary } from "../fixtures";
 import { renderApp } from "../render";
 
 // Real sessions on Tuesday, January 12, 2027. Major Weather Impacts I starts with the panel and the lightning session
@@ -26,12 +26,19 @@ const match = (id: string, sessionId: string, startsAt: string, score: number, k
   reason,
   tracks: [],
 });
-const matches = [
-  match("489412", "77136", "15:45", 0.7, "core", "Both review a year of hurricanes."),
-  match("490001", "76096", "15:30", 0.9, "unexpected", "Lightning climatology uses the same records."),
-  match("489233", "77136", "16:00", 0.85, "core", "Both count a record year of severe weather."),
-];
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], matches, ...over });
+// The matching API's pool for the time block at 8:30 AM, in its order: one talk from each session.
+const pools = aroundPools({
+  timeBlock: [
+    {
+      id: "2027-01-12T15:30:00.000Z",
+      matches: [
+        match("490001", "76096", "15:30", 0.9, "unexpected", "Lightning climatology uses the same records."),
+        match("489233", "77136", "16:00", 0.85, "core", "Both count a record year of severe weather."),
+      ],
+    },
+  ],
+});
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, ...over });
 
 const sessionLinks = (root: HTMLElement = document.body) =>
   within(root)
@@ -59,7 +66,7 @@ test("every time block opens with its gold box, the block's time as a heading, t
   expect(outlines()).toHaveLength(3);
   const picked = outlines()[1]!;
   expect(within(picked).getByRole("heading", { level: 2 })).toHaveTextContent(/^8:30 AM$/);
-  expect(sessionLinks(picked)).toEqual(["/sessions/77136", "/sessions/76096"]);
+  expect(sessionLinks(picked)).toEqual(["/sessions/76096", "/sessions/77136"]);
 });
 
 test("a block with no recommendation opens with its box empty, and the rest of the block stays as AMS has it", () => {
@@ -71,34 +78,33 @@ test("a block with no recommendation opens with its box empty, and the rest of t
 
 test("the rest of each block follows its box in AMS's order, without the recommended sessions", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
-  expect(sessionLinks()).toEqual(["/sessions/77355", "/sessions/77136", "/sessions/76096", "/sessions/76879", "/sessions/75349"]);
+  expect(sessionLinks()).toEqual(["/sessions/77355", "/sessions/76096", "/sessions/77136", "/sessions/76879", "/sessions/75349"]);
   expect(headings()).toEqual(["7:00 AM", "7:00 AM - 8:30 AM", "8:30 AM", "8:30 AM - 10:00 AM", "10:00 AM", "10:00 AM - 10:45 AM"]);
 });
 
-test("each recommendation says whether it is a close or unexpected match, its related talks, the reason and when the first is", () => {
+test("each recommendation says whether it is a close or unexpected match, the reason and when its related talk is", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
   const [first, second] = within(outlines()[1]!).getAllByRole("listitem");
-  expect(first).toHaveTextContent("Close match");
-  expect(first).toHaveTextContent("2 related talks");
-  expect(first).toHaveTextContent("Both count a record year of severe weather.");
-  expect(first).toHaveTextContent("First related talk at 8:45 AM");
-  expect(second).toHaveTextContent("Unexpected match");
-  expect(second).toHaveTextContent("1 related talk");
-  expect(second).toHaveTextContent("Lightning climatology uses the same records.");
-  expect(second).toHaveTextContent("First related talk at 8:30 AM");
+  expect(first).toHaveTextContent("Unexpected match");
+  expect(first).toHaveTextContent("Lightning climatology uses the same records.");
+  expect(first).toHaveTextContent("Related talk at 8:30 AM");
+  expect(second).toHaveTextContent("Close match");
+  expect(second).toHaveTextContent("Both count a record year of severe weather.");
+  expect(second).toHaveTextContent("Related talk at 9:00 AM");
+  expect(outlines()[1]).not.toHaveTextContent(/\d related talks?/);
 });
 
 test("a day whose blocks hold no match opens every block with its box empty, and otherwise stays exactly as AMS has it", () => {
   const base = amsList();
-  const elsewhere = [match("493803", "77102", "15:45", 0.9, "core", "On another day.")];
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ matches: elsewhere })} label={LABEL} />);
+  const elsewhere = aroundPools({ timeBlock: [{ id: "2027-01-11T15:30:00.000Z", matches: [match("493803", "77102", "15:45", 0.9, "core", "On another day.")] }] });
+  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ pools: elsewhere })} label={LABEL} />);
   expect(outlines().map((o) => o.textContent)).toEqual([`${LABEL}7:00 AM`, `${LABEL}8:30 AM`, `${LABEL}10:00 AM`]);
   expect(outsideOutlines(container)).toBe(base);
 });
 
 test("when the matching API cannot answer, every block's box is empty, the day stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ matches: null })} label={LABEL} />);
+  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ pools: null })} label={LABEL} />);
   expect(outlines().map((o) => o.textContent)).toEqual([
     `${LABEL}The matching API cannot answer right now, so no sessions are recommended around your abstract and the calendar stays as AMS has it.`,
     `${LABEL}7:00 AM`,
@@ -110,7 +116,7 @@ test("when the matching API cannot answer, every block's box is empty, the day s
 
 test("with no abstract to recommend around, every block's box is empty, the day stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={{ abstract: null, abstractTrackIds: [], matches: null }} label={LABEL} />);
+  const { container } = renderApp(<CalendarPicksView sessions={day} around={{ abstract: null, abstractTrackIds: [], pools: null }} label={LABEL} />);
   expect(outlines().map((o) => o.textContent)).toEqual([`${LABEL}The demo has no abstract to recommend sessions around yet.`, `${LABEL}7:00 AM`, `${LABEL}8:30 AM`, `${LABEL}10:00 AM`]);
   expect(outsideOutlines(container)).toBe(base);
 });

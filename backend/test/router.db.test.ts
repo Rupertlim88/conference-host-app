@@ -1,16 +1,17 @@
 import { migrateStore } from "@repo/host-store/migrate";
 import { amsTables, connect, createDemoSettings, createOrganiserStore, createGuestData, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
+import type { Pool } from "@repo/contracts";
 import { TRPCError } from "@trpc/server";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import type { ConferenceApi, RelatedAnswer } from "../src/matching-api";
+import type { ConferenceApi, PooledAnswer } from "../src/matching-api";
 import { appRouter } from "../src/server";
 import { createCallerFactory, type Context } from "../src/gate";
 import { rows } from "./programme";
 
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
-const api = (answer: RelatedAnswer): ConferenceApi => ({
-  related: async () => answer,
+const api = (answer: PooledAnswer): ConferenceApi => ({
+  pooled: async () => answer,
   writeTalks: async () => {
     throw new Error("not used");
   },
@@ -73,7 +74,7 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   });
 
   test("related talks come from the API, joined to this programme", async () => {
-    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
+    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, pool: { type: "conference" as const }, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
     const c = caller({ api: api({ status: "ok", matches: [match] }) });
     const got = await c.talks.related({ id: "T1" });
     expect(got.status).toBe("matches");
@@ -109,21 +110,45 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
     expect(await c.names.get({ page: "officers" })).toEqual([{ heading: "Local Organizing Committee", lines: ["Ada Author, Chair"] }]);
   });
 
-  test("our improvements see the fixed abstract, its session's conferences, and up to twenty of its matches with their conferences", async () => {
-    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
-    const asked: number[] = [];
-    const counting: ConferenceApi = { ...api({ status: "ok", matches: [match] }), related: async (_id, top) => (asked.push(top), { status: "ok", matches: [match] }) };
-    const around = await caller({ api: counting }).improvements.aroundAbstract();
-    expect(asked).toEqual([20]);
+  test("our improvements see the fixed abstract, its session's conferences, and the matching API's pools around it, by kind", async () => {
+    const result = (talk: string, pool: Pool, rank = 1) => ({ basedOn: "T1", talk, match: true, shared: ["technique" as const], kind: "unexpected" as const, rank, pool, score: 0.9, description: `Why ${talk}`, methods: [], programmeVersion: "pv" });
+    const asked: unknown[] = [];
+    const answering: ConferenceApi = {
+      ...api({ status: "unavailable" }),
+      pooled: async (talkId, pools) => (
+        asked.push([talkId, pools]),
+        {
+          status: "ok",
+          matches: [
+            result("T2", { type: "conference" }),
+            result("T2", { type: "subConference", id: "P1" }),
+            result("T2", { type: "subConference", id: "Hydrology and Water" }),
+            result("T2", { type: "day", id: "2026-01-27" }),
+            result("T2", { type: "timeBlock", id: "2026-01-27T13:45:00-06:00" }),
+            result("T2", { type: "session", id: "S1" }, 1),
+            result("T9", { type: "session", id: "S1" }, 2),
+            result("T1", { type: "session", id: "S1" }, 3),
+          ],
+        }
+      ),
+    };
+    const around = await caller({ api: answering }).improvements.aroundAbstract();
+    expect(asked).toEqual([["T1", ["subConference", "day", "timeBlock", "session"]]]);
+    const education = { id: "P1", code: "EDU", title: "Education" };
+    const t2 = { talk: expect.objectContaining({ id: "T2", sessionId: "S1" }), kind: "unexpected", score: 0.9, reason: "Why T2", tracks: [education] };
+    const t1 = { talk: expect.objectContaining({ id: "T1" }), kind: "unexpected", score: 0.9, reason: "Why T1", tracks: [education] };
     expect(around).toEqual({
       abstract: expect.objectContaining({ id: "T1" }),
       abstractTrackIds: ["P1"],
-      matches: [
-        { talk: expect.objectContaining({ id: "T2", sessionId: "S1" }), kind: "unexpected", score: 0.9, reason: "r", tracks: [{ id: "P1", code: "EDU", title: "Education" }] },
-      ],
+      pools: {
+        subConference: [{ id: "P1", matches: [t2] }],
+        day: [{ id: "2026-01-27", matches: [t2] }],
+        timeBlock: [{ id: "2026-01-27T19:45:00.000Z", matches: [t2] }],
+        session: [{ id: "S1", matches: [t2, t1] }],
+      },
     });
     const down = await caller({}).improvements.aroundAbstract();
-    expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), abstractTrackIds: ["P1"], matches: null });
+    expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), abstractTrackIds: ["P1"], pools: null });
   });
 
   test("the developer console fixes the demo to a talk, and names why a talk is refused", async () => {

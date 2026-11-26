@@ -6,6 +6,7 @@ import {
   TalksWriteRequestSchema,
   TalksWriteResponseSchema,
   type Match,
+  type PoolType,
   type TalksWriteRequest,
   type TalksWriteResponse,
 } from "@repo/contracts";
@@ -14,10 +15,11 @@ import type { ConnectionStatus, Society } from "@repo/host-contracts";
 /** The conference id each society's programme is filed under at the conference API. */
 export const CONFERENCE_IDS: Record<Society, string> = { ams: "ams-2027" };
 
-export type RelatedAnswer = { status: "ok"; matches: Match[] } | { status: "unavailable" };
+export type PooledAnswer = { status: "ok"; matches: Match[] } | { status: "unavailable" };
 
 export interface ConferenceApi {
-  related(talkId: string, top: number): Promise<RelatedAnswer>;
+  /** The matches for a talk that the matching API lists in these kinds of pool: every page of one matches search. */
+  pooled(talkId: string, pools: PoolType[]): Promise<PooledAnswer>;
   /** Writes talks; stops when `signal` aborts or the API takes longer than a minute. */
   writeTalks(req: TalksWriteRequest, signal?: AbortSignal): Promise<TalksWriteResponse>;
   /** One matches:search for a talk, to test the address and the key. Writes nothing, and keeps no body. */
@@ -64,9 +66,9 @@ export function checkTalksWrite(req: TalksWriteRequest): void {
   checked(TalksWriteRequestSchema, req);
 }
 
-/** Used when no API address is set: every related-talks request is unavailable. */
+/** Used when no API address is set: every matches search is unavailable. */
 export const unconfiguredApi: ConferenceApi = {
-  related: async () => ({ status: "unavailable" }),
+  pooled: async () => ({ status: "unavailable" }),
   writeTalks: async () => {
     throw new ApiNotSet();
   },
@@ -80,22 +82,31 @@ export function conferenceApi(opts: {
   timeoutMs?: number;
 }): ConferenceApi {
   const base = `${opts.url.replace(/\/$/, "")}/v1/conferences/${encodeURIComponent(opts.conference)}`;
-  const post = (path: string, body: unknown, timeoutMs: number, signal?: AbortSignal) =>
+  const post = (path: string, body: unknown, signal: AbortSignal) =>
     fetch(`${base}/${path}`, {
       method: "POST",
       headers: { authorization: `Bearer ${opts.key}`, "content-type": "application/json" },
       body: JSON.stringify(body),
-      signal: signal ? AbortSignal.any([AbortSignal.timeout(timeoutMs), signal]) : AbortSignal.timeout(timeoutMs),
+      signal,
     });
 
   return {
-    async related(talkId, top) {
+    async pooled(talkId, pools) {
+      // One time limit covers every page.
+      const deadline = AbortSignal.timeout(opts.timeoutMs ?? 3000);
+      const matches: Match[] = [];
       try {
-        const body = checked(MatchesSearchRequestSchema, { likeTalks: [talkId], topPerPerson: top });
-        const res = await post("matches:search", body, opts.timeoutMs ?? 3000);
-        if (!res.ok) return { status: "unavailable" };
-        const parsed = MatchesSearchResponseSchema.safeParse(await res.json());
-        return parsed.success ? { status: "ok", matches: parsed.data.matches } : { status: "unavailable" };
+        let pageToken: string | undefined;
+        do {
+          const ask = { likeTalks: [talkId], pools, pageSize: 1000, ...(pageToken ? { pageToken } : {}) };
+          const res = await post("matches:search", checked(MatchesSearchRequestSchema, ask), deadline);
+          if (!res.ok) return { status: "unavailable" };
+          const page = MatchesSearchResponseSchema.safeParse(await res.json());
+          if (!page.success) return { status: "unavailable" };
+          matches.push(...page.data.matches);
+          pageToken = page.data.nextPageToken;
+        } while (pageToken);
+        return { status: "ok", matches };
       } catch {
         return { status: "unavailable" };
       }
@@ -106,7 +117,7 @@ export function conferenceApi(opts: {
       const ms = () => Math.round(performance.now() - started);
       try {
         const body = checked(MatchesSearchRequestSchema, { likeTalks: [talkId], topPerPerson: 1 });
-        const res = await post("matches:search", body, opts.timeoutMs ?? 5000);
+        const res = await post("matches:search", body, AbortSignal.timeout(opts.timeoutMs ?? 5000));
         const validBody = res.ok && MatchesSearchResponseSchema.safeParse(await res.json().catch(() => null)).success;
         return { outcome: { kind: "answered", httpStatus: res.status, validBody }, ms: ms() };
       } catch {
@@ -115,7 +126,8 @@ export function conferenceApi(opts: {
     },
 
     async writeTalks(req, signal) {
-      const res = await post("talks:write", checked(TalksWriteRequestSchema, req), opts.timeoutMs ?? 60_000, signal);
+      const limit = AbortSignal.timeout(opts.timeoutMs ?? 60_000);
+      const res = await post("talks:write", checked(TalksWriteRequestSchema, req), signal ? AbortSignal.any([limit, signal]) : limit);
       if (!res.ok) {
         const problem = ProblemSchema.safeParse(await res.json().catch(() => null));
         if (!problem.success) throw new ApiRefusedError(res.status, "no problem details");

@@ -13,7 +13,7 @@ const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
 /** A conference API that takes every write, recording each request. */
 function taking(sent: TalksWriteRequest[]): ConferenceApi {
   return {
-    related: async () => ({ status: "unavailable" }),
+    pooled: async () => ({ status: "unavailable" }),
     check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
     writeTalks: async (req) => {
       sent.push(req);

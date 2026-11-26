@@ -3,10 +3,10 @@ import { describe, expect, test } from "vitest";
 
 import { picksOn } from "@/improvements/day-picks/day-picks";
 
-import { talkSummary } from "./fixtures";
+import { aroundPools, talkSummary } from "./fixtures";
 
-const match = (id: string, sessionId: string | null, startsAt: string | null, score: number): AroundMatch => ({
-  talk: talkSummary({ id, sessionId, startsAt }),
+const match = (id: string, score: number): AroundMatch => ({
+  talk: talkSummary({ id, sessionId: `S${id}` }),
   kind: "core",
   score,
   reason: `Why ${id} matches`,
@@ -15,29 +15,21 @@ const match = (id: string, sessionId: string | null, startsAt: string | null, sc
 const ids = (matches: AroundMatch[]) => matches.map((m) => m.talk.id);
 
 describe("picksOn", () => {
-  test("up to three talks that start that day in meeting time, the better score first", () => {
-    const matches = [
-      match("a", "S1", "2027-01-12T15:30:00.000Z", 0.5),
-      match("b", "S2", "2027-01-12T16:45:00.000Z", 0.9),
-      match("c", "S3", "2027-01-12T21:00:00.000Z", 0.7),
-      // 10:00 PM on Tuesday in Denver, though Wednesday in UTC.
-      match("d", "S4", "2027-01-13T05:00:00.000Z", 0.8),
-      // 7:00 AM on Wednesday in Denver.
-      match("e", "S5", "2027-01-13T14:00:00.000Z", 0.99),
-    ];
-    expect(ids(picksOn("2027-01-12", matches))).toEqual(["b", "d", "c"]);
+  test("the first three talks the matching API lists in its pool for that day, in its order", () => {
+    const pools = aroundPools({
+      day: [
+        { id: "2027-01-12", matches: [match("b", 0.9), match("d", 0.8), match("c", 0.7), match("a", 0.5)] },
+        { id: "2027-01-13", matches: [match("e", 0.99)] },
+      ],
+    });
+    expect(ids(picksOn("2027-01-12", pools))).toEqual(["b", "d", "c"]);
   });
 
-  test("one talk from each session, and never padded with others", () => {
-    const matches = [
-      match("a", "S1", "2027-01-12T15:30:00.000Z", 0.9),
-      match("b", "S1", "2027-01-12T15:45:00.000Z", 0.85),
-      match("c", "S2", "2027-01-12T21:00:00.000Z", 0.3),
-    ];
-    expect(ids(picksOn("2027-01-12", matches))).toEqual(["a", "c"]);
+  test("never padded: a day whose pool lists fewer shows only those", () => {
+    expect(ids(picksOn("2027-01-13", aroundPools({ day: [{ id: "2027-01-13", matches: [match("e", 0.99)] }] })))).toEqual(["e"]);
   });
 
-  test("talks with no time, or on other days, are never picked", () => {
-    expect(picksOn("2027-01-12", [match("a", "S1", null, 0.9), match("b", "S2", "2027-01-11T16:00:00.000Z", 0.9)])).toEqual([]);
+  test("a day the matching API lists no pool for has no picks", () => {
+    expect(picksOn("2027-01-14", aroundPools({ day: [{ id: "2027-01-13", matches: [match("e", 0.99)] }] }))).toEqual([]);
   });
 });

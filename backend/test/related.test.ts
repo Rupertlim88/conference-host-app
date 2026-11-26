@@ -1,7 +1,8 @@
+import type { Pool } from "@repo/contracts";
 import type { TalkSummary } from "@repo/host-contracts";
 import { describe, expect, test } from "vitest";
 
-import type { ConferenceApi, RelatedAnswer } from "../src/matching-api";
+import type { ConferenceApi, PooledAnswer } from "../src/matching-api";
 import { relatedTalks } from "../src/related";
 
 const summary = (id: string): TalkSummary => ({
@@ -18,10 +19,11 @@ const summary = (id: string): TalkSummary => ({
   presentingAuthor: "",
   authorLine: "",
 });
-const known = new Set(["T2", "T3"]);
+const known = new Set(["T2", "T3", "T4", "T5", "T6", "T7", "T8"]);
 const talkSummaries = async (ids: string[]) => ids.filter((id) => known.has(id)).map(summary);
-const apiAnswering = (answer: RelatedAnswer): ConferenceApi => ({
-  related: async () => answer,
+const asked: unknown[] = [];
+const apiAnswering = (answer: PooledAnswer): ConferenceApi => ({
+  pooled: async (talkId, pools) => (asked.push([talkId, pools]), answer),
   writeTalks: async () => {
     throw new Error("not used");
   },
@@ -29,13 +31,14 @@ const apiAnswering = (answer: RelatedAnswer): ConferenceApi => ({
     throw new Error("not used");
   },
 });
-const m = (talk: string, kind: "core" | "unexpected") => ({
+const m = (talk: string, kind: "core" | "unexpected", rank = 1, pool: Pool = { type: "conference" }) => ({
   basedOn: "T1",
   talk,
   match: true,
   shared: ["technique" as const],
   kind,
-  rank: 1,
+  rank,
+  pool,
   score: 0.8,
   description: `Why ${talk} is relevant to this study.`,
   methods: [],
@@ -43,8 +46,14 @@ const m = (talk: string, kind: "core" | "unexpected") => ({
 });
 
 describe("relatedTalks", () => {
+  test("asks the matching API for the whole conference's pool around the talk", async () => {
+    asked.length = 0;
+    await relatedTalks({ talkSummaries }, apiAnswering({ status: "ok", matches: [] }), "T1");
+    expect(asked).toEqual([["T1", ["conference"]]]);
+  });
+
   test("joins each match to its talk, in the API's order, skipping talks this programme lacks", async () => {
-    const api = apiAnswering({ status: "ok", matches: [m("T3", "unexpected"), m("T9", "core"), m("T2", "core")] });
+    const api = apiAnswering({ status: "ok", matches: [m("T3", "unexpected", 1), m("T9", "core", 2), m("T2", "core", 3)] });
     expect(await relatedTalks({ talkSummaries }, api, "T1")).toEqual({
       status: "matches",
       matches: [
@@ -52,6 +61,18 @@ describe("relatedTalks", () => {
         { talk: summary("T2"), kind: "core", score: 0.8, reason: "Why T2 is relevant to this study." },
       ],
     });
+  });
+
+  test("shows the first five of the up to ten the pool lists", async () => {
+    const ten = ["T2", "T9", "T3", "T4", "T5", "T6", "T7", "T8", "T10", "T11"].map((id, i) => m(id, "core", i + 1));
+    const got = await relatedTalks({ talkSummaries }, apiAnswering({ status: "ok", matches: ten }), "T1");
+    expect(got.status === "matches" && got.matches.map((x) => x.talk.id)).toEqual(["T2", "T3", "T4", "T5", "T6"]);
+  });
+
+  test("shows only what the matching API listed in the whole conference's pool", async () => {
+    const api = apiAnswering({ status: "ok", matches: [m("T2", "core", 1, { type: "session", id: "S1" }), m("T3", "core", 1)] });
+    const got = await relatedTalks({ talkSummaries }, api, "T1");
+    expect(got.status === "matches" && got.matches.map((x) => x.talk.id)).toEqual(["T3"]);
   });
 
   test("no usable matches is none", async () => {

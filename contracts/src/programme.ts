@@ -160,11 +160,25 @@ export type NameSection = z.infer<typeof NameSectionSchema>;
 export const AroundMatchSchema = RelatedMatchSchema.extend({ tracks: z.array(TrackSchema) });
 export type AroundMatch = z.infer<typeof AroundMatchSchema>;
 
-/** The demo's fixed abstract, the conferences of its session, which are the attendee's own, and its matches from the
- *  matching API, each with the conferences its talk is in; the matches are null when the API cannot answer. */
+/** One of the matching API's pools around the abstract: which one, and its matches in the API's order. */
+const poolOf = (id: z.ZodType<string>) => z.strictObject({ id, matches: z.array(AroundMatchSchema).min(1) });
+
+/** The matching API's pools around the abstract, by kind: each other conference by its track id, each day by the
+ *  meeting's date, each time block by its start instant, and each session by its id. */
+export const AroundPoolsSchema = z.strictObject({
+  subConference: z.array(poolOf(Id)),
+  day: z.array(poolOf(z.iso.date())),
+  timeBlock: z.array(poolOf(z.iso.datetime())),
+  session: z.array(poolOf(Id)),
+});
+export type AroundPools = z.infer<typeof AroundPoolsSchema>;
+export type AroundPool = AroundPools[keyof AroundPools][number];
+
+/** The demo's fixed abstract, the conferences of its session, which are the attendee's own, and the matching API's
+ *  pools around it; the pools are null when the API cannot answer. */
 export const AroundAbstractSchema = z.strictObject({
   abstract: TalkSummarySchema.nullable(),
   abstractTrackIds: z.array(Id),
-  matches: z.array(AroundMatchSchema).nullable(),
+  pools: AroundPoolsSchema.nullable(),
 });
 export type AroundAbstract = z.infer<typeof AroundAbstractSchema>;

@@ -336,9 +336,8 @@
     }
   },
   "improvements": {
-    "matches": "{count, plural, one {# related talk} other {# related talks}}",
     "calendarPicks": {
-      "firstTalk": "First related talk at <time></time>",
+      "talkAt": "Related talk at <time></time>",
       "unavailable": "The matching API cannot answer right now, so no sessions are recommended around your abstract and the calendar stays as AMS has it.",
       "noAbstract": "The demo has no abstract to recommend sessions around yet."
     },

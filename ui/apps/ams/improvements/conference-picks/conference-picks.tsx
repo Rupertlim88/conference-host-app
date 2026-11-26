@@ -24,15 +24,17 @@ export interface ConferencePick {
   best: AroundMatch;
 }
 
-/** The conferences ranked for the abstract: the other conferences holding its matches, the better best talk first, ties
- *  in AMS's order; then every other conference in AMS's order, the attendee's own marked. */
+/** The conferences ranked for the abstract: each other conference the matching API lists a pool for, with the first
+ *  talk its pool lists, the better of those talks first, ties in AMS's order; then every other conference in AMS's
+ *  order, the attendee's own marked. */
 export function rankConferences(tracks: Track[], around: AroundAbstract): { picks: ConferencePick[]; rest: { track: Track; own: boolean }[] } {
   const own = new Set(around.abstractTrackIds);
+  const pools = new Map((around.pools?.subConference ?? []).map((pool) => [pool.id, pool.matches[0]!]));
   const picks = tracks
     .filter((track) => !own.has(track.id))
     .flatMap((track) => {
-      const held = (around.matches ?? []).filter((m) => m.tracks.some((t) => t.id === track.id));
-      return held.length > 0 ? [{ track, best: held.reduce((a, b) => (b.score > a.score ? b : a)) }] : [];
+      const best = pools.get(track.id);
+      return best ? [{ track, best }] : [];
     })
     .sort((a, b) => b.best.score - a.best.score);
   const picked = new Set(picks.map((p) => p.track.id));
@@ -48,7 +50,7 @@ export function ConferencePicksView({ tracks, around, label }: { tracks: Track[]
   return (
     <>
       <GoldOutline label={label}>
-        {!abstract || !around.matches ? (
+        {!abstract || !around.pools ? (
           <p className="text-sm">{t(abstract ? "unavailable" : "noAbstract")}</p>
         ) : (
           picks.length > 0 && (

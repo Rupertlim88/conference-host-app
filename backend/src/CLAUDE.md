@@ -52,19 +52,23 @@ Everything else is a lower level, written by Claude to carry out these specifica
    are handed to the related-talks file.
    *File:* `attendee-router.ts`
 
-5. **A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.** Up
-   to five matches are asked for a talk's panel; a caller may ask for more. Each is shown with its kind, score and reason, as the talk this programme holds; a
-   match to a talk this programme does not show is left out. When the API cannot answer, the panel says so; when
-   nothing is left, it says there are none.
-   *How:* code alone: one matches search per talk, joined to the store's talk summaries by talk id.
+5. **A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.** The
+   matching API is asked for its pool for the whole conference around the talk, which lists up to ten matches, and the
+   panel shows the first five. Each is shown with its kind, score and reason, as the talk this programme holds; a
+   match to a talk this programme does not show is left out, and so is anything listed outside that pool. When the API
+   cannot answer, the panel says so; when nothing is left, it says there are none.
+   *How:* code alone: one matches search by pool per talk, joined to the store's talk summaries by talk id.
    *File:* `related.ts`
 
-6. **Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's matches for it with the conferences each is in.**
-   The matches are the fixed abstract's related talks, up to twenty of them, each with its talk, kind, score and
-   reason, and the conferences its talk is in. The conferences of the abstract's session are the attendee's own. When
-   the API cannot answer, the matches are left out, and the abstract and its conferences still show.
-   *How:* code alone: the related-talks file's matches, with the abstract's session and each matched talk's conferences
-   read from the store.
+6. **Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.**
+   One request asks the matching API for the fixed abstract's matches in four kinds of pool: each other conference,
+   each day, each time block and each session. Its pools are grouped by kind: a conference by its track, a day by its
+   date, a time block by its start instant and a session by its id. Each pool keeps the API's order, and each match
+   carries its talk, kind, score and reason, and the conferences its talk is in; a match to a talk this programme does
+   not show is left out, and so is a pool this programme cannot name. The conferences of the abstract's session are the
+   attendee's own. When the API cannot answer, the pools are left out, and the abstract and its conferences still show.
+   *How:* code alone: one matches search by pool, every page of it, with the abstract's session and each matched talk
+   and its conferences read from the store.
    *File:* `around-abstract.ts`
 
 ### The consoles
@@ -97,14 +101,16 @@ Everything else is a lower level, written by Claude to carry out these specifica
    in by its address and key. It is called at `/v1/conferences/<conference>/`, with the conference `ams-2027`, and the key as a bearer token.
    - **Requests.** Every request is checked against the conference API's contract before it is sent, and one that
      fails is never sent.
-   - **Time limits.** A matches search for related talks waits 3 seconds, a connection test 5 seconds, a talks write a
-     minute, and a write also stops when its send's deadline passes.
+   - **Matches by pool.** A matches search names the kinds of pool to list the matches in, asks for pages of a
+     thousand and reads every page; when one page fails, the whole search is unavailable.
+   - **Time limits.** A matches search waits 3 seconds in all, across its pages, a connection test 5 seconds, a talks
+     write a minute, and a write also stops when its send's deadline passes.
    - **Answers.** Every answer is checked against the contract. A refused write reports its status, its problem title
      and its first five errors.
    - **The connection test** sends one matches search for a talk, writes nothing, keeps no body, and reports one of:
      ok, key refused, no programme at the API, an unexpected answer, unreachable, or not set.
-   - **With no address set,** related talks are unavailable, a send is refused with what to set, and the test says
-     "not set".
+   - **With no address set,** every matches search is unavailable, a send is refused with what to set, and the test
+     says "not set".
    *How:* code alone: `fetch` with an abort signal; zod schemas from the host app's copy of the conference API's
    contract check each request before it is sent and each answer as it arrives.
    *File:* `matching-api.ts`

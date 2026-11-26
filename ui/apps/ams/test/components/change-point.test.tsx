@@ -6,7 +6,7 @@ import { beforeEach, expect, test, vi } from "vitest";
 import * as chosen from "@/improvements";
 import { ChangePoint, changesFrom, type Change } from "@/versions/change";
 
-import { sessionSummary, talkSummary, track } from "../fixtures";
+import { aroundPools, sessionSummary, talkSummary, track } from "../fixtures";
 import { renderApp } from "../render";
 
 // Next's request cookies, its server translations and the backend cannot run outside Next; the change point and the
@@ -30,7 +30,7 @@ const match = { talk: talkSummary({ id: "490001", sessionId: "76096" }), kind: "
 
 beforeEach(() => {
   state.version = "improvements";
-  state.around = { abstract: talkSummary(), abstractTrackIds: [], matches: [match] };
+  state.around = { abstract: talkSummary(), abstractTrackIds: [], pools: aroundPools({ timeBlock: [{ id: "2027-01-12T15:30:00.000Z", matches: [match] }] }) };
 });
 
 test("in the base, a change point shows what the base has there", async () => {
