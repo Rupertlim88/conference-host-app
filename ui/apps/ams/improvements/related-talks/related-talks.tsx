@@ -29,7 +29,6 @@ export function RelatedPanel({ related, loading, failed }: { related: Related | 
         </div>
       )}
       {(failed || related?.status === "unavailable") && <p className="text-sm">{t("unavailable")}</p>}
-      {related?.status === "none" && <p className="text-sm">{t("none")}</p>}
       {related?.status === "matches" && (
         <ul className="space-y-2">
           {related.matches.map((m) => (

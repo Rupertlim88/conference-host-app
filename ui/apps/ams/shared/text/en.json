@@ -55,7 +55,6 @@
     "title": "Related talks",
     "subtitle": "Talks related to this one, found by the conference API",
     "loading": "Finding related talks…",
-    "none": "No related talks for this talk yet.",
     "unavailable": "Related talks are unavailable right now.",
     "unexpected": "Unexpected match",
     "core": "Close match"
