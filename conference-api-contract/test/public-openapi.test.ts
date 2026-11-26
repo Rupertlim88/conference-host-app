@@ -117,7 +117,7 @@ describe("the published specification", () => {
     for (const op of operations()) {
       const responses = op.responses as Record<string, Json>;
       const refusals = Object.keys(responses).filter((code) => Number(code) >= 400);
-      expect(refusals.sort()).toEqual(["400", "401", "404", "409", "413", "415", "429", "500", "503"]);
+      expect(refusals.sort()).toEqual(["400", "401", "403", "404", "409", "413", "415", "429", "500", "503"]);
       for (const code of refusals) {
         const content = responses[code]!.content as Json;
         expect(Object.keys(content)).toEqual(["application/problem+json"]);

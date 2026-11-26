@@ -8,6 +8,7 @@ import {
   MatchesFromTextResponseSchema,
   MatchesSearchRequestSchema,
   MatchesSearchResponseSchema,
+  POOL_SIZES,
 } from "../src/public/index";
 
 const FIXTURES = join(import.meta.dirname, "..", "fixtures", "public");
@@ -30,6 +31,10 @@ describe("valid examples parse", () => {
     expect(MatchesSearchRequestSchema.safeParse(read("valid/matches_search_request.json")).success).toBe(true));
   test("search response", () =>
     expect(MatchesSearchResponseSchema.safeParse(read("valid/matches_search_response.json")).success).toBe(true));
+  test("search request with pools", () =>
+    expect(MatchesSearchRequestSchema.safeParse(read("valid/matches_search_request-pools.json")).success).toBe(true));
+  test("search response with pools", () =>
+    expect(MatchesSearchResponseSchema.safeParse(read("valid/matches_search_response-pools.json")).success).toBe(true));
   test("fromText request", () =>
     expect(MatchesFromTextRequestSchema.safeParse(read("valid/matches_from_text_request.json")).success).toBe(true));
   test("fromText response", () =>
@@ -155,6 +160,64 @@ describe("matches:fromText", () => {
     ).toBe(false));
 });
 
+describe("matches:search with pools", () => {
+  const pooled = { ...searchMatch, pool: { type: "session", id: "G21" } };
+  test("a search can list its results in any of the five kinds of pool", () =>
+    expect(
+      MatchesSearchRequestSchema.safeParse({ pools: ["conference", "subConference", "day", "timeBlock", "session"] })
+        .success,
+    ).toBe(true));
+  test("refuses a pool outside the five kinds", () =>
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["building"] })).toContain("pools.0"));
+  test("names each pool at most once", () =>
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day", "day"] })).toContain("pools"));
+  test("lists only matches", () =>
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], include: "all" })).toContain("include"));
+  test("sets no cap per person", () =>
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], topPerPerson: 3 })).toContain("topPerPerson"));
+  test("caps each pool at no more than the largest pool lists, and only with pools", () => {
+    expect(MatchesSearchRequestSchema.safeParse({ pools: ["day"], perPool: 1 }).success).toBe(true);
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], perPool: 0 })).toContain("perPool");
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], perPool: 11 })).toContain("perPool");
+    expect(issuePaths(MatchesSearchRequestSchema, { perPool: 1 })).toContain("perPool");
+  });
+  test("the pools list 10, 2, 5, 2 and 2", () =>
+    expect(POOL_SIZES).toEqual({ conference: 10, subConference: 2, day: 5, timeBlock: 2, session: 2 }));
+  test("a result says which pool it is listed in", () => {
+    expect(MatchesSearchResponseSchema.safeParse({ matches: [pooled] }).success).toBe(true);
+    for (const pool of [
+      { type: "conference" },
+      { type: "subConference", id: "Hydrology" },
+      { type: "day", id: "2027-01-11" },
+      { type: "timeBlock", id: "2027-01-11T08:30:00-06:00" },
+    ]) {
+      expect(MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, pool }] }).success).toBe(true);
+    }
+  });
+  test("the whole conference has no id, and every other pool has one", () => {
+    const withId = { ...searchMatch, pool: { type: "conference", id: "x" } };
+    expect(MatchesSearchResponseSchema.safeParse({ matches: [withId] }).success).toBe(false);
+    const without = { ...searchMatch, pool: { type: "session" } };
+    expect(MatchesSearchResponseSchema.safeParse({ matches: [without] }).success).toBe(false);
+  });
+  test("a day is a date and a time block a time with its offset", () => {
+    for (const pool of [
+      { type: "day", id: "2027-01-11T08:30:00-06:00" },
+      { type: "timeBlock", id: "2027-01-11T08:30:00" },
+    ]) {
+      expect(MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, pool }] }).success).toBe(false);
+    }
+  });
+  test("a pooled result ranks within its pool's size", () => {
+    expect(MatchesSearchResponseSchema.safeParse({ matches: [{ ...pooled, rank: 2 }] }).success).toBe(true);
+    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...pooled, rank: 3 }] })).toContain("matches.0.rank");
+  });
+  test("a pooled result is a match", () =>
+    expect(
+      issuePaths(MatchesSearchResponseSchema, { matches: [{ ...pooled, match: false, shared: [] }] }),
+    ).toContain("matches.0.pool"));
+});
+
 const EXPECTED_PATH: Record<string, string> = {
   "matches_search_request-people-and-like-talks.json": "likeTalks",
   "matches_search_request-page-size-zero.json": "pageSize",
@@ -164,6 +227,9 @@ const EXPECTED_PATH: Record<string, string> = {
   "matches_search_request-include-unknown.json": "include",
   "matches_from_text_request-blank-text.json": "text",
   "matches_from_text_response-not-enough-with-matches.json": "matches",
+  "matches_search_request-pools-with-all.json": "include",
+  "matches_search_request-pool-twice.json": "pools",
+  "matches_search_response-pool-rank-beyond-size.json": "matches.0.rank",
 };
 const SCHEMA_OF: Record<string, z.ZodType> = {
   matches_search_request: MatchesSearchRequestSchema,

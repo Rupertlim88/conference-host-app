@@ -1,5 +1,5 @@
 // In our improvements, a session's page marks the talk to come for.
-import type { AroundAbstract, AroundMatch, SessionDetail, TalkSummary } from "@repo/host-contracts";
+import type { AroundAbstract, AroundMatch, AroundPools, SessionDetail } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 
 import { TalkCard } from "@/base/cards";
@@ -17,18 +17,18 @@ export const sessionPicks: Change<"session.talks"> = {
   render: async ({ session }, label) => <SessionPicksView session={session} around={await aroundAbstract()} label={label} />,
 };
 
-/** The best of the abstract's matches among these talks, or none. */
-export function bestMatchIn(talks: TalkSummary[], matches: AroundMatch[]): AroundMatch | undefined {
-  const ids = new Set(talks.map((talk) => talk.id));
-  return matches.filter((m) => ids.has(m.talk.id)).reduce<AroundMatch | undefined>((best, m) => (!best || m.score > best.score ? m : best), undefined);
+/** The first talk the matching API lists in this session's pool that the session shows, or none. */
+export function bestMatchIn(session: SessionDetail, pools: AroundPools | null): AroundMatch | undefined {
+  const ids = new Set(session.talks.map((talk) => talk.id));
+  return pools?.session.find((pool) => pool.id === session.id)?.matches.find((m) => ids.has(m.talk.id));
 }
 
-/** The session's talks in AMS's order, the one holding the best match for the abstract outlined in gold where it sits;
- *  with no such talk, or no answer from the matching API, an empty gold box at the top of AMS's list. */
+/** The session's talks in AMS's order, the first its pool lists outlined in gold where it sits; with no such talk, or
+ *  no answer from the matching API, an empty gold box at the top of AMS's list. */
 export function SessionPicksView({ session, around, label }: { session: SessionDetail; around: AroundAbstract; label: string }) {
   const t = useTranslations();
   const boxLabel = session.format === "Poster" ? t("improvements.sessionPicks.board") : label;
-  const best = bestMatchIn(session.talks, around.matches ?? []);
+  const best = bestMatchIn(session, around.pools);
   if (!best)
     return (
       <>

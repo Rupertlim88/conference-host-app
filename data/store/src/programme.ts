@@ -21,6 +21,7 @@ import { and, arrayContains, asc, eq, exists, ilike, inArray, or, sql, type SQL 
 
 import type { Db } from "./connect";
 import { SOCIETY_TABLES, type Society, type SocietyTables } from "./tables";
+import { zonedDateTime } from "./time";
 
 type SessionRow = SocietyTables["sessions"]["$inferSelect"];
 type TalkRow = SocietyTables["talks"]["$inferSelect"];
@@ -297,16 +298,29 @@ export function createProgramme(db: Db, society: Society) {
       return { talks: talks.map(toTalkSummary), sessions: sessions.map(toSessionSummary), people };
     },
 
-    /** Every shown talk, with what the conference API's talk upload needs. A sync that completes withdraws the
-     *  rest at the API. */
+    /** Every shown talk, with what the conference API's talk upload needs: its session's start is the meeting's
+     *  clock time with its offset. A sync that completes withdraws the rest at the API. */
     async talksForSync() {
-      const rows = await db
-        .select({ talk: t.talks, sessionTitle: t.sessions.title, sessionFormat: t.sessions.format })
-        .from(t.talks)
-        .leftJoin(t.sessions, eq(t.talks.sessionId, t.sessions.id))
-        .where(shown)
-        .orderBy(asc(t.talks.id));
-      return rows.map((r) => ({ ...r.talk, sessionTitle: r.sessionTitle, sessionFormat: r.sessionFormat }));
+      const [rows, tz] = await Promise.all([
+        db
+          .select({
+            talk: t.talks,
+            sessionTitle: t.sessions.title,
+            sessionFormat: t.sessions.format,
+            sessionStartsAt: t.sessions.startsAt,
+          })
+          .from(t.talks)
+          .leftJoin(t.sessions, eq(t.talks.sessionId, t.sessions.id))
+          .where(shown)
+          .orderBy(asc(t.talks.id)),
+        timeZone(),
+      ]);
+      return rows.map((r) => ({
+        ...r.talk,
+        sessionTitle: r.sessionTitle,
+        sessionFormat: r.sessionFormat,
+        sessionStart: r.sessionStartsAt ? zonedDateTime(r.sessionStartsAt, tz) : null,
+      }));
     },
 
   };

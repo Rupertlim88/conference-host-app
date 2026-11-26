@@ -81,6 +81,27 @@
           "minimum": 1,
           "maximum": 1000
         },
+        "pools": {
+          "minItems": 1,
+          "maxItems": 5,
+          "type": "array",
+          "items": {
+            "type": "string",
+            "enum": [
+              "conference",
+              "subConference",
+              "day",
+              "timeBlock",
+              "session"
+            ]
+          },
+          "uniqueItems": true
+        },
+        "perPool": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 10
+        },
         "pageSize": {
           "default": 100,
           "type": "integer",

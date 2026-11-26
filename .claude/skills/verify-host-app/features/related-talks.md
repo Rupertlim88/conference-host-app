@@ -1,6 +1,6 @@
 # Related talks
 
-In Our improvements, every talk page has a **Related talks** panel, in a gold outline labelled "Our change: related talks", subtitled "Talks related to this one, found by the conference API". It lists up to five talks the conference API matched to this one. Each shows a match kind, the talk's day and time, a link to the talk, and the reason the API gave. With no matches, the panel is empty: only its heading and subtitle. This panel is what the demo shows societies.
+In Our improvements, every talk page has a **Related talks** panel, in a gold outline labelled "Our change: related talks", subtitled "Talks related to this one, found by the conference API". It lists the first five of the up to ten talks the conference API lists in its pool for the whole conference around this one. Each shows a match kind, the talk's day and time, a link to the talk, and the reason the API gave. With no matches, the panel is empty: only its heading and subtitle. This panel is what the demo shows societies.
 
 ## Sub-features
 
@@ -28,6 +28,6 @@ Preconditions:
 
 ## Gotchas
 
-- Locally the matches are placeholders, and the reason says so. Seeded over the whole programme and then cut to the sample, some talks have none: `484769` has two, `497950` none. Check the panel's shape and links, not match quality.
+- Locally the matches are placeholders, and the reason says so. The placeholder engine matches each talk to only three others, so the panel never reaches five locally: `484769` has three (J13.1, 5.3 and 7.3, in that order), `497950` none. Check the panel's shape, order and links, not match quality.
 - A look's switch lasts only for that look: the saved state is the one from signing in. Switch in the same look as the check.
 - The panel streams in after the rest of the page, behind placeholders that already show its heading. `--expect "heading=Related talks"` waits for the placeholders only: wait for a match link, such as `--expect "link=J13.1 When Disaster Doesn't Follow the Script"` on `484769`, or for the unavailable paragraph. An empty panel has nothing to wait for, and its placeholders have no role, so the `.aria.txt` looks the same while it loads. Add `--press Shift --press Shift` after the switch, which waits for the network twice more, and check the `.png`.

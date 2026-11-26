@@ -35,17 +35,57 @@ afterEach(async () => {
 
 const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique"], kind: "core", rank: 1, score: 0.9, description: "r", methods: [], programmeVersion: "pv_8f3k2Qw9xLm0ZpT4vN7aBc" };
 
-describe("conferenceApi.related", () => {
-  test("sends matches:search with the key and the liked talk", async () => {
-    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [match] }) }));
+const pooled = (talk: string, pool: object, rank = 1) => ({ ...match, talk, rank, pool });
+const TOKEN = "AAAAAAAAAAAAAAAAAAAAAA";
+
+describe("conferenceApi.pooled", () => {
+  test("sends matches:search with the key, the liked talk and the kinds of pool, in pages of a thousand", async () => {
+    const found = pooled("T2", { type: "session", id: "S1" });
+    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [found] }) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
-    const got = await api.related("T1", 5);
-    expect(got).toEqual({ status: "ok", matches: [match] });
-    expect(seen[0]).toEqual({
-      url: "/v1/conferences/ams-2026/matches:search",
-      auth: `Bearer ${"k".repeat(16)}`,
-      body: { likeTalks: ["T1"], topPerPerson: 5 },
-    });
+    const got = await api.pooled("T1", ["day", "session"]);
+    expect(got).toEqual({ status: "ok", matches: [found] });
+    expect(seen).toEqual([
+      {
+        url: "/v1/conferences/ams-2026/matches:search",
+        auth: `Bearer ${"k".repeat(16)}`,
+        body: { likeTalks: ["T1"], pools: ["day", "session"], pageSize: 1000 },
+      },
+    ]);
+  });
+
+  test("reads every page, in order", async () => {
+    const first = pooled("T2", { type: "day", id: "2027-01-12" });
+    const second = pooled("T3", { type: "session", id: "S1" });
+    const { url, seen } = await serve(() =>
+      seen.length === 1
+        ? { status: 200, body: JSON.stringify({ matches: [first], nextPageToken: TOKEN }) }
+        : { status: 200, body: JSON.stringify({ matches: [second] }) },
+    );
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
+    expect(await api.pooled("T1", ["day", "session"])).toEqual({ status: "ok", matches: [first, second] });
+    expect(seen.map((s) => s.body)).toEqual([
+      { likeTalks: ["T1"], pools: ["day", "session"], pageSize: 1000 },
+      { likeTalks: ["T1"], pools: ["day", "session"], pageSize: 1000, pageToken: TOKEN },
+    ]);
+  });
+
+  test("a page that fails makes the whole search unavailable", async () => {
+    const { url, seen } = await serve(() =>
+      seen.length === 1 ? { status: 200, body: JSON.stringify({ matches: [], nextPageToken: TOKEN }) } : { status: 500, body: "{}" },
+    );
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
+    expect(await api.pooled("T1", ["conference"])).toEqual({ status: "unavailable" });
+  });
+
+  test("the time limit covers every page together", async () => {
+    const { url, seen } = await serve(() => ({
+      status: 200,
+      body: JSON.stringify(seen.length < 3 ? { matches: [], nextPageToken: TOKEN } : { matches: [] }),
+      delayMs: 60,
+    }));
+    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026", timeoutMs: 100 });
+    expect(await api.pooled("T1", ["conference"])).toEqual({ status: "unavailable" });
   });
 
   test("an error status, a bad answer or a slow answer is unavailable", async () => {
@@ -57,7 +97,7 @@ describe("conferenceApi.related", () => {
     ]) {
       const { url } = await serve(() => answer);
       const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026", timeoutMs: 100 });
-      expect(await api.related("T1", 5)).toEqual({ status: "unavailable" });
+      expect(await api.pooled("T1", ["conference"])).toEqual({ status: "unavailable" });
       await new Promise<void>((r) => server!.close(() => r()));
       server = null;
     }
@@ -65,7 +105,7 @@ describe("conferenceApi.related", () => {
 
   test("an unreachable API is unavailable", async () => {
     const api = conferenceApi({ url: "http://127.0.0.1:9", key: "k".repeat(16), conference: "ams-2026" });
-    expect(await api.related("T1", 5)).toEqual({ status: "unavailable" });
+    expect(await api.pooled("T1", ["conference"])).toEqual({ status: "unavailable" });
   });
 });
 
@@ -162,10 +202,10 @@ describe("requests are checked against the conference API's contract before they
     expect(seen).toEqual([]);
   });
 
-  test("a matches search that breaks the contract is never sent, and related talks are unavailable", async () => {
+  test("a matches search that breaks the contract is never sent, and its matches are unavailable", async () => {
     const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [] }) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
-    expect(await api.related("-not-an-id", 5)).toEqual({ status: "unavailable" });
+    expect(await api.pooled("-not-an-id", ["conference"])).toEqual({ status: "unavailable" });
     expect(seen).toEqual([]);
   });
 });

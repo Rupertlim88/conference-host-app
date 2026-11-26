@@ -26,3 +26,5 @@ Everything else is a lower level, written by Claude to carry out these specifica
 5. **The meeting's data holds only what the public programme shows.** Fields the public programme does not show, such as reviewers' ratings, submitters' comments or internal notes, are removed before the data is stored anywhere, including the repository, and are never kept or shown. Withdrawn entries are left out.
 
 6. **Data is gathered gently.** Where a society offers a public download, it is used; where pages must be read one by one, they are read slowly enough never to burden the society's site, and each page is read once and kept.
+
+7. **The whole published programme is loaded, and a test set chooses which of its talks the demo holds.** The load, run from one of the computers that look after the database, stores every talk AMS publishes. The demo holds and shows only the talks of the latest test set, or the sample until a test set arrives. Choosing which loaded talks the demo holds is not loading: the host app does it when a test set arrives, and every session and conference stays.

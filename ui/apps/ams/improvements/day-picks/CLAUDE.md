@@ -16,11 +16,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### On the Meeting Calendar
 
 2. **In our improvements, each day of the Meeting Calendar starts with the attendee's best talks that day.**
-   Above the day's first time block sit up to three talks from any event that day, from different sessions, chosen from
-   the matching API's matches for the fixed abstract, the better score first and never padded with weak ones. Each
-   shows its time, number and title, whether it is a close or an unexpected match, its conference and the reason, and
-   links to the talk. They sit in a gold outline saying they were picked for the attendee's abstract. A day with none
+   Above the day's first time block sit up to three talks from any event that day, from different sessions: the first
+   three the matching API lists in its pool for that day, for the fixed abstract, the better score first and never
+   padded with weak ones. Each shows its time, number and title, whether it is a close or an unexpected match, its
+   conference and the reason, and links to the talk. They sit in a gold outline saying they were picked for the attendee's abstract. A day with none
    shows the box empty; when the matching API cannot answer, one line there says so.
-   *How:* code alone: the improvement's addition above the calendar's day, from the fixed abstract's matches that start
-   on that day.
+   *How:* code alone: the improvement's addition above the calendar's day, from the matching API's day pool for the
+   fixed abstract.
    *File:* `day-picks.tsx`

@@ -16,15 +16,14 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### On the Meeting Calendar
 
 2. **In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.**
-   A time block is every session that starts at the same time on that day. Its recommendations are the sessions that
-   hold the matching API's best matches for the fixed abstract within that block: at most two, from different sessions,
-   the session with more related talks first, then the better score, and never padded with weak ones. Each shows whether
-   it is a close or an unexpected match, how many related talks it holds, the reason, and the time of its first related
-   talk. They sit at the top of the block in a gold outline that opens with the block's time as a heading, like AMS's
-   own, so that it reads as the start of that block; the rest of the block follows in AMS's order, without them. A
+   A time block is every session that starts at the same time on that day. Its recommendations are the sessions of the
+   talks the matching API lists in its pool for that block, for the fixed abstract: at most two, from different
+   sessions, in the matching API's order, and never padded with weak ones. Each shows whether it is a close or an
+   unexpected match, the reason, and the time of its related talk. They sit at the top of the block in a gold outline
+   that opens with the block's time as a heading, like AMS's own, so that it reads as the start of that block; the rest of the block follows in AMS's order, without them. A
    block with no recommendation opens with its box empty, and the rest of the block stays as AMS has it. When the
    matching API cannot answer, every block's box is empty, the rest of the calendar stays as AMS has it, and one gold
    note says so.
-   *How:* code alone: our improvements' change to the calendar's day, from the fixed abstract's matches sorted into
-   time blocks by their sessions' start times.
+   *How:* code alone: our improvements' change to the calendar's day, from the matching API's time-block pool for the
+   fixed abstract, the one that starts when the block does.
    *File:* `time-block-picks.tsx`

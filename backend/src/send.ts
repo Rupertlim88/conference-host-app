@@ -19,6 +19,8 @@ export interface SyncTalk {
   trackIds: string[];
   sessionTitle: string | null;
   sessionFormat: string | null;
+  /** The session's start on the meeting's clock, with its offset: 2027-01-11T08:30:00-07:00. */
+  sessionStart: string | null;
 }
 
 const PART = 1000;
@@ -63,6 +65,7 @@ export function toPartnerTalk(t: SyncTalk): TalkInput | null {
             id: t.sessionId,
             ...(t.sessionTitle ? { title: plain(t.sessionTitle, 500) } : {}),
             type: t.sessionFormat?.toLowerCase() === "poster" ? ("poster" as const) : ("oral" as const),
+            ...(t.sessionStart ? { start: t.sessionStart } : {}),
           },
         }
       : {}),

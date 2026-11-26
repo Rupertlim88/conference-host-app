@@ -1,10 +1,9 @@
 // In our improvements, each day of the Meeting Calendar starts with the attendee's best talks that day.
-import type { AroundAbstract, AroundMatch } from "@repo/host-contracts";
+import type { AroundAbstract, AroundMatch, AroundPools } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { aroundAbstract } from "@/improvements/matches/matches";
-import { MEETING_ZONE } from "@/shared/app";
 import { When } from "@/shared/meeting-time";
 import { Badge } from "@/shared/ui/badge";
 import type { Change } from "@/versions/change";
@@ -21,22 +20,10 @@ export const dayPicks: Change<"calendar.beforeDay"> = {
 /** How many talks a day picks at most. */
 const MOST_PICKS = 3;
 
-const meetingDate = new Intl.DateTimeFormat("en-CA", { timeZone: MEETING_ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
-
-/** Up to three of the abstract's matches that start on this day in meeting time, from different sessions, the better
- *  score first; never padded. */
-export function picksOn(date: string, matches: AroundMatch[]): AroundMatch[] {
-  const sessions = new Set<string>();
-  return matches
-    .filter((m) => m.talk.startsAt && meetingDate.format(new Date(m.talk.startsAt)) === date)
-    .sort((a, b) => b.score - a.score)
-    .filter((m) => {
-      const session = m.talk.sessionId ?? m.talk.id;
-      if (sessions.has(session)) return false;
-      sessions.add(session);
-      return true;
-    })
-    .slice(0, MOST_PICKS);
+/** The first three talks the matching API lists in its pool for this day, which holds one talk from each session, the
+ *  better score first; never padded. */
+export function picksOn(date: string, pools: AroundPools): AroundMatch[] {
+  return (pools.day.find((pool) => pool.id === date)?.matches ?? []).slice(0, MOST_PICKS);
 }
 
 /** The day's best talks for the abstract in a gold outline, empty on a day with none; one line when the matching API
@@ -44,14 +31,14 @@ export function picksOn(date: string, matches: AroundMatch[]): AroundMatch[] {
 export function DayPicksView({ date, around, label }: { date: string; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.dayPicks");
   const format = useFormatter();
-  if (!around.abstract || !around.matches) {
+  if (!around.abstract || !around.pools) {
     return (
       <GoldOutline label={label}>
         <p className="text-sm">{t(around.abstract ? "unavailable" : "noAbstract")}</p>
       </GoldOutline>
     );
   }
-  const picks = picksOn(date, around.matches);
+  const picks = picksOn(date, around.pools);
   return (
     <GoldOutline label={label}>
       {picks.length > 0 && (

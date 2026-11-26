@@ -3,24 +3,21 @@ import { join } from "node:path";
 
 import { describe, expect, test } from "vitest";
 
-import { OPERATIONS, buildOpenApi, endpointList, noticeIsEnough } from "../src/public/index";
+import { OPERATIONS, buildOpenApi, endpointList } from "../src/public/index";
 
 type Json = Record<string, any>; // eslint-disable-line @typescript-eslint/no-explicit-any
 
 describe("versions and retirement", () => {
-  test("an operation is switched off only after at least six months' notice", () => {
-    expect(noticeIsEnough({ announced: "2027-01-01", sunset: "2027-07-01" })).toBe(true);
-    expect(noticeIsEnough({ announced: "2027-01-01", sunset: "2027-06-30" })).toBe(false);
-    expect(noticeIsEnough({ announced: "2027-08-31", sunset: "2028-02-29" })).toBe(true);
-    expect(noticeIsEnough({ announced: "2027-08-31", sunset: "2028-02-28" })).toBe(false);
+  test("an operation is switched off only after its retirement was announced", () => {
     for (const [name, op] of Object.entries(OPERATIONS) as [string, { retiring?: { announced: string; sunset: string } }][]) {
-      if (op.retiring !== undefined) expect(noticeIsEnough(op.retiring), name).toBe(true);
+      if (op.retiring !== undefined) expect(op.retiring.sunset > op.retiring.announced, name).toBe(true);
     }
   });
 
-  test("the specification states the policy, and marks any retiring operation deprecated with its dates", () => {
+  test("the specification states the policy, with no fixed notice, and marks any retiring operation deprecated with its dates", () => {
     const spec = buildOpenApi() as Json;
-    expect(spec["x-versioning"]).toMatchObject({ noticeMonths: 6 });
+    expect(spec["x-versioning"]).not.toHaveProperty("noticeMonths");
+    expect(spec["x-versioning"].policy).toMatch(/notice agreed with partners/);
     for (const [name, op] of Object.entries(OPERATIONS) as [string, Json][]) {
       const published = spec.paths[op.path][op.method.toLowerCase()];
       expect(published.deprecated === true, name).toBe(op.retiring !== undefined);

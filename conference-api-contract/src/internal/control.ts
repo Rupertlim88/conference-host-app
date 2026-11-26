@@ -1,3 +1,4 @@
+// A partner's key, and what it unlocks, pass between the parts in one checked form.
 import { z } from "zod";
 
 import { ConferenceIdSchema, PartnerIdSchema } from "../public/ids";

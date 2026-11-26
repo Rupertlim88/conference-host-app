@@ -1,3 +1,4 @@
+// Every request states what to expect.
 import { z } from "zod";
 
 import { ConferenceIdSchema } from "./ids";
@@ -36,19 +37,6 @@ export interface Retiring {
   announced: string;
   sunset: string;
   successor?: string;
-}
-
-/** Partners get this many months' notice before an operation is switched off. */
-export const NOTICE_MONTHS = 6;
-
-/** Whether a retirement gives at least NOTICE_MONTHS calendar months' notice. When the month the notice ends in is
- *  too short for the announced day, the notice ends on that month's last day. */
-export function noticeIsEnough(retiring: Retiring): boolean {
-  const [year, month, day] = retiring.announced.split("-").map(Number) as [number, number, number];
-  const endMonth = new Date(Date.UTC(year, month - 1 + NOTICE_MONTHS, 1));
-  const daysInEndMonth = new Date(Date.UTC(endMonth.getUTCFullYear(), endMonth.getUTCMonth() + 1, 0)).getUTCDate();
-  const earliestSunset = Date.UTC(endMonth.getUTCFullYear(), endMonth.getUTCMonth(), Math.min(day, daysInEndMonth));
-  return Date.parse(`${retiring.sunset}T00:00:00Z`) >= earliestSunset;
 }
 
 /** Every name that may appear in braces in a path, and the check its value must pass. */
@@ -118,12 +106,13 @@ export const OPERATIONS = {
 const REFUSALS: Record<string, string> = {
   "400": "The request breaks the specification; nothing was applied. Do not retry unchanged.",
   "401": "No valid API key: the Authorization header must carry this conference's live key, as Bearer <key>.",
+  "403": "The front door's firewall refused the request: it comes from a blocked network address, or carries a known attack. Do not retry unchanged.",
   "404": "No such conference for this key. Asking for any conference but the key's own gets this same answer.",
   "409": "The conference holds as much as it may: nothing was applied. The business limits are in x-business-limits.",
   "413": "The request body is larger than this request allows.",
   "415": "The body is not JSON in UTF-8, uncompressed.",
   "429":
-    "Too many requests per minute with this key. " +
+    "Too many requests per minute with this key, or from this network address at the front door's firewall. " +
     "Or a talks:write would pass the day's limit on new or changed talks for its conference, in x-business-limits; nothing was applied. " +
     "Retry after the time in Retry-After.",
   "500": "An unexpected error. Safe to retry: sending the same request again gives the same result.",
@@ -192,7 +181,8 @@ function publishedOperation(operationId: string, operation: Operation): Record<s
 const VERSIONING_POLICY =
   "A change that would break partners becomes a new version under a new path prefix, running alongside the old one. " +
   "A retiring operation is marked deprecated here, with when it was announced, when it is switched off and its " +
-  "successor, and partners are told directly. It keeps every security fix until it is switched off.";
+  "successor, and partners are told directly. It is switched off only after the notice agreed with partners, and " +
+  "keeps every security fix until then.";
 
 /** The conference API's published specification, built from the zod contract. */
 export function buildOpenApi(): Record<string, unknown> {
@@ -212,7 +202,7 @@ export function buildOpenApi(): Record<string, unknown> {
     },
     security: [{ partnerKey: [] }],
     "x-protections": PROTECTIONS,
-    "x-versioning": { noticeMonths: NOTICE_MONTHS, policy: VERSIONING_POLICY },
+    "x-versioning": { policy: VERSIONING_POLICY },
     "x-business-limits": BUSINESS_LIMITS,
     paths,
     components: {

@@ -17,6 +17,7 @@ const row = (id: string, over: Partial<SyncTalk> = {}): SyncTalk => ({
   trackIds: ["topical-sessions"],
   sessionTitle: "A session",
   sessionFormat: "Oral",
+  sessionStart: "2026-10-12T13:30:00-06:00",
   ...over,
 });
 
@@ -28,13 +29,19 @@ describe("toPartnerTalk", () => {
       id: "16121",
       number: "1-16121",
       type: "oral",
-      session: { id: "S1", title: "A session", type: "oral" },
+      session: { id: "S1", title: "A session", type: "oral", start: "2026-10-12T13:30:00-06:00" },
       start: "2026-10-12T19:35:00.000Z",
       tracks: ["topical-sessions"],
       authors: [{ id: "ada-author", name: "Ada Author" }],
       presenters: ["ada-author"],
       status: "scheduled",
     });
+  });
+
+  test("a session with no start is sent without one", () => {
+    const t = toPartnerTalk(row("7", { sessionStart: null }))!;
+    expect(TalkInputSchema.safeParse(t).success).toBe(true);
+    expect(t.session).toEqual({ id: "S1", title: "A session", type: "oral" });
   });
 
   test("breaks are not sent", () => {
@@ -84,7 +91,7 @@ describe("syncProgramme", () => {
   test("sends the programme in parts of 1,000 under one sync name, completing on the last", async () => {
     const sent: TalksWriteRequest[] = [];
     const api: ConferenceApi = {
-      related: async () => ({ status: "unavailable" }),
+      pooled: async () => ({ status: "unavailable" }),
     check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
       writeTalks: async (req, signal) => {
         expect(signal).toBe(stop);
@@ -104,7 +111,7 @@ describe("syncProgramme", () => {
   test("a talk that breaks the contract in a later part stops the send before any part is written", async () => {
     const sent: TalksWriteRequest[] = [];
     const api: ConferenceApi = {
-      related: async () => ({ status: "unavailable" }),
+      pooled: async () => ({ status: "unavailable" }),
       check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
       writeTalks: async (req) => {
         sent.push(req);

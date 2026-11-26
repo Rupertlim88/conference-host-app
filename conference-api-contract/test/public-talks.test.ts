@@ -93,6 +93,14 @@ describe("rules that link fields", () => {
 describe("choices and identifiers", () => {
   test("refuses a talk type outside the list", () =>
     expect(issuePaths(TalkInputSchema, { ...talk, type: "workshop" })).toContain("type"));
+  test("a session may say when it starts, as a time with its offset", () => {
+    expect(TalkInputSchema.safeParse({ ...talk, session: { id: "G21", start: "2027-01-11T08:30:00-06:00" } }).success).toBe(
+      true,
+    );
+    expect(issuePaths(TalkInputSchema, { ...talk, session: { id: "G21", start: "2027-01-11T08:30:00" } })).toContain(
+      "session.start",
+    );
+  });
   test("refuses a session type outside the list", () =>
     expect(issuePaths(TalkInputSchema, { ...talk, session: { id: "G21", type: "keynote" } })).toContain(
       "session.type",

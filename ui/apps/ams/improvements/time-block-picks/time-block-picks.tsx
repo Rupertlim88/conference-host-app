@@ -1,5 +1,5 @@
 // In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.
-import type { AroundAbstract, RelatedMatch, SessionSummary } from "@repo/host-contracts";
+import type { AroundAbstract, AroundPool, RelatedMatch, SessionSummary } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
@@ -12,15 +12,15 @@ import type { Change } from "@/versions/change";
 import { GoldOutline } from "@/versions/gold";
 
 /** The Meeting Calendar's day with each time block opening with its gold outline: the block's start time as a heading,
- *  like AMS's own, then its recommendations, or nothing. Without the abstract's matches, every outline is empty and
+ *  like AMS's own, then its recommendations, or nothing. Without the matching API's pools, every outline is empty and
  *  one gold note above the day says why. */
 export function CalendarPicksView({ sessions, around, label }: { sessions: SessionSummary[]; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.calendarPicks");
-  const matches = around.abstract ? around.matches : null;
-  const blocks = calendarBlocks(sessions, matches ?? []);
+  const pools = around.abstract ? around.pools : null;
+  const blocks = calendarBlocks(sessions, pools?.timeBlock ?? []);
   return (
     <>
-      {!matches && (
+      {!pools && (
         <GoldOutline label={label}>
           <p className="text-sm">{t(around.abstract ? "unavailable" : "noAbstract")}</p>
         </GoldOutline>
@@ -62,19 +62,18 @@ export const timeBlockPicks: Change<"calendar.day"> = {
   ),
 };
 
-/** A recommended session: its card, then the kind of match, how many related talks, when the first is, and why. */
+/** A recommended session: its card, then the kind of match, when its related talk is, and why. */
 function PickItem({ pick }: { pick: Recommendation }) {
   const t = useTranslations();
   return (
     <li>
       <SessionCard session={pick.session} />
       <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
-        <Badge variant={pick.kind === "unexpected" ? "default" : "secondary"}>{pick.kind === "unexpected" ? t("related.unexpected") : t("related.core")}</Badge>{" "}
-        <span>{t("improvements.matches", { count: pick.related })}</span>
-        {pick.firstTalkAt && (
+        <Badge variant={pick.kind === "unexpected" ? "default" : "secondary"}>{pick.kind === "unexpected" ? t("related.unexpected") : t("related.core")}</Badge>
+        {pick.talkAt && (
           <>
             {" "}
-            <span>{t.rich("improvements.calendarPicks.firstTalk", { time: () => <When start={pick.firstTalkAt} mode="time" /> })}</span>
+            <span>{t.rich("improvements.calendarPicks.talkAt", { time: () => <When start={pick.talkAt} mode="time" /> })}</span>
           </>
         )}
       </p>
@@ -86,17 +85,15 @@ function PickItem({ pick }: { pick: Recommendation }) {
 /** How many sessions a time block recommends at most. */
 const MOST_PICKS = 2;
 
-/** A session recommended at the top of its time block, from the matching API's matches for the fixed abstract in it. */
+/** A session recommended at the top of its time block: the session of a talk the matching API lists in its pool for
+ *  that block, for the fixed abstract. */
 export interface Recommendation {
   session: SessionSummary;
-  /** How many of the abstract's matches the session holds. */
-  related: number;
-  /** The kind, reason and score of its best match. */
+  /** The kind and reason of the listed talk's match. */
   kind: RelatedMatch["kind"];
   reason: string;
-  score: number;
-  /** When its first related talk starts. */
-  firstTalkAt: string | null;
+  /** When the listed talk starts. */
+  talkAt: string | null;
 }
 
 /** Every session that starts at one time: its recommendations, then AMS's groups for that time without them. */
@@ -107,38 +104,32 @@ export interface CalendarBlock {
   groups: TimeBlock[];
 }
 
-/** A day's time blocks, earliest first, each with up to two sessions holding the abstract's matches: the session with
- *  more related talks first, then the better score, ties in AMS's order. Matches outside the day's sessions are left out. */
-export function calendarBlocks(sessions: SessionSummary[], matches: RelatedMatch[]): CalendarBlock[] {
+/** A day's time blocks, earliest first, each with up to two sessions from the matching API's pool for that block, in
+ *  the API's order. A listed talk whose session is not in the block is left out. */
+export function calendarBlocks(sessions: SessionSummary[], pools: AroundPool[]): CalendarBlock[] {
   const byStart: TimeBlock[][] = [];
   for (const group of timeBlocks(sessions)) {
     const last = byStart.at(-1);
     if (last?.[0]!.startsAt === group.startsAt) last.push(group);
     else byStart.push([group]);
   }
-  return byStart.map((groups) => recommendIn(groups, matches));
+  return byStart.map((groups) => recommendIn(groups, pools));
 }
 
-/** One time block's picks, and AMS's groups without them. */
-function recommendIn(groups: TimeBlock[], matches: RelatedMatch[]): CalendarBlock {
-  const picks = groups
-    .flatMap((g) => g.sessions)
-    .flatMap((session) => {
-      const found = matches.filter((m) => m.talk.sessionId === session.id);
-      return found.length > 0 ? [recommend(session, found)] : [];
+/** One time block's picks from the pool that starts at the same instant, and AMS's groups without them. */
+function recommendIn(groups: TimeBlock[], pools: AroundPool[]): CalendarBlock {
+  const startsAt = groups[0]!.startsAt;
+  const pool = pools.find((p) => Date.parse(p.id) === Date.parse(startsAt));
+  const sessions = groups.flatMap((g) => g.sessions);
+  const picks = (pool?.matches ?? [])
+    .flatMap((m) => {
+      const session = sessions.find((s) => s.id === m.talk.sessionId);
+      return session ? [{ session, kind: m.kind, reason: m.reason, talkAt: m.talk.startsAt }] : [];
     })
-    .sort((a, b) => b.related - a.related || b.score - a.score)
     .slice(0, MOST_PICKS);
   const picked = new Set(picks.map((p) => p.session.id));
   const rest = groups
     .map((g) => ({ ...g, sessions: g.sessions.filter((s) => !picked.has(s.id)) }))
     .filter((g) => g.sessions.length > 0);
-  return { startsAt: groups[0]!.startsAt, picks, groups: rest };
-}
-
-/** A session's recommendation from its matches: how many, the best one's kind, reason and score, the earliest time. */
-function recommend(session: SessionSummary, found: RelatedMatch[]): Recommendation {
-  const best = found.reduce((a, b) => (b.score > a.score ? b : a));
-  const times = found.flatMap((m) => (m.talk.startsAt ? [m.talk.startsAt] : [])).sort();
-  return { session, related: found.length, kind: best.kind, reason: best.reason, score: best.score, firstTalkAt: times[0] ?? null };
+  return { startsAt, picks, groups: rest };
 }

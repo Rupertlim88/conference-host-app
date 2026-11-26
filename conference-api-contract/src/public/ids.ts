@@ -1,3 +1,4 @@
+// Every ID has a strict form.
 import { z } from "zod";
 
 /** A partner's own ID for a talk, person or session. It is never used as it stands in a storage path. */

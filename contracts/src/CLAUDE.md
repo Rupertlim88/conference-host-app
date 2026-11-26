@@ -19,7 +19,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    asked for. The meeting, days, tracks, sessions, talks, people, search results, schedule, notes, the signed-in guest,
    related talks, highlight lists, pages of names and the view around the demo's fixed abstract each have fixed forms:
    a short form for lists and a full one where a page shows more. The view around the abstract carries the conferences
-   of the abstract's session and of each match's talk.
+   of the abstract's session, and the matching API's pools around it by kind: each other conference by its track id,
+   each day by its date, each time block by its start instant and each session by its id, each pool holding at least
+   one match, with the conferences of each match's talk.
    *How:* code alone: zod schemas, with types inferred from them.
    *File:* `programme.ts`
 

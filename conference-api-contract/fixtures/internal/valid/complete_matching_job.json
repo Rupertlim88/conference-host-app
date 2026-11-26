@@ -16,6 +16,15 @@
       "candidate": 2,
       "score": 0.86,
       "kind": "unexpected",
+      "pools": [
+        {
+          "type": "conference"
+        },
+        {
+          "type": "session",
+          "id": "G21"
+        }
+      ],
       "match": true,
       "shared": [
         "technique"
@@ -39,6 +48,15 @@
       "candidate": 1,
       "score": 0.86,
       "kind": "unexpected",
+      "pools": [
+        {
+          "type": "conference"
+        },
+        {
+          "type": "session",
+          "id": "G21"
+        }
+      ],
       "match": true,
       "shared": [
         "technique"
@@ -62,6 +80,15 @@
       "candidate": 3,
       "score": 0.41,
       "kind": "core",
+      "pools": [
+        {
+          "type": "conference"
+        },
+        {
+          "type": "session",
+          "id": "G21"
+        }
+      ],
       "match": false,
       "shared": [],
       "description": "This study measures heat flow with X-ray scattering; the other study estimates rainfall from radar returns. They rely on different principles and different procedures, so it is not a close fit for this research.",

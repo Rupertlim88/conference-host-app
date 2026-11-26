@@ -5,7 +5,7 @@ import { expect, test } from "vitest";
 
 import { DayPicksView } from "@/improvements/day-picks/day-picks";
 
-import { talkSummary, track } from "../fixtures";
+import { aroundPools, talkSummary, track } from "../fixtures";
 import { renderApp } from "../render";
 
 const LABEL = "Our change: your best talks today";
@@ -19,12 +19,19 @@ const match = (id: string, number: string, startsAt: string, score: number, over
   tracks: [aerosol],
   ...over,
 });
-// Tuesday, January 12, 2027, in Denver.
-const matches = [
-  match("486", "Poster 486", "2027-01-12T22:00:00.000Z", 0.8),
-  match("53", "J5.3", "2027-01-12T16:00:00.000Z", 0.9, { kind: "unexpected", reason: "Your smoke heights feed its warnings.", tracks: [health] }),
-];
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], matches, ...over });
+// The matching API's pool for Tuesday, January 12, 2027, in its order.
+const pools = aroundPools({
+  day: [
+    {
+      id: "2027-01-12",
+      matches: [
+        match("53", "J5.3", "2027-01-12T16:00:00.000Z", 0.9, { kind: "unexpected", reason: "Your smoke heights feed its warnings.", tracks: [health] }),
+        match("486", "Poster 486", "2027-01-12T22:00:00.000Z", 0.8),
+      ],
+    },
+  ],
+});
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, ...over });
 const outline = () => screen.getByText(LABEL).closest("section")!;
 
 test("the day's best talks for the abstract sit in a gold outline saying they were picked for it", () => {
@@ -46,17 +53,17 @@ test("each shows its time, number and title, the kind of match, its conference a
   expect(second).toHaveTextContent("19th Symposium on Aerosol-Cloud-Climate Interactions");
 });
 
-test("a day with none of the abstract's matches shows the box empty", () => {
+test("a day the matching API lists nothing for shows the box empty", () => {
   renderApp(<DayPicksView date="2027-01-13" around={around()} label={LABEL} />);
   expect(outline().textContent).toBe(LABEL);
 });
 
 test("when the matching API cannot answer, one line in the outline says so", () => {
-  renderApp(<DayPicksView date="2027-01-12" around={around({ matches: null })} label={LABEL} />);
+  renderApp(<DayPicksView date="2027-01-12" around={around({ pools: null })} label={LABEL} />);
   expect(outline()).toHaveTextContent(`${LABEL}The matching API cannot answer right now, so no talks are picked for your abstract today.`);
 });
 
 test("with no abstract, one line in the outline says so", () => {
-  renderApp(<DayPicksView date="2027-01-12" around={{ abstract: null, abstractTrackIds: [], matches: null }} label={LABEL} />);
+  renderApp(<DayPicksView date="2027-01-12" around={{ abstract: null, abstractTrackIds: [], pools: null }} label={LABEL} />);
   expect(outline()).toHaveTextContent(`${LABEL}The demo has no abstract to pick talks for yet.`);
 });

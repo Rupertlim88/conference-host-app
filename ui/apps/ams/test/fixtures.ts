@@ -34,6 +34,8 @@ import {
   type TalkSummary,
   type Track,
   type TrackDetail,
+  AroundPoolsSchema,
+  type AroundPools,
 } from "@repo/host-contracts";
 
 // Real records from the AMS 2027 programme: joint session J1 (77102) and its paper J1.2 (493803). Every builder parses through the contract, so a fixture that drifts from it fails.
@@ -129,6 +131,10 @@ export const sessionDetail = (over: Partial<SessionDetail> = {}): SessionDetail 
 
 export const track = (over: Partial<Track> = {}): Track =>
   TrackSchema.parse({ id: "1968", code: "WAFNWP", title: "Fourth Symposium on the Future of Weather, Forecasting, and Practice", ...over });
+
+/** The matching API's pools around the abstract: none of each kind unless given. */
+export const aroundPools = (over: Partial<AroundPools> = {}): AroundPools =>
+  AroundPoolsSchema.parse({ subConference: [], day: [], timeBlock: [], session: [], ...over });
 
 export const trackDetail = (over: Partial<TrackDetail> = {}): TrackDetail =>
   TrackDetailSchema.parse({ ...track(), sessions: [sessionSummary()], ...over });

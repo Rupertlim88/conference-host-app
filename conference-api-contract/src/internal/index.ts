@@ -1,3 +1,4 @@
+// Every shape the parts pass to each other has a JSON Schema, for the Python side.
 import { z } from "zod";
 
 import { KeyHolderSchema } from "./control";

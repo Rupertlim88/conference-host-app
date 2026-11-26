@@ -46,10 +46,34 @@ describe("API keys", () => {
 describe("internal rules", () => {
   test("internal talk ids start at 1", () =>
     expect(issuePaths(EngineTalkSchema, { ...valid("engine_talk"), id: 0 })).toContain("id"));
+  test("an engine reads a talk's session and when it starts, or null when the talk was sent without them", () => {
+    const talk = valid("engine_talk");
+    expect(talk.session).toEqual({ id: "G21", start: "2027-01-11T08:30:00-06:00" });
+    expect(EngineTalkSchema.safeParse({ ...talk, session: null }).success).toBe(true);
+    expect(EngineTalkSchema.safeParse({ ...talk, session: { id: "G21", start: null } }).success).toBe(true);
+    expect(issuePaths(EngineTalkSchema, { ...talk, session: { id: "G21", start: "2027-01-11" } })).toContain(
+      "session.start",
+    );
+    expect(issuePaths(EngineTalkSchema, { ...talk, session: { id: "G21", start: null, title: "x" } })).toContain(
+      "session",
+    );
+  });
   test("a corpus talk names its presenters, who are among its authors", () => {
     const talk = valid("engine_talk");
     expect(talk.presenterIds.length).toBeGreaterThan(0);
     expect(issuePaths(EngineTalkSchema, { ...talk, presenterIds: [999_999] })).toContain("presenterIds");
+  });
+  test("each match carries the kinds of edge that join its talks, each named once, or none", () => {
+    const job = valid("complete_matching_job");
+    expect(job.matches[0].pools).toEqual([{ type: "conference" }, { type: "session", id: "G21" }]);
+    job.matches[0].pools = [];
+    expect(CompleteMatchingJobSchema.safeParse(job).success).toBe(true);
+    job.matches[0].pools = [{ type: "session", id: "G21" }, { type: "session", id: "G21" }];
+    expect(issuePaths(CompleteMatchingJobSchema, job)).toContain("matches.0.pools");
+    job.matches[0].pools = [{ type: "room", id: "B1" }];
+    expect(CompleteMatchingJobSchema.safeParse(job).success).toBe(false);
+    delete job.matches[0].pools;
+    expect(CompleteMatchingJobSchema.safeParse(job).success).toBe(false);
   });
   test("an engine score stays between 0 and 1", () => {
     const job = valid("complete_matching_job");

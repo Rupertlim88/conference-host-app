@@ -1,3 +1,4 @@
+// Text is plain, and blank text is never taken for a real value.
 import { z } from "zod";
 
 /** Plain text never holds control characters or the byte-order mark; tab, line feed and carriage return are fine.

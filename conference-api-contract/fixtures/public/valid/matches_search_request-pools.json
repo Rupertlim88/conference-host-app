@@ -1,0 +1,12 @@
+{
+  "people": [
+    "P1"
+  ],
+  "pools": [
+    "subConference",
+    "session"
+  ],
+  "perPool": 1,
+  "kind": "unexpected",
+  "pageSize": 500
+}

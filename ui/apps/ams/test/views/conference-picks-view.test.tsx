@@ -5,7 +5,7 @@ import { expect, test } from "vitest";
 
 import { ConferencePicksView } from "@/improvements/conference-picks/conference-picks";
 
-import { talkSummary, track } from "../fixtures";
+import { aroundPools, talkSummary, track } from "../fixtures";
 import { renderApp } from "../render";
 
 const [alpha, beta, gamma, delta, epsilon] = [
@@ -16,23 +16,24 @@ const [alpha, beta, gamma, delta, epsilon] = [
   track({ id: "E", title: "Epsilon" }),
 ];
 const tracks = [alpha!, beta!, gamma!, delta!, epsilon!];
-const match = (id: string, number: string, score: number, inTracks: typeof tracks, over: Partial<AroundMatch> = {}): AroundMatch => ({
+const match = (id: string, number: string, score: number, over: Partial<AroundMatch> = {}): AroundMatch => ({
   talk: talkSummary({ id, number, title: `Talk ${id}`, startsAt: "2027-01-13T21:00:00.000Z" }),
   kind: "core",
   score,
   reason: `Why ${id} matches.`,
-  tracks: inTracks,
+  tracks: [],
   ...over,
 });
-// Delta is the attendee's own conference. Gamma's best talk is Z; Beta's is Y, which scores higher.
-const matches = [
-  match("X", "3.1", 0.7, [gamma!]),
-  match("Y", "J5.3", 0.9, [beta!], { kind: "unexpected", reason: "Your smoke heights feed its warnings." }),
-  match("Z", "11.2", 0.8, [gamma!]),
-  match("W", "4.4", 0.95, [delta!]),
-  match("V", "J5.1", 0.6, [beta!, delta!]),
-];
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: ["D"], matches, ...over });
+// The matching API's pool for each other conference, in its order. Delta is the attendee's own conference. Gamma's
+// talk is Z; Beta's is Y, which scores higher.
+const pools = aroundPools({
+  subConference: [
+    { id: "B", matches: [match("Y", "J5.3", 0.9, { kind: "unexpected", reason: "Your smoke heights feed its warnings." }), match("V", "J5.1", 0.6)] },
+    { id: "C", matches: [match("Z", "11.2", 0.8), match("X", "3.1", 0.7)] },
+    { id: "D", matches: [match("W", "4.4", 0.95)] },
+  ],
+});
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: ["D"], pools, ...over });
 
 const LABEL = "Our change: other conferences, ranked for your abstract";
 const box = () => screen.getByText(LABEL).closest("section")!;
@@ -53,6 +54,23 @@ test("the other conferences holding a match for the abstract come first, in a go
   renderApp(<ConferencePicksView tracks={tracks} around={around()} label={LABEL} />);
   expect(linksIn(box())).toEqual(["/programs/B", "/talks/Y", "/programs/C", "/talks/Z"]);
   expectRestBelowBox();
+});
+
+test("each conference shows the first talk the matching API lists in its pool, and conferences follow that talk's score", () => {
+  const listed = aroundPools({
+    subConference: [
+      { id: "C", matches: [match("X", "3.1", 0.7), match("Z", "11.2", 0.8)] },
+      { id: "A", matches: [match("U", "2.2", 0.75)] },
+    ],
+  });
+  renderApp(<ConferencePicksView tracks={tracks} around={around({ pools: listed })} label={LABEL} />);
+  expect(linksIn(box())).toEqual(["/programs/A", "/talks/U", "/programs/C", "/talks/X"]);
+});
+
+test("a pool for a conference the list does not show is left out", () => {
+  const listed = aroundPools({ subConference: [{ id: "Q", matches: [match("Q1", "1.1", 0.9)] }] });
+  renderApp(<ConferencePicksView tracks={tracks} around={around({ pools: listed })} label={LABEL} />);
+  expect(box().textContent).toBe(LABEL);
 });
 
 test("each shows its best talk's number and title, the kind of match, its day and time, and the reason", () => {
@@ -78,7 +96,7 @@ test("the box names the abstract the conferences were picked for", () => {
 });
 
 test("when no other conference holds a match, the box at the top shows empty and AMS's order stays below it", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around({ matches: [matches[3]!] })} label={LABEL} />);
+  renderApp(<ConferencePicksView tracks={tracks} around={around({ pools: aroundPools({ subConference: [pools.subConference[2]!] }) })} label={LABEL} />);
   expect(box().textContent).toBe(LABEL);
   expect(lists()).toHaveLength(1);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta Your conference", "Epsilon"]);
@@ -86,14 +104,14 @@ test("when no other conference holds a match, the box at the top shows empty and
 });
 
 test("when the matching API cannot answer, the box holds one line saying so, and AMS's order stays below it", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around({ matches: null })} label={LABEL} />);
+  renderApp(<ConferencePicksView tracks={tracks} around={around({ pools: null })} label={LABEL} />);
   expect(box().textContent).toBe(`${LABEL}The matching API cannot answer right now, so AMS's order stays.`);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta Your conference", "Epsilon"]);
   expectRestBelowBox();
 });
 
 test("with no abstract to rank around, the box holds one line saying so, and AMS's order stays below it", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={{ abstract: null, abstractTrackIds: [], matches: null }} label={LABEL} />);
+  renderApp(<ConferencePicksView tracks={tracks} around={{ abstract: null, abstractTrackIds: [], pools: null }} label={LABEL} />);
   expect(box().textContent).toBe(`${LABEL}The demo has no abstract to order around yet.`);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta", "Epsilon"]);
   expectRestBelowBox();

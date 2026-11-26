@@ -13,7 +13,7 @@ const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
 /** A conference API that takes every write, recording each request. */
 function taking(sent: TalksWriteRequest[]): ConferenceApi {
   return {
-    related: async () => ({ status: "unavailable" }),
+    pooled: async () => ({ status: "unavailable" }),
     check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
     writeTalks: async (req) => {
       sent.push(req);
@@ -60,6 +60,8 @@ describe.skipIf(!url)("sendProgramme", { timeout: 60_000 }, () => {
       expect(sent).toHaveLength(1);
       expect(sent[0]).toMatchObject({ sync: expect.stringMatching(/^send-/), complete: true });
       expect(sent[0]!.talks.map((t) => t.id)).toEqual(["T1"]);
+      // Session S1 starts at 19:45 UTC: 1:45 PM on the meeting's clock, in Chicago in January.
+      expect(sent[0]!.talks[0]!.session).toMatchObject({ id: "S1", start: "2026-01-27T13:45:00-06:00" });
       expect((await log.runs())[0]).toEqual(run);
     } finally {
       await createOrganiserStore(db, "ams").setWithdrawn("T2", false);
