@@ -2,7 +2,7 @@
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { ProgrammeOrderView } from "@/improvements/programme-order";
+import { ProgrammeOrderView } from "@/improvements/conference-picks/programme-order";
 
 import { talkSummary, track } from "../fixtures";
 import { renderApp } from "../render";

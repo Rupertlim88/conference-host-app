@@ -4,7 +4,7 @@ import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
 import { DayList } from "@/base/calendar";
-import { CalendarPicksView } from "@/improvements/calendar-picks";
+import { CalendarPicksView } from "@/improvements/time-block-picks/time-block-picks";
 
 import { sessionSummary, talkSummary } from "../fixtures";
 import { renderApp } from "../render";

@@ -1,7 +1,7 @@
 import type { RelatedMatch } from "@repo/host-contracts";
 import { describe, expect, test } from "vitest";
 
-import { calendarBlocks } from "@/improvements/calendar-picks";
+import { calendarBlocks } from "@/improvements/time-block-picks/time-block-picks";
 
 import { sessionSummary, talkSummary } from "./fixtures";
 

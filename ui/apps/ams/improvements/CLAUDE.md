@@ -13,42 +13,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ## The user's specification of Our improvements: the changes we make to the base
 
-### The list of changes
+### Our improvements as a set
 
-2. **Our improvements list their changes, each at a change point in the base.** After a talk's abstract, its related
-   talks; in place of Conferences and Symposia's list, the list ordered around the demo's abstract; in place of the
-   Meeting Calendar's day, the day with each time block's recommendations at its top. Each change has a
-   label naming what it changed.
-   *How:* code alone: a map from change point to its change.
-   *File:* `changes.tsx`
+2. **Our improvements are a set of improvements, each in a folder of its own, which can be added or removed one at a time.** Each improvement is one change to AMS's meeting app, at one change point in the base, and its folder holds its own CLAUDE.md, with one rule for each of its files. One list in this folder names the improvements Our improvements has switched on: adding an improvement is a new folder and a line in that list, and removing one is taking its line out, without changing any other improvement, as the conference API keeps its matching engines side by side. No improvement uses another improvement's code; what several share sits in the base, in the shared folder, or in the matches folder.
 
-### Changes on a talk's page
-
-3. **In our improvements, every talk page shows a related-talks panel with the matching API's matches for that talk, and never breaks the page.** While loading it shows placeholders. When the API cannot answer, it says the related talks are unavailable
-    right now; with none, it says so. Each match shows whether it is close or unexpected, its time, number, title and
-    reason, and links to the talk. It says that its talks are related to the talk on the page, never that they were
-    picked for the attendee.
-    *How:* code alone: our improvements' change after a talk's abstract, outlined in gold; it loads in the browser after
-    the page, so a slow API never holds up the talk.
-    *File:* `related-talks.tsx`
-
-### Changes to finding talks
-
-4. **In our improvements, Conferences and Symposia puts the tracks with talks related to the demo's abstract first.**
-   Tracks are ordered by how many of the matching API's matches for the fixed abstract each holds, the rest after them
-   in AMS's order. The list is outlined in gold, naming the abstract; when the API cannot answer, AMS's order stays and
-   the outline says so.
-   *How:* code alone: our improvements' change to the conferences list.
-   *File:* `programme-order.tsx`
-
-5. **In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.**
-   A time block is every session that starts at the same time on that day. Its recommendations are the sessions that
-   hold the matching API's best matches for the fixed abstract within that block: at most two, from different sessions,
-   the session with more related talks first, then the better score, and never padded with weak ones. Each shows whether
-   it is a close or an unexpected match, how many related talks it holds, the reason, and the time of its first related
-   talk. They sit at the top of the block in a gold outline labelled with the block's time; the rest of the block
-   follows in AMS's order, without them. A block with no recommendation stays exactly as AMS has it. When the matching
-   API cannot answer, the calendar stays as AMS has it, and one gold note says so.
-   *How:* code alone: our improvements' change to the calendar's day, from the fixed abstract's matches sorted into
-   time blocks by their sessions' start times.
-   *File:* `calendar-picks.tsx`
+3. **Every improvement gets its matches from the same request to the matching API.** The backend asks the matching API for them, through the host app's one connection to it, and an improvement never works matches out for itself or asks anywhere else. The related-talks improvement asks around the talk on the screen; the others ask around the attendee's own abstract and share one answer on each page through the matches folder, so that when the matching API offers each kind of match itself, only that request changes.

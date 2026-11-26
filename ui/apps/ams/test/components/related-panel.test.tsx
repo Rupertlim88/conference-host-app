@@ -2,7 +2,7 @@
 import { screen, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { RelatedPanel } from "@/improvements/related-talks";
+import { RelatedPanel } from "@/improvements/related-talks/related-talks";
 
 import { talkSummary } from "../fixtures";
 import { renderApp } from "../render";

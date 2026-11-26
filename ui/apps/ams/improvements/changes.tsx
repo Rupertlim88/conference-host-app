@@ -1,8 +1,8 @@
 // Our improvements list their changes, each at a change point in the base.
 import { serverApi } from "@/shared/server";
-import { CalendarPicksView } from "@/improvements/calendar-picks";
-import { ProgrammeOrderView } from "@/improvements/programme-order";
-import { RelatedTalks } from "@/improvements/related-talks";
+import { CalendarPicksView } from "@/improvements/time-block-picks/time-block-picks";
+import { ProgrammeOrderView } from "@/improvements/conference-picks/programme-order";
+import { RelatedTalks } from "@/improvements/related-talks/related-talks";
 import type { Changes } from "@/versions/change";
 
 /** After a talk's abstract, its related talks; in place of the conferences list, the list ordered around the abstract; in
