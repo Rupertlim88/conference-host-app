@@ -64,9 +64,9 @@ describe("the programme map", () => {
     ]);
   });
 
-  test("every conference lists its talks, a joint session's talk under each conference it belongs to", () => {
+  test("every conference lists its own talks, a joint session's talk only under its own conferences, as the report places it", () => {
     expect(map.conferences).toEqual([
-      { trackId: "1959", title: "Atmospheric Chemistry", talks: ["T1", "T3", "T2", "T7", "T6"] },
+      { trackId: "1959", title: "Atmospheric Chemistry", talks: ["T1", "T7", "T6"] },
       { trackId: "1960", title: "Hydrology", talks: ["T3", "T2", "T4", "T5"] },
     ]);
   });

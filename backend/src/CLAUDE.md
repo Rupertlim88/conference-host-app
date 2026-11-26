@@ -151,8 +151,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 12. **The programme map lists every time block, session and conference of AMS's whole published programme, with its talks.**
     A time block is every session that starts at the same time on one day, on the meeting's clock, and a lone session
-    is a block of its own. Every session lists its talks, and every conference lists its talks, a joint session's talk
-    under each conference it belongs to. Times are the meeting's clock, to the minute, and ids are AMS's. Before the
+    is a block of its own. Every session lists its talks, and every conference lists its own talks, so that a joint
+    session's talk is listed only under its own conferences, as the report's places count it. Times are the meeting's clock, to the minute, and ids are AMS's. Before the
     whole programme is loaded, the map answers that it is not loaded yet.
     *How:* code alone, from the store's whole published programme.
     *File:* `programme-map.ts`
