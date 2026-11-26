@@ -30,7 +30,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    version is read on the server from the guest's choice, so a page never shows the base first. A change is outlined in
    gold, with a short label saying what was changed, by the change point; a change that edits only parts of what the
    base shows there, such as each time block of a calendar day or one talk of a session, outlines each part itself, and
-   adds no outline where it changes nothing. Where the version changes nothing, the base shows as it is.
+   draws an empty outline where it has nothing to show. Where the version changes nothing, the base shows as it is.
    *How:* code alone: a server component reading the guest's cookie; the pages place the change points.
    *File:* `change.tsx`
 
