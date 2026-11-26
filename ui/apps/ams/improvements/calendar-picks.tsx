@@ -1,4 +1,4 @@
-// The Meeting Calendar's recommendations around the demo's abstract, for each time block.
+// In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.
 import type { AroundAbstract, RelatedMatch, SessionSummary } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";

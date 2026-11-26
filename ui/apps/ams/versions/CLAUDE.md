@@ -44,4 +44,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
 5. **Every change is outlined in gold, with a label saying what changed.** The outline and its label look the same
    wherever a change shows, so anyone can tell at a glance what AMS has and what we changed.
    *How:* code alone: one component that change points and changes use.
-   *File:* needed
+   *File:* `gold.tsx`

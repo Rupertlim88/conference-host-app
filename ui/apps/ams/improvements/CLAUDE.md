@@ -51,4 +51,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
    API cannot answer, the calendar stays as AMS has it, and one gold note says so.
    *How:* code alone: our improvements' change to the calendar's day, from the fixed abstract's matches sorted into
    time blocks by their sessions' start times.
-   *File:* needed
+   *File:* `calendar-picks.tsx`
