@@ -34,21 +34,30 @@ const matches = [
 ];
 const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: ["D"], matches, ...over });
 
+const LABEL = "Our change: other conferences, ranked for your abstract";
+const box = () => screen.getByText(LABEL).closest("section")!;
 const lists = () => screen.getAllByRole("list");
 const linksIn = (list: HTMLElement) =>
   within(list)
     .getAllByRole("link")
     .map((a) => a.getAttribute("href"));
-const rest = () => within(lists().at(-1)!).getAllByRole("listitem").map((li) => li.textContent);
+const restList = () => lists().at(-1)!;
+const rest = () => within(restList()).getAllByRole("listitem").map((li) => li.textContent);
+/** AMS's list sits below the gold box, outside it. */
+function expectRestBelowBox() {
+  expect(box()).not.toContainElement(restList());
+  expect(box().compareDocumentPosition(restList()) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+}
 
-test("the other conferences holding a match for the abstract come first, the one whose best talk scores higher first", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around()} />);
-  expect(linksIn(lists()[0]!)).toEqual(["/programs/B", "/talks/Y", "/programs/C", "/talks/Z"]);
+test("the other conferences holding a match for the abstract come first, in a gold box at the top, the one whose best talk scores higher first", () => {
+  renderApp(<ConferencePicksView tracks={tracks} around={around()} label={LABEL} />);
+  expect(linksIn(box())).toEqual(["/programs/B", "/talks/Y", "/programs/C", "/talks/Z"]);
+  expectRestBelowBox();
 });
 
 test("each shows its best talk's number and title, the kind of match, its day and time, and the reason", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around()} />);
-  const [first, second] = within(lists()[0]!).getAllByRole("listitem");
+  renderApp(<ConferencePicksView tracks={tracks} around={around()} label={LABEL} />);
+  const [first, second] = within(box()).getAllByRole("listitem");
   expect(within(first!).getByRole("link", { name: "J5.3 Talk Y" })).toHaveAttribute("href", "/talks/Y");
   expect(first).toHaveTextContent("Unexpected match");
   expect(first).toHaveTextContent("Wed, Jan 13 · 2:00 PM");
@@ -57,32 +66,35 @@ test("each shows its best talk's number and title, the kind of match, its day an
   expect(second).toHaveTextContent("Why: Why Z matches.");
 });
 
-test("the attendee's own conferences stay in AMS's place, marked as theirs, and the rest follow in AMS's order", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around()} />);
+test("the attendee's own conferences stay in AMS's place, marked as theirs, and the rest follow in AMS's order below the box", () => {
+  renderApp(<ConferencePicksView tracks={tracks} around={around()} label={LABEL} />);
   expect(screen.getByRole("heading", { name: "The rest, in AMS's order" })).toBeInTheDocument();
   expect(rest()).toEqual(["Alpha", "Delta Your conference", "Epsilon"]);
 });
 
-test("it names the abstract the conferences were picked for", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around()} />);
-  expect(screen.getByText((_, el) => el?.tagName === "P" && el.textContent === "Picked for your abstract: J1.2 What is a Snow Squall? What Eight Years of Snow Squall Warnings Tells Us.")).toBeInTheDocument();
+test("the box names the abstract the conferences were picked for", () => {
+  renderApp(<ConferencePicksView tracks={tracks} around={around()} label={LABEL} />);
+  expect(within(box()).getByText((_, el) => el?.tagName === "P" && el.textContent === "Picked for your abstract: J1.2 What is a Snow Squall? What Eight Years of Snow Squall Warnings Tells Us.")).toBeInTheDocument();
 });
 
-test("when no other conference holds a match, AMS's order stays and it says so", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around({ matches: [matches[3]!] })} />);
+test("when no other conference holds a match, the box at the top shows empty and AMS's order stays below it", () => {
+  renderApp(<ConferencePicksView tracks={tracks} around={around({ matches: [matches[3]!] })} label={LABEL} />);
+  expect(box().textContent).toBe(LABEL);
   expect(lists()).toHaveLength(1);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta Your conference", "Epsilon"]);
-  expect(screen.getByText("No other conference holds a talk matched to your abstract yet.")).toBeInTheDocument();
+  expectRestBelowBox();
 });
 
-test("when the matching API cannot answer, AMS's order stays and it says so", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around({ matches: null })} />);
+test("when the matching API cannot answer, the box holds one line saying so, and AMS's order stays below it", () => {
+  renderApp(<ConferencePicksView tracks={tracks} around={around({ matches: null })} label={LABEL} />);
+  expect(box().textContent).toBe(`${LABEL}The matching API cannot answer right now, so AMS's order stays.`);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta Your conference", "Epsilon"]);
-  expect(screen.getByText("The matching API cannot answer right now, so AMS's order stays.")).toBeInTheDocument();
+  expectRestBelowBox();
 });
 
-test("with no abstract to rank around, AMS's order stays and it says so", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={{ abstract: null, abstractTrackIds: [], matches: null }} />);
+test("with no abstract to rank around, the box holds one line saying so, and AMS's order stays below it", () => {
+  renderApp(<ConferencePicksView tracks={tracks} around={{ abstract: null, abstractTrackIds: [], matches: null }} label={LABEL} />);
+  expect(box().textContent).toBe(`${LABEL}The demo has no abstract to order around yet.`);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta", "Epsilon"]);
-  expect(screen.getByText("The demo has no abstract to order around yet.")).toBeInTheDocument();
+  expectRestBelowBox();
 });

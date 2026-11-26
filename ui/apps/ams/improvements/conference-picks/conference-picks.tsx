@@ -7,12 +7,15 @@ import { aroundAbstract } from "@/improvements/matches/matches";
 import { When } from "@/shared/meeting-time";
 import { Badge } from "@/shared/ui/badge";
 import type { Change } from "@/versions/change";
+import { GoldOutline } from "@/versions/gold";
 
-/** In place of the conferences list, the other conferences ranked for the abstract, then the rest in AMS's order. */
+/** In place of the conferences list, the other conferences ranked for the abstract in a gold box, then the rest in AMS's
+ *  order. */
 export const conferencePicks: Change<"programmes.list"> = {
   at: "programmes.list",
   label: "conferencePicks",
-  render: async ({ tracks }) => <ConferencePicksView tracks={tracks} around={await aroundAbstract()} />,
+  outlinesItself: true,
+  render: async ({ tracks }, label) => <ConferencePicksView tracks={tracks} around={await aroundAbstract()} label={label} />,
 };
 
 /** A conference that holds a match for the abstract, with its best talk. */
@@ -36,31 +39,33 @@ export function rankConferences(tracks: Track[], around: AroundAbstract): { pick
   return { picks, rest: tracks.filter((track) => !picked.has(track.id)).map((track) => ({ track, own: own.has(track.id) })) };
 }
 
-/** Conferences and Symposia's list, ranked for the demo's abstract; without the abstract's matches, AMS's order. */
-export function ConferencePicksView({ tracks, around }: { tracks: Track[]; around: AroundAbstract }) {
+/** Conferences and Symposia's list: a gold box at the top with the other conferences ranked for the demo's abstract,
+ *  empty with none, or one line when there is no answer; then AMS's order. */
+export function ConferencePicksView({ tracks, around, label }: { tracks: Track[]; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.conferencePicks");
   const { picks, rest } = rankConferences(tracks, around);
   const abstract = around.abstract;
   return (
     <>
-      <p className="mb-3 text-sm">
-        {!abstract
-          ? t("noAbstract")
-          : !around.matches
-            ? t("unavailable")
-            : t.rich("pickedFor", { abstract: [abstract.number, abstract.title].filter(Boolean).join(" "), b: (words) => <b>{words}</b> })}
-      </p>
-      {around.matches && picks.length === 0 && <p className="mb-3 text-sm">{t("none")}</p>}
-      {picks.length > 0 && (
-        <>
-          <ul className="mb-4 space-y-2">
-            {picks.map((pick) => (
-              <PickItem key={pick.track.id} pick={pick} />
-            ))}
-          </ul>
-          <h2 className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">{t("rest")}</h2>
-        </>
-      )}
+      <GoldOutline label={label}>
+        {!abstract || !around.matches ? (
+          <p className="text-sm">{t(abstract ? "unavailable" : "noAbstract")}</p>
+        ) : (
+          picks.length > 0 && (
+            <>
+              <p className="mb-3 text-sm">
+                {t.rich("pickedFor", { abstract: [abstract.number, abstract.title].filter(Boolean).join(" "), b: (words) => <b>{words}</b> })}
+              </p>
+              <ul className="space-y-2">
+                {picks.map((pick) => (
+                  <PickItem key={pick.track.id} pick={pick} />
+                ))}
+              </ul>
+            </>
+          )
+        )}
+      </GoldOutline>
+      {picks.length > 0 && <h2 className="mb-2 text-xs tracking-wide text-muted-foreground uppercase">{t("rest")}</h2>}
       <ul className="divide-y rounded-md border">
         {rest.map(({ track, own }) => (
           <li key={track.id}>

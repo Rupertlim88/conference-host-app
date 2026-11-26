@@ -19,9 +19,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
    The attendee's own conferences, those of the fixed abstract's session, are left out: they stay where AMS lists them,
    marked as the attendee's own. Every other conference that holds one of the matching API's matches for the fixed
    abstract moves to the top, the conference whose best talk scores higher first, and shows that talk's number and
-   title, whether it is a close or an unexpected match, its day and time and the reason, linking to the talk. The rest
-   follow in AMS's order. The list is outlined in gold, naming the abstract; when the matching API cannot answer, or the
-   demo has no abstract, AMS's order stays and the outline says so.
+   title, whether it is a close or an unexpected match, its day and time and the reason, linking to the talk. These
+   picks sit in a gold box of their own at the top, naming the abstract; with none, the box at the top shows empty. The
+   rest follow below it in AMS's order. When the matching API cannot answer, or the demo has no abstract, AMS's order
+   stays below the box, and one line in the box says so.
    *How:* code alone: the improvement's change to the conferences list, from the fixed abstract's matches and the
    conferences each talk is in.
    *File:* `conference-picks.tsx`
