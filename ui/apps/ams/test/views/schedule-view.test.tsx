@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { ScheduleView } from "@/features/my-schedule";
+import { ScheduleView } from "@/base/my-schedule";
 
 import { sessionSummary, talkSummary } from "../fixtures";
 import { renderApp } from "../render";

@@ -2,10 +2,10 @@
 import { screen, within } from "@testing-library/react";
 import { describe, expect, test } from "vitest";
 
-import { OrganiserPapersView } from "@/features/organiser-papers";
-import { OrganiserPaperView } from "@/features/organiser-papers";
-import { OrganiserSessionView } from "@/features/organiser-sessions";
-import { OrganiserSessionsView } from "@/features/organiser-sessions";
+import { OrganiserPapersView } from "@/consoles/organiser-papers";
+import { OrganiserPaperView } from "@/consoles/organiser-papers";
+import { OrganiserSessionView } from "@/consoles/organiser-sessions";
+import { OrganiserSessionsView } from "@/consoles/organiser-sessions";
 
 import { organiserSession, organiserSessionDetail, organiserTalk, sessionList, talkList } from "../fixtures";
 import { renderApp } from "../render";

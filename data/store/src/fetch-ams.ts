@@ -1,4 +1,4 @@
-// AMS's public programme is fetched in four requests, two seconds apart, and only what the programme shows is kept.
+// AMS's public programme is fetched in nine requests, two seconds apart, and only what the programme shows is kept.
 import { createHash } from "node:crypto";
 
 /** The four record types the loader reads from the Confex Meeting App's public API for a meeting. */
@@ -21,14 +21,19 @@ const PUBLIC_FIELDS: Record<AmsType, readonly string[]> = {
   Program: ["ChildList_Paper", "ChildList_Session", "Code", "GoodType", "HighlightColor", "NavBarTitle", "ProgramCode", "Title", "Type", "_url", "id", "label"],
 };
 
-/** Programmes that list exhibitors, sponsors and deleted entries, not talks. */
-const NOT_PROGRAMME = new Set(["EXHIBITHALL", "SPONSORS", "TRASH"]);
+/** Programmes that list organisations, not talks. AMS's menu links each one, so they are shown even where the web
+ *  programme leaves them out. */
+export const LISTINGS = new Set(["EXHIBITHALL", "CAREERFAIR", "SPONSORS"]);
 
 /**
  * Shown on the public programme: not withdrawn (AMS marks a withdrawn paper "w"; it marks two live sessions "i",
- * and its own app shows them), not left out of the web programme, and not in an exhibitor or sponsor programme.
+ * and its own app shows them), and either in a listing or neither left out of the web programme nor in the waste
+ * basket.
  */
-const shown = (row: Row) => row.Withdrawn !== "w" && String(row.WebprogramExclude) !== "1" && !NOT_PROGRAMME.has(String(row.ProgramCode ?? ""));
+const shown = (row: Row) => {
+  const code = String(row.ProgramCode ?? "");
+  return row.Withdrawn !== "w" && (LISTINGS.has(code) || (String(row.WebprogramExclude) !== "1" && code !== "TRASH"));
+};
 
 /**
  * Authors' rich text with every tag's attributes removed. Their editors leave hidden attributes the programme never
@@ -67,25 +72,100 @@ export function publicProgramme(raw: AmsFiles): AmsFiles {
   };
 }
 
+/** The lists behind four of Program Highlights' pages, each an index of the meeting app's API. */
+export const HIGHLIGHTS = {
+  themed: "SpecialTheme~1",
+  supplementary: "hasHandouts~1",
+  keynotes: "CoreKeynote~Yes",
+  fellows: "NewFellowAward~Yes",
+} as const;
+export type HighlightList = keyof typeof HIGHLIGHTS;
+export type Highlights = Record<HighlightList, string[]>;
+
+/** Each highlight list's sessions or papers that the public programme keeps, by id. */
+export function highlightIds(indexes: Record<HighlightList, Row>, kept: AmsFiles): Highlights {
+  const keptRefs = new Set([...kept.Session.map((s) => `Session/${String(s.id)}`), ...kept.Paper.map((p) => `Paper/${String(p.id)}`)]);
+  const entries = (index: Row) => [...refs(index.ChildList_Session), ...refs(index.ChildList_Paper)];
+  const idsIn = (index: Row) => entries(index).filter((r) => keptRefs.has(r)).map((r) => r.slice(r.indexOf("/") + 1));
+  return Object.fromEntries(Object.keys(HIGHLIGHTS).map((list) => [list, idsIn(indexes[list as HighlightList])])) as Highlights;
+}
+
+/** The two pages of the meeting's information that are lists of names. */
+export const NAME_PAGES = { officers: "Officers", committees: "Committees" } as const;
+export type NamePage = keyof typeof NAME_PAGES;
+export interface NameSection {
+  heading: string;
+  lines: string[];
+}
+
+const ENTITIES: Record<string, string> = { amp: "&", lt: "<", gt: ">", quot: '"', apos: "'", nbsp: " " };
+const plain = (html: string) =>
+  html
+    .replace(/<[^>]*>/g, "")
+    .replace(/&(#\d+|[a-z]+);/gi, (whole, code: string) =>
+      code.startsWith("#") ? String.fromCodePoint(Number(code.slice(1))) : (ENTITIES[code.toLowerCase()] ?? whole),
+    )
+    .replace(/\s+/g, " ")
+    .trim();
+
+/** The headings of a page of names, each with the lines of names under it. A heading is an h-tag or a paragraph that
+ *  is bold throughout; a line break starts a new line. A heading with no names under it, such as the society's thanks,
+ *  is AMS's own words, and is dropped. */
+export function nameLists(html: string): NameSection[] {
+  const sections: NameSection[] = [];
+  for (const [, tag = "", inner = ""] of html.matchAll(/<(h[1-6]|p)\b[^>]*>([\s\S]*?)<\/\1>/gi)) {
+    const text = plain(inner);
+    if (!text) continue;
+    const isHeading = tag.toLowerCase().startsWith("h") || plain(inner.replace(/<(b|strong)\b[^>]*>[\s\S]*?<\/\1>/gi, "")) === "";
+    if (isHeading) sections.push({ heading: text, lines: [] });
+    else sections.at(-1)?.lines.push(...inner.split(/<br\s*\/?>/i).map(plain).filter(Boolean));
+  }
+  return sections.filter((s) => s.lines.length > 0);
+}
+
 const MEETING = "107ANNUAL";
 const SOURCE = `https://ams.confex.com/ams/${MEETING}/meetingapi.cgi`;
 
-/** Downloads the four types one at a time, two seconds apart, and keeps only what the public programme shows. The
- *  unfiltered downloads stay in memory; each is hashed so a later download can be compared. */
-export async function fetchAms(): Promise<{ meeting: string; raw: AmsFiles; kept: AmsFiles; hashes: Record<string, string> }> {
-  const raw = {} as AmsFiles;
+/** Everything the fetch keeps: the programme's four types, the highlight lists and the pages of names. */
+export type KeptFiles = AmsFiles & { Highlights: Highlights; MeetingInfo: Record<NamePage, NameSection[]> };
+
+const pause = () => new Promise((resolve) => setTimeout(resolve, 2000));
+
+/** Downloads the four types, the four highlight indexes and the meeting's information, one at a time, two seconds
+ *  apart, and keeps only what the public programme shows. The unfiltered downloads stay in memory; each is hashed so a
+ *  later download can be compared. */
+export async function fetchAms(): Promise<{ meeting: string; raw: AmsFiles; kept: KeptFiles; hashes: Record<string, string> }> {
   const hashes: Record<string, string> = {};
-  for (const [i, type] of AMS_TYPES.entries()) {
-    if (i > 0) await new Promise((resolve) => setTimeout(resolve, 2000));
-    const res = await fetch(`${SOURCE}/${type}`, { headers: { accept: "application/json" } });
-    if (!res.ok) throw new Error(`${SOURCE}/${type} answered ${res.status}`);
+  let first = true;
+  const get = async (path: string): Promise<unknown> => {
+    if (!first) await pause();
+    first = false;
+    const res = await fetch(`${SOURCE}/${path}`, { headers: { accept: "application/json" } });
+    if (!res.ok) throw new Error(`${SOURCE}/${path} answered ${res.status}`);
     const text = await res.text();
-    const body: unknown = JSON.parse(text);
+    hashes[path] = createHash("sha256").update(text).digest("hex");
+    return JSON.parse(text);
+  };
+  const list = async (path: string): Promise<Row[]> => {
+    const body = await get(path);
     const rows = Array.isArray(body) ? body : (body as { data?: unknown }).data;
-    if (!Array.isArray(rows)) throw new Error(`${SOURCE}/${type} did not return a list`);
-    raw[type] = rows as Record<string, unknown>[];
-    hashes[type] = createHash("sha256").update(text).digest("hex");
-  }
+    if (!Array.isArray(rows)) throw new Error(`${SOURCE}/${path} did not return a list`);
+    return rows as Row[];
+  };
+
+  const raw = {} as AmsFiles;
+  for (const type of AMS_TYPES) raw[type] = await list(type);
+  const indexes = {} as Record<HighlightList, Row>;
+  for (const [name, id] of Object.entries(HIGHLIGHTS)) indexes[name as HighlightList] = (await get(`Index/${id}`)) as Row;
+  const info = await list("ModuleMeetingInfo");
+  const page = (id: string) => String(info.find((p) => p.id === id)?.Content ?? "");
+
   // The lists are filtered together: a paper in a left-out session goes with it, and slots follow their entries.
-  return { meeting: MEETING, raw, kept: publicProgramme(raw), hashes };
+  const programme = publicProgramme(raw);
+  const kept: KeptFiles = {
+    ...programme,
+    Highlights: highlightIds(indexes, programme),
+    MeetingInfo: { officers: nameLists(page(NAME_PAGES.officers)), committees: nameLists(page(NAME_PAGES.committees)) },
+  };
+  return { meeting: MEETING, raw, kept, hashes };
 }

@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { TalkView } from "@/features/talk";
+import { TalkView } from "@/base/talk";
 
 import { talkDetail } from "../fixtures";
 import { renderApp } from "../render";

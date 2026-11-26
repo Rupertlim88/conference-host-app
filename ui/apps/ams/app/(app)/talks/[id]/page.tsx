@@ -1,7 +1,7 @@
-import { StarButton } from "@/features/my-schedule";
-import { RelatedTalks } from "@/features/related-talks";
-import { orNotFound, serverApi } from "@/features/server";
-import { TalkView } from "@/features/talk";
+import { StarButton } from "@/base/my-schedule";
+import { RelatedTalks } from "@/improvements/related-talks";
+import { orNotFound, serverApi } from "@/shared/server";
+import { TalkView } from "@/base/talk";
 
 export default async function TalkPage({ params }: { params: Promise<{ id: string }> }) {
   const { id } = await params;

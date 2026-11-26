@@ -16,7 +16,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### The database
 
 2. **The meeting has its own schema in the database, and sign-in has a schema of its own.** The meeting's schema
-   holds its meeting, tracks, sessions, talks, people, who gives which talk, stars, notes and send runs. Sessions
+   holds its meeting, tracks, sessions, talks, people, who gives which talk, the pages of names, the demo's settings,
+   stars, notes and send runs. A track says whether the conferences list shows it, and sessions and talks carry Program
+   Highlights' marks. Sessions
    and talks keep the published programme beside the live one, so that every organiser's change can be shown and undone.
    Sign-in's tables (users, sessions, accounts, verifications) sit in their own schema, and an account is unique by
    issuer and account id.
@@ -41,9 +43,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### Gathering the programmes
 
-6. **AMS's public programme is fetched in four requests, two seconds apart, and only what the programme shows is kept.** Nothing is written until all four have arrived. Only the fields the public programme shows are kept, for
-   each type. Withdrawn papers, rows left out of the web programme, the exhibit hall, sponsor and waste-basket
-   programmes, papers in dropped sessions and slots of dropped rows are removed, and lists of child rows stop naming them. Abstracts
+6. **AMS's public programme is fetched in nine requests, two seconds apart, and only what the programme shows is kept.** The four types of the programme, Program Highlights' four lists and the meeting's information are fetched;
+   nothing is written until all nine have arrived. Only the fields the public programme shows are kept, for each type.
+   Withdrawn papers, rows left out of the web programme (but not the exhibit hall, career fair and sponsor listings,
+   which AMS's menu links), the waste-basket programme, papers in dropped sessions and slots of dropped rows are
+   removed, and lists of child rows stop naming them. A highlight list keeps only what is kept. The officers and
+   committees pages keep only their headings and the names under them, never AMS's own words. Abstracts
    and descriptions lose every HTML attribute. Each unfiltered download is hashed, so a later download can be compared,
    and is never written to disk.
    *How:* code alone: `fetch` from the Confex meeting API, one allow-list of fields for each type.
@@ -52,8 +57,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
 7. **AMS's files become the host app's programme: its sessions, talks, people and tracks.** Session numbers, kinds and
    chairs are read from AMS's own display text; the presenter is the name AMS shows in bold, and becomes one of the
    meeting's people, known by an id made from the name; times come from AMS's timestamps; titles, abstracts and
-   descriptions become plain text; talks are put in order within each session. The meeting's own name, dates, time zone,
-   venue and city are set here, as AMS announces them.
+   descriptions become plain text; talks are put in order within each session. A listing of organisations is a track
+   the conferences list leaves out; Program Highlights' lists mark their sessions and talks; the officers and committees
+   pages become headings with their lines. The meeting's own name, dates, time zone, venue and city are set here, as AMS
+   announces them.
    *How:* code alone: the files are checked with zod before anything is mapped.
    *File:* `ams-rows.ts`
 
@@ -63,30 +70,39 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `time.ts`
 
 9. **Loading puts back the published programme in one step, and keeps stars, notes and sign-ins.** The
-   meeting, tracks, sessions, talks and people are written as both the live and the published programme, and anything
-   no longer in the files is removed. It all happens in one transaction, so a failed load changes nothing. It undoes
+   meeting, tracks, sessions, talks and people are written as both the live and the published programme, the pages of
+   names are written afresh, and anything no longer in the files is removed. It all happens in one transaction, so a failed load changes nothing. It undoes
    organisers' edits.
    *How:* code alone: one transaction of upserts in chunks of 500; the `load` command migrates first.
    *File:* `load.ts`
 
+10. **The demo carries a sample: every track and session, with five talks with an abstract from each track.** The
+    talks are taken in time order, and a talk counts for every track it is in. Breaks and the talks on Program
+    Highlights' lists are always kept, and count against no track. People stay only with a talk that stays.
+    *How:* code alone; the `load` command applies it to AMS's files before loading.
+    *File:* `sample.ts`
+
 ### Reading and writing
 
-10. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
-    zone, tracks, session kinds, sessions, talks and people. A person is listed only while one of their talks is shown.
+11. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
+    zone, tracks, sessions, talks and people; the conferences list leaves out the listings of organisations. It finds a
+    programme AMS's menu opens by its code, reads Program Highlights' lists and the pages of names, and counts how a set
+    of talks falls across the tracks. A person is listed only while one of their talks is shown.
     A person who has no shown talk has no page either. Search covers talks, sessions and people, at most 50, 20 and 20.
     The talks a send carries are the same shown talks, with their session's title and format. The keep-alive's one
     trivial read is here, and so are the short forms of a session and a talk that every list shows.
     *How:* code alone: SQL through Drizzle; every read filters out withdrawn talks.
     *File:* `programme.ts`
 
-11. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
+12. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
     stars and unstars talks and sessions, and sees their schedule. A note saved blank is deleted.
     *How:* code alone: every read and write is filtered by the guest's id.
     *File:* `guest-data.ts`
 
-12. **Organisers see every talk with how it differs from the published programme, and their edits never cross.**
+13. **Organisers see every talk with how it differs from the published programme, and their edits never cross.**
     - **Reading:** papers in pages of 50, filtered by status (all, scheduled, withdrawn, changed) and search, where a
-      page past the end gives the last page; sessions with their count of shown talks and whether they changed; the
+      page past the end gives the last page; sessions with their count of shown talks and whether they changed,
+      leaving out the listings' organisations; the
       published days; the counts of every change.
     - **Editing:** moving a paper, withdrawing or restoring it, changing a session's time and room (its talks move with
       it, and untimed talks take its times), and putting everything back as published. Moving a paper and changing a
@@ -95,9 +111,17 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *How:* code alone: SQL through Drizzle, with `SELECT … FOR UPDATE` on the session a move or a change edits.
     *File:* `organiser.ts`
 
-13. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
+14. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
     when no other is running; it ends as sent or failed, or as interrupted when it is taken over, and only a running
     one can end. Its error is kept to 500
     characters. The last ten runs are listed.
     *How:* code alone: a partial unique index allows one running row; the model check in verify-send-runs covers it.
     *File:* `sync-log.ts`
+
+### The demo's settings
+
+15. **The demo is fixed to one abstract, which the developer console sets.** A shown talk with an abstract, not a
+    break, can be fixed; any other is refused, and the setting stays. With none set, or when the fixed talk is later
+    withdrawn, the earliest such talk stands in. The setting is kept through reloads.
+    *How:* code alone: one row of settings, read and written through Drizzle.
+    *File:* `demo-settings.ts`

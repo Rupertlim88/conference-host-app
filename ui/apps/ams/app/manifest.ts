@@ -1,1 +1,1 @@
-export { manifest as default } from "@/features/app";
+export { manifest as default } from "@/shared/app";

@@ -1,6 +1,6 @@
 import { expect, test } from "vitest";
 
-import { firstParam } from "@/features/app";
+import { firstParam } from "@/shared/app";
 
 test("a query value reads as itself, a repeated one as its first value, and a missing one as empty", () => {
   expect(firstParam("storm")).toBe("storm");

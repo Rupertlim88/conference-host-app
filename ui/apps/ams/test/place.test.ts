@@ -1,5 +1,5 @@
 import { expect, test } from "vitest";
-import { placeOf } from "@/features/cards";
+import { placeOf } from "@/base/cards";
 
 
 test("a room reads with its building in brackets", () => {

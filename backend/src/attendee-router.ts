@@ -1,10 +1,15 @@
 // The attendee app's requests read the programme through the store, and a missing item is "not found".
 import {
+  AroundAbstractSchema,
+  CodeInputSchema,
   DateInputSchema,
   DaySchema,
+  HighlightInputSchema,
+  HighlightSchema,
   IdInputSchema,
-  KindInputSchema,
   MeetingSchema,
+  NamePageInputSchema,
+  NameSectionSchema,
   NoteInputSchema,
   NoteSchema,
   PersonDetailSchema,
@@ -15,7 +20,6 @@ import {
   SearchInputSchema,
   SearchResultsSchema,
   SessionDetailSchema,
-  SessionKindSchema,
   SessionSummarySchema,
   TalkDetailSchema,
   TargetSchema,
@@ -27,6 +31,7 @@ import { TRPCError } from "@trpc/server";
 import { z } from "zod";
 
 import { publicProcedure, router, viewerProcedure } from "./gate";
+import { aroundAbstract } from "./around-abstract";
 import { relatedTalks } from "./related";
 
 export function found<T>(value: T | null, what: string): T {
@@ -59,14 +64,33 @@ export const attendeeRoutes = {
       .input(IdInputSchema)
       .output(TrackDetailSchema)
       .query(async ({ ctx, input }) => found(await ctx.store.track(input.id), "Track")),
+    byCode: viewerProcedure
+      .input(CodeInputSchema)
+      .output(TrackDetailSchema)
+      .query(async ({ ctx, input }) => found(await ctx.store.trackByCode(input.code), "Programme")),
+  }),
+
+  highlights: router({
+    get: viewerProcedure
+      .input(HighlightInputSchema)
+      .output(HighlightSchema)
+      .query(({ ctx, input }) => ctx.store.highlight(input.list)),
+  }),
+
+  names: router({
+    get: viewerProcedure
+      .input(NamePageInputSchema)
+      .output(z.array(NameSectionSchema))
+      .query(({ ctx, input }) => ctx.store.namePage(input.page)),
+  }),
+
+  improvements: router({
+    aroundAbstract: viewerProcedure
+      .output(AroundAbstractSchema)
+      .query(({ ctx }) => aroundAbstract(ctx.store, ctx.demo, ctx.api)),
   }),
 
   sessions: router({
-    kinds: viewerProcedure.output(z.array(SessionKindSchema)).query(({ ctx }) => ctx.store.sessionKinds()),
-    ofKind: viewerProcedure
-      .input(KindInputSchema)
-      .output(z.array(SessionSummarySchema))
-      .query(({ ctx, input }) => ctx.store.sessionsOfKind(input.kind)),
     get: viewerProcedure
       .input(IdInputSchema)
       .output(SessionDetailSchema)

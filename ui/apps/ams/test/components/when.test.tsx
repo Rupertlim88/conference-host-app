@@ -2,7 +2,7 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { When } from "@/features/meeting-time";
+import { When } from "@/shared/meeting-time";
 
 import { renderApp } from "../render";
 

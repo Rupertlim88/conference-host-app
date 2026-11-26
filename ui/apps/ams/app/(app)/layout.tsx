@@ -1,6 +1,6 @@
-import { AppShell } from "@/features/frame";
-import { SignOutButton } from "@/features/sign-in";
-import { serverApi } from "@/features/server";
+import { AppShell } from "@/base/frame";
+import { SignOutButton } from "@/shared/sign-in";
+import { serverApi } from "@/shared/server";
 
 // Every page here needs a signed-in person: serverApi() redirects to sign-in, and the backend checks again on every call.
 export default async function SignedInLayout({ children }: { children: React.ReactNode }) {

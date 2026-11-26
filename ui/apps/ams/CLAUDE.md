@@ -17,9 +17,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 2. **This UI is the demo for the American Meteorological Society (AMS).** It approximates the meeting app AMS attendees will use at the 107th Annual Meeting: the Confex Meeting App, on the web at ams.confex.com/ams/107ANNUAL/meetingapp.cgi and as a phone app. It follows that app's general layout, screens and flow, not its exact design, at phone and computer sizes, with its own name and logo, and its name says it is a demo.
 
-3. **It carries the programme of the AMS 107th Annual Meeting (Denver, 10–14 January 2027) as published so far**, refreshed as AMS adds to it. It shows every talk and poster with its title, presenters, affiliations, session, day, time, room and abstract. Withdrawn entries are left out.
+3. **It carries a sample of the programme of the AMS 107th Annual Meeting (Denver, 10–14 January 2027) as published so far**, refreshed as AMS adds to it: every conference, symposium and event, with all of their sessions, and five abstracts from each, so that the matching API's results can be checked quickly. It shows each talk and poster it carries with its title, presenters, affiliations, session, day, time, room and abstract. Withdrawn entries are left out.
 
-4. **On every talk page, a related-talks panel shows the conference API's matches for that talk.** This panel is the point of the demo.
+4. **In our improvements, every talk page shows a related-talks panel with the conference API's matches for that talk.** This panel is the point of the demo. The base, which shows only what AMS's own page shows, has no such panel.
 
 ### What it takes from AMS, and what it never takes
 
@@ -37,6 +37,6 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 9. **The organiser side approximates the Confex tools AMS uses to collect abstracts and build its programme**, from what is publicly known about them.
 
-### This UI's further CLAUDE.md
+### This UI's further CLAUDE.md files
 
-10. **This UI has one further CLAUDE.md, in its features folder, holding one rule for each feature.** Each feature of this UI is one file in that folder, tied to its rule there. The files the web framework needs in its own folders, such as its pages, which read what their address needs from the backend, hand over to one feature, and count with that feature's file.
+10. **This UI's code sits in five folders, each with a CLAUDE.md holding one rule for each of its files.** The shared folder holds what every screen uses; the base folder, the AMS meeting app as AMS has it; the improvements folder, Our improvements; the versions folder, the switching between them; and the consoles folder, the organiser and developer consoles. The files the web framework needs in its own folders, such as its pages, which read what their address needs from the backend, hand over to one file, and count with that file.

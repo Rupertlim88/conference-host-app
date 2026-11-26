@@ -33,7 +33,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    request for the programme or the consoles is refused without a signed-in guest, with "Sign in to see the
    programme."; only the question of who is signed in is open to everyone. An unexpected error tells the browser only
    "Something went wrong", with no stack, unless the app runs in development mode. The gate also fixes what every
-   request carries: the store, the organiser's store, the run log, the matching API, the API's settings without the key,
+   request carries: the store, the organiser's store, the run log, the demo's settings, the matching API, the API's
+   settings without the key,
    and the signed-in guest.
    *How:* code alone: Better Auth reads the session from the request's cookies; every request but "who is signed in" is
    built on one tRPC middleware that refuses a request with no guest; tRPC's error formatter strips internal errors.
@@ -42,8 +43,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### The attendee app
 
 4. **The attendee app's requests read the programme through the store, and a missing item is "not found".** Who is
-   signed in, the meeting, days, tracks, session kinds, sessions, talks, related talks, people, search, the guest's
-   schedule, stars and notes. Every input, and every answer that carries data, is checked against the host app's
+   signed in, the meeting, days, tracks, the programmes AMS's menu opens by code, Program Highlights' lists, the pages
+   of names, sessions, talks, related talks, people, search, the guest's schedule, stars and notes, and, for our
+   improvements, the view around the demo's fixed abstract. Every input, and every answer that carries data, is checked against the host app's
    contract. Looking up a talk, session, track or person that does not exist, or a talk that is withdrawn, answers "not
    found", naming what kind of item was missing. Related talks are asked for only for a talk the attendee can see.
    *How:* code alone: tRPC procedures calling the store, with zod schemas from the host app's contract; related talks
@@ -57,20 +59,27 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *How:* code alone: one matches search per talk, joined to the store's talk summaries by talk id.
    *File:* `related.ts`
 
+6. **Our improvements see the demo's fixed abstract, and how the matching API's matches for it fall across the tracks.**
+   The matches are the fixed abstract's related talks, and each counts for every track it is in. When the API cannot
+   answer, the counts are left out, and the abstract still shows.
+   *How:* code alone: the related-talks file's matches, counted by the store.
+   *File:* `around-abstract.ts`
+
 ### The consoles
 
-6. **The consoles' requests carry out the organiser's and developer's actions, and name every refusal.** Organisers
+7. **The consoles' requests carry out the organiser's and developer's actions, and name every refusal.** Organisers
    list, open, move, withdraw and restore papers, and list, open and change sessions; they see the changes since the
    published programme and the last ten sends, and start a send. A session's new times are given in the meeting's time
    zone, on the meeting's days widened to the published programme's days, and checked by the organiser's rules before
    anything is saved. A send that is already running is refused as a conflict; a send that fails answers with its
    failed run, not an error. The developer sees the API settings, the last send and the changes, tests the connection
-   (or is told there is no programme to test with), and resets the programme to the published one. Every input and
-   answer is checked against the host app's contract.
+   (or is told there is no programme to test with), resets the programme to the published one, and fixes the demo to
+   one abstract, refusing by name a talk that cannot be. Every input and answer is checked against the host app's
+   contract.
    *How:* code alone: tRPC procedures calling the organiser store, the send and the matching API.
    *File:* `console-router.ts`
 
-7. **An organiser's edit keeps a talk's length and keeps a session's times close to the meeting's days.** A talk moved
+8. **An organiser's edit keeps a talk's length and keeps a session's times close to the meeting's days.** A talk moved
    into a session takes the session's room and building and goes after its last shown talk; it starts when the session
    starts or when the last talk ends, whichever is later, and keeps its length. A poster, or a talk with no length,
    takes the session's times; in a session with no time, it has none. Changing a session's start moves its talks by the
@@ -82,7 +91,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### The matching API
 
-8. **The host app talks to a matching API only in the form of the conference API's contract.** Any API can be plugged
+9. **The host app talks to a matching API only in the form of the conference API's contract.** Any API can be plugged
    in by its address and key. It is called at `/v1/conferences/<conference>/`, with the conference `ams-2027`, and the key as a bearer token.
    - **Requests.** Every request is checked against the conference API's contract before it is sent, and one that
      fails is never sent.
@@ -98,7 +107,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    contract check each request before it is sent and each answer as it arrives.
    *File:* `matching-api.ts`
 
-9. **The programme is sent as one run at a time, in parts of a thousand talks, and stops at a five-minute deadline.**
+10. **The programme is sent as one run at a time, in parts of a thousand talks, and stops at a five-minute deadline.**
    - **What is sent:** every talk the store shows, except breaks and talks with no abstract. Text is made plain:
      control characters other than tabs and line breaks become spaces, and each field is cut, never inside a character, to the contract's limits
      (abstract 10,000, title 500, number 64, session title 500, presenter's name 300; at most 20 tracks). An end is
@@ -118,7 +127,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### Staying on
 
-10. **The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.** A
+11. **The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.** A
     request without the secret, or with the wrong one, or when no secret is set, is refused and touches nothing. A
     failure answers only "The database read failed", and the error is logged on the server.
     *How:* code alone: Vercel's daily cron calls it with the secret; the secret is compared in constant time; it runs

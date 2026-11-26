@@ -2,7 +2,7 @@
 import { fireEvent, screen, waitFor, within } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { TopBar } from "@/features/frame";
+import { TopBar } from "@/base/frame";
 
 import { renderApp } from "../render";
 

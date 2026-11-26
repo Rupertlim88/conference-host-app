@@ -16,7 +16,7 @@ const exportsOf = (text: string) =>
 function problems(files: Files): string[] {
   const clientExports = new Map<string, string[]>();
   for (const [path, text] of Object.entries(files)) {
-    if (path.startsWith("features/") && isClient(text)) {
+    if (!path.startsWith("app/") && isClient(text)) {
       clientExports.set(`@/${path.replace(/\.tsx?$/, "")}`, exportsOf(text));
     }
   }
@@ -41,6 +41,9 @@ function problems(files: Files): string[] {
   return found;
 }
 
+/** The folders that hold the UI's own code, beside the web framework's app folder. */
+const CODE_FOLDERS = ["shared", "base", "improvements", "versions", "consoles"];
+
 function appFiles(): Files {
   const root = fileURLToPath(new URL("..", import.meta.url));
   const files: Files = {};
@@ -51,8 +54,7 @@ function appFiles(): Files {
       else if (/\.tsx?$/.test(name)) files[relative(root, full)] = readFileSync(full, "utf8");
     }
   };
-  walk(join(root, "app"));
-  walk(join(root, "features"));
+  for (const folder of ["app", ...CODE_FOLDERS]) walk(join(root, folder));
   return files;
 }
 
@@ -63,17 +65,17 @@ describe("the line between server and client code", () => {
 
   test("a server file calling a client file's function is caught", () => {
     const files = {
-      "features/time.tsx": '"use client";\nexport function placeOf(room: string) { return room; }\n',
-      "features/cards.tsx": 'import { placeOf } from "@/features/time";\nexport const Card = () => placeOf("403");\n',
+      "base/time.tsx": '"use client";\nexport function placeOf(room: string) { return room; }\n',
+      "base/cards.tsx": 'import { placeOf } from "@/base/time";\nexport const Card = () => placeOf("403");\n',
     };
-    expect(problems(files)).toEqual(["features/cards.tsx uses placeOf"]);
+    expect(problems(files)).toEqual(["base/cards.tsx uses placeOf"]);
   });
 
   test("a server page passing a function to a client component is caught; rendering it with data is not", () => {
     const files = {
-      "features/papers.tsx": '"use client";\nexport function PaperView() { return null; }\n',
-      "app/page.tsx": 'import { PaperView } from "@/features/papers";\nexport default () => <PaperView move={(s) => s} />;\n',
-      "app/other.tsx": 'import { PaperView } from "@/features/papers";\nexport default () => <PaperView talk={talk} />;\n',
+      "base/papers.tsx": '"use client";\nexport function PaperView() { return null; }\n',
+      "app/page.tsx": 'import { PaperView } from "@/base/papers";\nexport default () => <PaperView move={(s) => s} />;\n',
+      "app/other.tsx": 'import { PaperView } from "@/base/papers";\nexport default () => <PaperView talk={talk} />;\n',
     };
     expect(problems(files)).toEqual(["app/page.tsx passes a function to PaperView"]);
   });

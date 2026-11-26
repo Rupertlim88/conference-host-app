@@ -34,7 +34,7 @@ describe.skipIf(!url)("loading rows into Postgres", { timeout: 60_000 }, () => {
     const first = await loadRows(db, amsTables, ams);
     const second = await loadRows(db, amsTables, ams);
     expect(second).toEqual(first);
-    expect(first).toEqual({ tracks: 4, sessions: 2, talks: 7, people: 6 });
+    expect(first).toEqual({ tracks: 5, sessions: 3, talks: 7, people: 6 });
     const [row] = await db.select().from(amsTables.talks).where(eq(amsTables.talks.number, "J7.1"));
     expect(row?.startsAt?.toISOString()).toBe("2026-01-27T19:45:00.000Z");
     expect(row?.presentingAuthor).toBe("William J Graff");

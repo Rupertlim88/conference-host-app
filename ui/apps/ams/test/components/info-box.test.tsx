@@ -4,7 +4,7 @@ import { expect, test } from "vitest";
 
 
 import { renderApp } from "../render";
-import { InfoBox } from "@/features/cards";
+import { InfoBox } from "@/base/cards";
 
 const definitions = () => screen.getAllByRole("definition").map((d) => d.textContent);
 

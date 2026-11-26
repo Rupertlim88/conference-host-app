@@ -1,6 +1,6 @@
-import { PeopleView } from "@/features/people";
-import { firstParam } from "@/features/app";
-import { serverApi } from "@/features/server";
+import { PeopleView } from "@/base/people";
+import { firstParam } from "@/shared/app";
+import { serverApi } from "@/shared/server";
 
 export default async function PeoplePage({ searchParams }: { searchParams: Promise<{ letter?: string | string[] }> }) {
   const letter = firstParam((await searchParams).letter);

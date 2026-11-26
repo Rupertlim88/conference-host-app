@@ -16,6 +16,7 @@ export type TalkKind = "oral" | "poster" | "break";
 export type TalkRow = Omit<SocietyTables["talks"]["$inferSelect"], PublishedTalk | "withdrawn"> & { kind: TalkKind };
 export type PersonRow = SocietyTables["people"]["$inferSelect"];
 export type TalkPersonRow = SocietyTables["talkPeople"]["$inferSelect"];
+export type InfoListRow = SocietyTables["infoLists"]["$inferSelect"];
 
 /** Everything one society's programme loads into the store. */
 export interface SocietyRows {
@@ -25,6 +26,7 @@ export interface SocietyRows {
   talks: TalkRow[];
   people: PersonRow[];
   talkPeople: TalkPersonRow[];
+  infoLists: InfoListRow[];
 }
 
 
@@ -78,6 +80,9 @@ export async function loadRows(db: Db, t: SocietyTables, rows: SocietyRows): Pro
     await upsert(tx, t.sessions, t.sessions.id, rows.sessions.map(published));
     await upsert(tx, t.talks, t.talks.id, rows.talks.map(publishedTalk));
     await upsert(tx, t.people, t.people.id, rows.people);
+
+    await tx.delete(t.infoLists);
+    if (rows.infoLists.length) await tx.insert(t.infoLists).values(rows.infoLists);
 
     await tx.delete(t.talkPeople);
     for (let i = 0; i < rows.talkPeople.length; i += CHUNK) {

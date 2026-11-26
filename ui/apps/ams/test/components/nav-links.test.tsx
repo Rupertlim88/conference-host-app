@@ -2,7 +2,7 @@
 import { fireEvent, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { NavLinks } from "@/features/frame";
+import { NavLinks } from "@/base/frame";
 
 import { renderApp } from "../render";
 

@@ -1,6 +1,6 @@
 // The backend is built once per process, from settings checked when it starts.
 import { SocietySchema, type Society } from "@repo/host-contracts";
-import { connect, createGuestData, createOrganiserStore, createProgramme, createSyncLog } from "@repo/host-store";
+import { connect, createDemoSettings, createGuestData, createOrganiserStore, createProgramme, createSyncLog } from "@repo/host-store";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { betterAuth } from "better-auth";
 import { z } from "zod";
@@ -108,6 +108,7 @@ function build(env: Record<string, string | undefined>) {
     : unconfiguredApi;
   const organiser = createOrganiserStore(db, config.society);
   const log = createSyncLog(db, config.society);
+  const demo = createDemoSettings(db, config.society);
   const settings = {
     apiAddress: config.api ? safeApiAddress(config.api.url) : null,
     keySet: config.api !== null,
@@ -122,13 +123,13 @@ function build(env: Record<string, string | undefined>) {
     handleKeepAlive: (req: Request) => keepAlive(req, config.cronSecret, () => store.ping()),
     /** The router for server components, as the person behind these headers. */
     callerFor: async (headers: Headers): Promise<HostCaller> =>
-      createHostCaller({ store, organiser, log, api, settings, viewer: await viewer(headers) }),
+      createHostCaller({ store, organiser, log, demo, api, settings, viewer: await viewer(headers) }),
     handleTrpc: (req: Request) =>
       fetchRequestHandler({
         endpoint: "/api/trpc",
         req,
         router: appRouter,
-        createContext: async () => ({ store, organiser, log, api, settings, viewer: await viewer(req.headers) }),
+        createContext: async () => ({ store, organiser, log, demo, api, settings, viewer: await viewer(req.headers) }),
         onError({ path, error }) {
           if (error.code === "INTERNAL_SERVER_ERROR") console.error(`tRPC error on ${path ?? "?"}:`, error);
         },

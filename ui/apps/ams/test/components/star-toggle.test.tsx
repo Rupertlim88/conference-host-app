@@ -3,7 +3,7 @@ import type { Target } from "@repo/host-contracts";
 import { fireEvent, screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { StarToggle } from "@/features/my-schedule";
+import { StarToggle } from "@/base/my-schedule";
 
 import { renderApp } from "../render";
 

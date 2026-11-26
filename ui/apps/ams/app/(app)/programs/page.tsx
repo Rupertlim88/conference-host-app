@@ -1,5 +1,5 @@
-import { ProgramsView } from "@/features/programmes";
-import { serverApi } from "@/features/server";
+import { ProgramsView } from "@/base/programmes";
+import { serverApi } from "@/shared/server";
 
 export default async function ProgramsPage() {
   const tracks = await (await serverApi()).tracks.list();

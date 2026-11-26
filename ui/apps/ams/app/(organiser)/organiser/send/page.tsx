@@ -1,7 +1,7 @@
 import { getTranslations } from "next-intl/server";
 
-import { SendPanel, SendView } from "@/features/send";
-import { serverApi } from "@/features/server";
+import { SendPanel, SendView } from "@/consoles/send";
+import { serverApi } from "@/shared/server";
 
 export default async function SendPage() {
   const api = await serverApi();

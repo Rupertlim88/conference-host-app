@@ -1,3 +1,3 @@
 "use client";
 
-export { RootError as default } from "@/features/errors";
+export { RootError as default } from "@/shared/errors";

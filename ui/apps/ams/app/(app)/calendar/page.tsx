@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation";
 
-import { firstDay } from "@/features/calendar";
-import { serverApi } from "@/features/server";
+import { firstDay } from "@/base/calendar";
+import { serverApi } from "@/shared/server";
 
 export default async function CalendarIndexPage() {
   const api = await serverApi();

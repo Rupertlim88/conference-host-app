@@ -1,5 +1,5 @@
 "use client";
 
-import "@/features/theme.css";
+import "@/shared/theme.css";
 
-export { GlobalError as default } from "@/features/errors";
+export { GlobalError as default } from "@/shared/errors";

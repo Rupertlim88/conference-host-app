@@ -1,7 +1,7 @@
 import { TRPCError } from "@trpc/server";
 import { expect, test } from "vitest";
 
-import { orNotFound } from "@/features/server";
+import { orNotFound } from "@/shared/server";
 
 // Next's notFound() throws an error whose digest asks Next to render the not-found page.
 const NOT_FOUND = { digest: "NEXT_HTTP_ERROR_FALLBACK;404" };

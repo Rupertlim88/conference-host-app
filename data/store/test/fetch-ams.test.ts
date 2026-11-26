@@ -1,6 +1,6 @@
 import { describe, expect, test } from "vitest";
 
-import { publicProgramme, type AmsFiles } from "../src/fetch-ams";
+import { highlightIds, nameLists, publicProgramme, type AmsFiles } from "../src/fetch-ams";
 
 // Shapes from AMS's 107th Annual Meeting API, cut down to the fields each test needs.
 const paper = (id: string, session: string, over: Record<string, unknown> = {}) => ({
@@ -96,19 +96,25 @@ describe("publicProgramme", () => {
     expect(ids(out.Paper)).toEqual(["496187"]);
   });
 
-  test("drops the exhibit hall, sponsor and waste-basket programmes and every session in them", () => {
+  test("keeps the exhibit hall, career fair and sponsor listings, even where the web programme leaves them out", () => {
     const booth = session("75215", [], { label: "Exhibit", ProgramCode: "EXHIBITHALL", FinalNumber: "Session " });
+    const fair = session("77496", [], { ProgramCode: "CAREERFAIR", WebprogramExclude: "1" });
     const sponsor = session("77001", [], { label: "Sponsor", ProgramCode: "SPONSORS", FinalNumber: "Session " });
+    const binned = session("75000", [], { ProgramCode: "TRASH", WebprogramExclude: "1" });
     const out = publicProgramme(
       files({
-        Session: [session("76096", ["487641", "496187"]), booth, sponsor],
-        SlotData: [slot("Session/76096"), slot("Paper/487641"), slot("Paper/496187"), slot("Session/75215")],
-        Program: [program("1976", "LIGHTNING", ["76096"]), program("1947", "EXHIBITHALL", ["75215"]), program("2001", "SPONSORS", ["77001"]), program("1945", "TRASH", [])],
+        Session: [session("76096", ["487641", "496187"]), booth, fair, sponsor, binned],
+        Program: [
+          program("1976", "LIGHTNING", ["76096"]),
+          program("1947", "EXHIBITHALL", ["75215"]),
+          { ...program("1948", "CAREERFAIR", ["77496"]), WebprogramExclude: "1" },
+          program("2001", "SPONSORS", ["77001"]),
+          { ...program("1945", "TRASH", ["75000"]), WebprogramExclude: "1" },
+        ],
       }),
     );
-    expect(ids(out.Session)).toEqual(["76096"]);
-    expect(ids(out.Program)).toEqual(["1976"]);
-    expect(out.SlotData.map((s) => s.Entryid)).not.toContain("Session/75215");
+    expect(ids(out.Session)).toEqual(["76096", "75215", "77496", "77001"]);
+    expect(ids(out.Program)).toEqual(["1976", "1947", "1948", "2001"]);
   });
 
   test("drops hidden markup from authors' rich text, where an editor can leave an email", () => {
@@ -153,5 +159,41 @@ describe("publicProgramme", () => {
     const keynote = paper("498894", "none", { ParentList_ParentEntries: ["Program/1976"] });
     const out = publicProgramme(files({ Paper: [paper("487641", "76096"), keynote] }));
     expect(ids(out.Paper)).toEqual(["487641", "498894"]);
+  });
+});
+
+describe("highlightIds", () => {
+  test("keeps each highlight list's entries the public programme keeps, and only those", () => {
+    const kept = publicProgramme(files());
+    const lists = highlightIds(
+      {
+        themed: { ChildList_Session: ["Session/76096", "Session/99999"] },
+        supplementary: { ChildList_Paper: ["Paper/487641"] },
+        keynotes: { ChildList_Paper: ["Paper/496187", "Paper/1"] },
+        fellows: {},
+      },
+      kept,
+    );
+    expect(lists).toEqual({ themed: ["76096"], supplementary: ["487641"], keynotes: ["496187"], fellows: [] });
+  });
+});
+
+describe("nameLists", () => {
+  test("keeps each heading with the lines of names under it, split at line breaks", () => {
+    const html =
+      '<h4><span style="font-weight: 400;">Local Organizing Committee</span></h4>' +
+      "<p><span>Melissa Burt and Scott Mackaro, Co-Chairs</span><br /><br /><span>Stephanie Herring, Kate Long</span></p>" +
+      "<p><strong>41st Conference on Hydrology</strong></p><p>Eric Anderson, Molly Woloszyn &amp; Alka Tiwari</p>";
+    expect(nameLists(html)).toEqual([
+      { heading: "Local Organizing Committee", lines: ["Melissa Burt and Scott Mackaro, Co-Chairs", "Stephanie Herring, Kate Long"] },
+      { heading: "41st Conference on Hydrology", lines: ["Eric Anderson, Molly Woloszyn & Alka Tiwari"] },
+    ]);
+  });
+
+  test("drops a heading with no names under it, such as the society's thanks", () => {
+    const html =
+      '<h4 style="text-align: center;">THE SOCIETY WOULD LIKE TO THANK THE PROGRAM COMMITTEES</h4>' +
+      "<p><b>Presidential Forum and Conference</b></p><p>Dr. Kandis Boyd and Travis Washington</p>";
+    expect(nameLists(html)).toEqual([{ heading: "Presidential Forum and Conference", lines: ["Dr. Kandis Boyd and Travis Washington"] }]);
   });
 });
