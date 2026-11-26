@@ -1,0 +1,178 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^job_[A-Za-z0-9_-]{22}$"
+    },
+    "programmeVersion": {
+      "type": "string",
+      "pattern": "^pv_[A-Za-z0-9_-]{22}$"
+    },
+    "run": {
+      "type": "object",
+      "properties": {
+        "engineId": {
+          "type": "string",
+          "pattern": "^[a-z0-9_]{1,64}$"
+        },
+        "engineVersion": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.+-]{1,64}$"
+        },
+        "runId": {
+          "type": "string",
+          "pattern": "^[A-Za-z0-9_.:-]{1,128}$"
+        },
+        "models": {
+          "type": "object",
+          "propertyNames": {
+            "type": "string",
+            "pattern": "^[a-z0-9_]{1,64}$"
+          },
+          "additionalProperties": {
+            "type": "string",
+            "pattern": "^[A-Za-z0-9_.:/@-]{1,200}$"
+          },
+          "maxProperties": 20
+        }
+      },
+      "required": [
+        "engineId",
+        "engineVersion",
+        "runId",
+        "models"
+      ],
+      "additionalProperties": false
+    },
+    "matches": {
+      "maxItems": 1000000,
+      "type": "array",
+      "items": {
+        "type": "object",
+        "properties": {
+          "anchor": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "candidate": {
+            "type": "integer",
+            "minimum": 1,
+            "maximum": 9007199254740991
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "kind": {
+            "type": "string",
+            "enum": [
+              "core",
+              "unexpected"
+            ]
+          },
+          "match": {
+            "type": "boolean"
+          },
+          "shared": {
+            "maxItems": 2,
+            "type": "array",
+            "items": {
+              "type": "string",
+              "enum": [
+                "intent",
+                "technique"
+              ]
+            },
+            "uniqueItems": true
+          },
+          "description": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 800,
+            "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+          },
+          "methods": {
+            "maxItems": 20,
+            "type": "array",
+            "items": {
+              "type": "object",
+              "properties": {
+                "this": {
+                  "type": "object",
+                  "properties": {
+                    "intent": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    },
+                    "technique": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    }
+                  },
+                  "required": [
+                    "intent",
+                    "technique"
+                  ],
+                  "additionalProperties": false
+                },
+                "other": {
+                  "type": "object",
+                  "properties": {
+                    "intent": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    },
+                    "technique": {
+                      "type": "string",
+                      "minLength": 1,
+                      "maxLength": 2000,
+                      "pattern": "^(?=[\\s\\S]*\\S)[^\\u0000-\\u0008\\u000B\\u000C\\u000E-\\u001F\\u007F-\\u009F\\uFEFF]*$"
+                    }
+                  },
+                  "required": [
+                    "intent",
+                    "technique"
+                  ],
+                  "additionalProperties": false
+                }
+              },
+              "required": [
+                "this",
+                "other"
+              ],
+              "additionalProperties": false
+            }
+          }
+        },
+        "required": [
+          "anchor",
+          "candidate",
+          "score",
+          "kind",
+          "match",
+          "shared",
+          "description",
+          "methods"
+        ],
+        "additionalProperties": false
+      }
+    }
+  },
+  "required": [
+    "id",
+    "programmeVersion",
+    "run",
+    "matches"
+  ],
+  "additionalProperties": false
+}

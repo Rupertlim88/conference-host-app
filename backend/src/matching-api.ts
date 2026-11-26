@@ -6,7 +6,8 @@ import {
   TalksWriteRequestSchema,
   TalksWriteResponseSchema,
   type Match,
-  type PoolType,
+  type MatchesSearchResponse,
+  type RestrictionRequest,
   type TalksWriteRequest,
   type TalksWriteResponse,
 } from "@repo/contracts";
@@ -15,17 +16,23 @@ import type { ConnectionStatus, Society } from "@repo/host-contracts";
 /** The conference id each society's programme is filed under at the conference API. */
 export const CONFERENCE_IDS: Record<Society, string> = { ams: "ams-2027" };
 
-export type PooledAnswer = { status: "ok"; matches: Match[] } | { status: "unavailable" };
+/** A restriction the matching API is judging for the first time for one of the asker's talks: its matches appear when
+ *  it is asked again a little later. */
+export type Judging = NonNullable<MatchesSearchResponse["judging"]>[number];
 
-/** The most talks one matches search may name, as the conference API's contract allows. */
-export const TALKS_PER_SEARCH = 1000;
+/** The results of a restricted search, in the API's order, and the restrictions it is still judging. */
+export type RestrictedAnswer = { status: "ok"; matches: Match[]; judging: Judging[] } | { status: "unavailable" };
+
+/** The most ids one restriction may name, as the conference API's contract allows. */
+export const IDS_PER_RESTRICTION = 1000;
 
 export interface ConferenceApi {
-  /** The matches for a talk that the matching API lists in these kinds of pool: every page of one matches search. */
-  pooled(talkId: string, pools: PoolType[]): Promise<PooledAnswer>;
-  /** Every verdict the matching API has for a talk against these talks, matches or not, as it gave them: every page
-   *  of one search for each thousand talks. */
-  verdicts(talkId: string, talks: string[]): Promise<PooledAnswer>;
+  /** The matches the matching API lists for a talk under these restrictions, and those it is still judging: every
+   *  page of one matches search for each thousand ids of a kind. */
+  restricted(talkId: string, restrictions: RestrictionRequest[]): Promise<RestrictedAnswer>;
+  /** Every verdict the matching API has for a talk against these talks, matches or not, as it gave them, and whether
+   *  it is still judging them: every page of one search of the talks restriction for each thousand talks. */
+  verdicts(talkId: string, talks: string[]): Promise<RestrictedAnswer>;
   /** Writes talks; stops when `signal` aborts or the API takes longer than a minute. */
   writeTalks(req: TalksWriteRequest, signal?: AbortSignal): Promise<TalksWriteResponse>;
   /** One matches:search for a talk, to test the address and the key. Writes nothing, and keeps no body. */
@@ -74,13 +81,30 @@ export function checkTalksWrite(req: TalksWriteRequest): void {
 
 /** Used when no API address is set: every matches search is unavailable. */
 export const unconfiguredApi: ConferenceApi = {
-  pooled: async () => ({ status: "unavailable" }),
+  restricted: async () => ({ status: "unavailable" }),
   verdicts: async () => ({ status: "unavailable" }),
   writeTalks: async () => {
     throw new ApiNotSet();
   },
   check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
 };
+
+/** The restrictions split into searches that name at most a thousand ids of a kind each: the first search asks every
+ *  kind, with its first thousand ids, and each later one only the kinds with ids left. */
+function splitRestrictions(restrictions: RestrictionRequest[]): RestrictionRequest[][] {
+  const searches: RestrictionRequest[][] = [];
+  for (const restriction of restrictions) {
+    const ids: readonly string[] | undefined = "ids" in restriction ? restriction.ids : undefined;
+    if (!ids) {
+      (searches[0] ??= []).push(restriction);
+      continue;
+    }
+    for (let i = 0; i < ids.length; i += IDS_PER_RESTRICTION) {
+      (searches[i / IDS_PER_RESTRICTION] ??= []).push({ ...restriction, ids: ids.slice(i, i + IDS_PER_RESTRICTION) } as RestrictionRequest);
+    }
+  }
+  return searches;
+}
 
 export function conferenceApi(opts: {
   url: string;
@@ -97,49 +121,46 @@ export function conferenceApi(opts: {
       signal,
     });
 
-  /** Every page of one matches search, in pages of a thousand, all before the deadline; null when a page fails. */
-  async function everyPage(ask: object, deadline: AbortSignal): Promise<Match[] | null> {
+  /** Every page of one search for a talk's matches under these restrictions, in pages of a thousand, all before the
+   *  deadline, with each restriction still being judged once, though every page names it; null when a page fails. */
+  async function everyPage(talkId: string, restrictions: RestrictionRequest[], deadline: AbortSignal) {
     const matches: Match[] = [];
+    const judging = new Map<string, Judging>();
     let pageToken: string | undefined;
     do {
-      const body = { ...ask, pageSize: 1000, ...(pageToken ? { pageToken } : {}) };
+      const body = { likeTalks: [talkId], restrictions, pageSize: 1000, ...(pageToken ? { pageToken } : {}) };
       const res = await post("matches:search", checked(MatchesSearchRequestSchema, body), deadline);
       if (!res.ok) return null;
       const page = MatchesSearchResponseSchema.safeParse(await res.json());
       if (!page.success) return null;
       matches.push(...page.data.matches);
+      for (const j of page.data.judging ?? []) judging.set(JSON.stringify(j), j);
       pageToken = page.data.nextPageToken;
     } while (pageToken);
-    return matches;
+    return { matches, judging: [...judging.values()] };
+  }
+
+  /** Every search in turn, each with its own time limit across its pages; their answers joined in order. */
+  async function everySearch(talkId: string, searches: RestrictionRequest[][], timeoutMs: number): Promise<RestrictedAnswer> {
+    const answer = { status: "ok" as const, matches: [] as Match[], judging: [] as Judging[] };
+    try {
+      for (const restrictions of searches) {
+        const found = await everyPage(talkId, restrictions, AbortSignal.timeout(timeoutMs));
+        if (!found) return { status: "unavailable" };
+        answer.matches.push(...found.matches);
+        answer.judging.push(...found.judging);
+      }
+      return answer;
+    } catch {
+      return { status: "unavailable" };
+    }
   }
 
   return {
-    async pooled(talkId, pools) {
-      try {
-        // Every pool of each kind, as many matches as each lists; one time limit covers every page.
-        const asked = pools.map((type) => ({ type }));
-        const matches = await everyPage({ likeTalks: [talkId], pools: asked }, AbortSignal.timeout(opts.timeoutMs ?? 3000));
-        return matches ? { status: "ok", matches } : { status: "unavailable" };
-      } catch {
-        return { status: "unavailable" };
-      }
-    },
+    restricted: (talkId, restrictions) => everySearch(talkId, splitRestrictions(restrictions), opts.timeoutMs ?? 3000),
 
-    async verdicts(talkId, talks) {
-      const matches: Match[] = [];
-      try {
-        for (let i = 0; i < talks.length; i += TALKS_PER_SEARCH) {
-          const ask = { likeTalks: [talkId], talks: talks.slice(i, i + TALKS_PER_SEARCH), include: "all" };
-          // Each search has the conference API's own time limit, across its pages.
-          const found = await everyPage(ask, AbortSignal.timeout(opts.timeoutMs ?? 10_000));
-          if (!found) return { status: "unavailable" };
-          matches.push(...found);
-        }
-        return { status: "ok", matches };
-      } catch {
-        return { status: "unavailable" };
-      }
-    },
+    // The talks restriction lists every verdict on the talks it names, matches or not.
+    verdicts: (talkId, talks) => everySearch(talkId, splitRestrictions(talks.length ? [{ type: "talks", ids: talks }] : []), opts.timeoutMs ?? 10_000),
 
     async check(talkId) {
       const started = performance.now();

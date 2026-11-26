@@ -9,6 +9,8 @@ import {
   CorpusSchema,
   EngineTalkSchema,
   INTERNAL_SCHEMAS,
+  RestrictionJobSchema,
+  RestrictionResultSchema,
   SearchMatchesOutcomeSchema,
   SearchMatchesQuerySchema,
   TextMatchJobSchema,
@@ -63,17 +65,25 @@ describe("internal rules", () => {
     expect(talk.presenterIds.length).toBeGreaterThan(0);
     expect(issuePaths(EngineTalkSchema, { ...talk, presenterIds: [999_999] })).toContain("presenterIds");
   });
-  test("each match carries the kinds of edge that join its talks, each named once, or none", () => {
+  test("a match carries no kinds of edge: restrictions come after", () => {
     const job = valid("complete_matching_job");
-    expect(job.matches[0].pools).toEqual([{ type: "conference" }, { type: "session", id: "G21" }]);
-    job.matches[0].pools = [];
-    expect(CompleteMatchingJobSchema.safeParse(job).success).toBe(true);
-    job.matches[0].pools = [{ type: "session", id: "G21" }, { type: "session", id: "G21" }];
-    expect(issuePaths(CompleteMatchingJobSchema, job)).toContain("matches.0.pools");
-    job.matches[0].pools = [{ type: "room", id: "B1" }];
-    expect(CompleteMatchingJobSchema.safeParse(job).success).toBe(false);
-    delete job.matches[0].pools;
-    expect(CompleteMatchingJobSchema.safeParse(job).success).toBe(false);
+    expect(Object.keys(job.matches[0])).not.toContain("pools");
+    expect(CompleteMatchingJobSchema.safeParse({ ...job, matches: [{ ...job.matches[0], pools: [] }] }).success).toBe(false);
+  });
+  test("a restriction job names the talk, the talks the restriction holds, and K or every talk", () => {
+    const job = valid("restriction_job");
+    expect(RestrictionJobSchema.safeParse({ ...job, k: null }).success).toBe(true);
+    expect(issuePaths(RestrictionJobSchema, { ...job, among: [] })).toContain("among");
+    expect(issuePaths(RestrictionJobSchema, { ...job, among: [job.anchor] })).toContain("among");
+    expect(issuePaths(RestrictionJobSchema, { ...job, among: [7, 7] })).toContain("among");
+    expect(issuePaths(RestrictionJobSchema, { ...job, every: true, k: 2 })).toContain("k");
+  });
+  test("a restriction result hands back the pairs it judged", () => {
+    const result = valid("restriction_result");
+    expect(result.matches.length).toBeGreaterThan(0);
+    expect(issuePaths(RestrictionResultSchema, { ...result, matches: [{ ...result.matches[0], score: 2 }] })).toContain(
+      "matches.0.score",
+    );
   });
   test("an engine score stays between 0 and 1", () => {
     const job = valid("complete_matching_job");

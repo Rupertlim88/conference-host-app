@@ -15,6 +15,8 @@ import {
   CorpusSchema,
   EngineTalkSchema,
   MatchingJobSchema,
+  RestrictionJobSchema,
+  RestrictionResultSchema,
   TextMatchJobSchema,
   TextMatchResultSchema,
 } from "./engine";
@@ -37,6 +39,8 @@ export const INTERNAL_SCHEMAS = {
   corpus: CorpusSchema,
   matching_job: MatchingJobSchema,
   complete_matching_job: CompleteMatchingJobSchema,
+  restriction_job: RestrictionJobSchema,
+  restriction_result: RestrictionResultSchema,
   text_match_job: TextMatchJobSchema,
   text_match_result: TextMatchResultSchema,
 } as const;

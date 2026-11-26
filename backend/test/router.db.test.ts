@@ -1,17 +1,17 @@
 import { migrateStore } from "@repo/host-store/migrate";
 import { amsTables, connect, createDemoSettings, createOrganiserStore, createGuestData, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
-import type { Pool } from "@repo/contracts";
+import type { Restriction } from "@repo/contracts";
 import { TRPCError } from "@trpc/server";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 
-import type { ConferenceApi, PooledAnswer } from "../src/matching-api";
+import type { ConferenceApi, RestrictedAnswer } from "../src/matching-api";
 import { appRouter } from "../src/server";
 import { createCallerFactory, type Context } from "../src/gate";
 import { rows } from "./programme";
 
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
-const api = (answer: PooledAnswer): ConferenceApi => ({
-  pooled: async () => answer,
+const api = (answer: RestrictedAnswer): ConferenceApi => ({
+  restricted: async () => answer,
   verdicts: async () => ({ status: "unavailable" }),
   writeTalks: async () => {
     throw new Error("not used");
@@ -75,8 +75,8 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   });
 
   test("related talks come from the API, joined to this programme", async () => {
-    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, pool: { type: "conference" as const }, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
-    const c = caller({ api: api({ status: "ok", matches: [match] }) });
+    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, restriction: { type: "conference" as const }, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
+    const c = caller({ api: api({ status: "ok", matches: [match], judging: [] }) });
     const got = await c.talks.related({ id: "T1" });
     expect(got.status).toBe("matches");
     expect(got.status === "matches" && got.matches[0]!.talk.id).toBe("T2");
@@ -112,12 +112,12 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   });
 
   test("our improvements see the fixed abstract, its session's conferences, and the matching API's pools around it, by kind", async () => {
-    const result = (talk: string, pool: Pool, rank = 1) => ({ basedOn: "T1", talk, match: true, shared: ["technique" as const], kind: "unexpected" as const, rank, pool, score: 0.9, description: `Why ${talk}`, methods: [], programmeVersion: "pv" });
+    const result = (talk: string, restriction: Restriction, rank = 1) => ({ basedOn: "T1", talk, match: true, shared: ["technique" as const], kind: "unexpected" as const, rank, restriction, score: 0.9, description: `Why ${talk}`, methods: [], programmeVersion: "pv" });
     const asked: unknown[] = [];
     const answering: ConferenceApi = {
       ...api({ status: "unavailable" }),
-      pooled: async (talkId, pools) => (
-        asked.push([talkId, pools]),
+      restricted: async (talkId, restrictions) => (
+        asked.push([talkId, restrictions]),
         {
           status: "ok",
           matches: [
@@ -130,11 +130,12 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
             result("T9", { type: "session", id: "S1" }, 2),
             result("T1", { type: "session", id: "S1" }, 3),
           ],
+          judging: [{ basedOn: "T1", restriction: { type: "session", id: "S9" } }],
         }
       ),
     };
     const around = await caller({ api: answering }).improvements.aroundAbstract();
-    expect(asked).toEqual([["T1", ["subConference", "day", "timeBlock", "session"]]]);
+    expect(asked).toEqual([["T1", [{ type: "subConference" }, { type: "day" }, { type: "timeBlock" }, { type: "session" }]]]);
     const education = { id: "P1", code: "EDU", title: "Education" };
     const t2 = { talk: expect.objectContaining({ id: "T2", sessionId: "S1" }), kind: "unexpected", score: 0.9, reason: "Why T2", tracks: [education] };
     const t1 = { talk: expect.objectContaining({ id: "T1" }), kind: "unexpected", score: 0.9, reason: "Why T1", tracks: [education] };

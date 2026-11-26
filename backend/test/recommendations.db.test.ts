@@ -1,4 +1,4 @@
-import type { Match, Pool, PoolType } from "@repo/contracts";
+import type { Match, Restriction } from "@repo/contracts";
 import {
   amsTables,
   connect,
@@ -14,7 +14,7 @@ import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
-import type { ConferenceApi } from "../src/matching-api";
+import type { ConferenceApi, Judging } from "../src/matching-api";
 import { answerRecommendations } from "../src/recommendations";
 import { rows } from "./programme";
 
@@ -55,12 +55,12 @@ const programme: SocietyRows = {
 };
 
 const VERSION = "pv_8f3k2Qw9xLm0ZpT4vN7aBc";
-const result = (basedOn: string, talkId: string, rank: number, pool?: Pool): Match => ({
+const result = (basedOn: string, talkId: string, rank: number, restriction: Restriction): Match => ({
   basedOn,
   talk: talkId,
   kind: "core",
   rank,
-  ...(pool ? { pool } : {}),
+  restriction,
   score: 0.9 - rank / 10,
   match: true,
   shared: ["technique"],
@@ -69,7 +69,7 @@ const result = (basedOn: string, talkId: string, rank: number, pool?: Pool): Mat
   programmeVersion: VERSION,
 });
 
-/** The matching API's pools around T1, as it lists them. */
+/** The matching API's matches around T1 under each standard restriction, as it lists them. */
 const aroundT1: Match[] = [
   result("T1", "T4", 1, { type: "subConference", id: "P3" }),
   result("T1", "T3", 2, { type: "subConference", id: "P3" }),
@@ -88,17 +88,21 @@ const conferenceT1 = ["T3", "T5", "T2", "T4"].map((id, i) => result("T1", id, i 
 /** The talks the matching API has judged from T1: T5, T7 and T8 it has not. */
 const JUDGED_FROM_T1 = new Set(["T2", "T3", "T4"]);
 
+const TALKS: Restriction = { type: "talks" };
+const verdict = (basedOn: string, talkId: string, rank: number): Match => ({ ...result(basedOn, talkId, rank, TALKS), match: talkId !== "T2", shared: talkId === "T2" ? [] : ["intent"] });
+
 /** The matching API, which runs elsewhere, as a script; it records every search for verdicts. */
 function scripted(asked: { talkId: string; talks: string[] }[], over: Partial<ConferenceApi> = {}): ConferenceApi {
   return {
-    pooled: async (talkId: string, pools: PoolType[]) => {
-      if (talkId !== "T1") return { status: "ok", matches: [] };
-      return { status: "ok", matches: pools.includes("conference") ? conferenceT1 : aroundT1 };
+    restricted: async (talkId, restrictions) => {
+      const kinds = new Set(restrictions.map((r) => r.type));
+      const listed = talkId === "T1" ? [...conferenceT1, ...aroundT1] : [];
+      return { status: "ok", matches: listed.filter((m) => kinds.has(m.restriction!.type)), judging: [] };
     },
     verdicts: async (talkId, talks) => {
       asked.push({ talkId, talks });
       const judged = talkId === "T1" ? talks.filter((id) => JUDGED_FROM_T1.has(id)) : [];
-      return { status: "ok", matches: judged.map((id, i) => ({ ...result(talkId, id, i + 1), match: id !== "T2", shared: id === "T2" ? [] : ["intent"] })) };
+      return { status: "ok", matches: judged.map((id, i) => verdict(talkId, id, i + 1)), judging: [] };
     },
     writeTalks: async () => {
       throw new Error("the report never writes");
@@ -157,11 +161,7 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     const related = report.places[0];
     expect(asked[0]).toEqual({ talkId: "T1", talks: ["T2", "T3", "T4", "T5", "T7", "T8"] });
     expect(asked).toHaveLength(report.places.length);
-    expect(related.verdicts).toEqual([
-      { ...result("T1", "T2", 1), match: false, shared: [] },
-      { ...result("T1", "T3", 2), shared: ["intent"] },
-      { ...result("T1", "T4", 3), shared: ["intent"] },
-    ]);
+    expect(related.verdicts).toEqual([verdict("T1", "T2", 1), verdict("T1", "T3", 2), verdict("T1", "T4", 3)]);
     expect(related.notJudged).toEqual(["T5", "T7", "T8"]);
     expect(report.places.find((p: { key: string }) => p.key === "S3")).toMatchObject({ verdicts: [], notJudged: ["T5"] });
   });
@@ -197,8 +197,34 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     expect((await ask("?abstract=../T1", scripted([]))).status).toBe(400);
   });
 
+  test("while the matching API is still judging the talks of some places, there is no report yet: 202, naming how many", async () => {
+    const asked: { talkId: string; talks: string[] }[] = [];
+    const judgingT5 = scripted(asked, {
+      verdicts: async (talkId, talks) => {
+        asked.push({ talkId, talks });
+        const judging: Judging[] = talks.includes("T5") ? [{ basedOn: talkId, restriction: TALKS }] : [];
+        return { status: "ok", matches: [], judging };
+      },
+    });
+    const res = await ask("?abstract=T1", judgingT5);
+    expect(res.status).toBe(202);
+    // T5 is in the related talks, conference P4, the day 28 January, its 9:00 AM time block and session S3.
+    expect(await res.text()).toBe("The matching API is still judging 5 places for this abstract; ask again shortly.");
+    expect(asked).toHaveLength(11);
+  });
+
+  test("while the matching API is still judging a restriction behind what a place shows, there is no report yet", async () => {
+    const judging: Judging[] = [
+      { basedOn: "T1", restriction: { type: "day", id: "2026-01-27" } },
+      { basedOn: "T1", restriction: { type: "timeBlock", id: "2026-01-27T13:45:00-06:00" } },
+    ];
+    const res = await ask("?abstract=T1", scripted([], { restricted: async () => ({ status: "ok", matches: [], judging }) }));
+    expect(res.status).toBe(202);
+    expect(await res.text()).toBe("The matching API is still judging 2 places for this abstract; ask again shortly.");
+  });
+
   test("is 502 when the matching API cannot answer", async () => {
-    expect((await ask("?abstract=T1", scripted([], { pooled: async () => ({ status: "unavailable" }) }))).status).toBe(502);
+    expect((await ask("?abstract=T1", scripted([], { restricted: async () => ({ status: "unavailable" }) }))).status).toBe(502);
     expect((await ask("?abstract=T1", scripted([], { verdicts: async () => ({ status: "unavailable" }) }))).status).toBe(502);
   });
 });

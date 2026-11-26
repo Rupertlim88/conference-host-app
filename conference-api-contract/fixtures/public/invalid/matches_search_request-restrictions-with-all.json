@@ -1,5 +1,8 @@
 {
-  "pools": [
+  "likeTalks": [
+    "T42"
+  ],
+  "restrictions": [
     {
       "type": "day"
     }
