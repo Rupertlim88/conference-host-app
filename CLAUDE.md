@@ -92,6 +92,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 28. **The host app sends the programme to a matching API and uses what it returns in two places: each talk's related talks, and our versions of the meeting app.** Everything else the host app needs is built now. What a matching API returns is shown, in our improvements, in the related-talks panel on each talk page, which shows the API's matches for that talk, and it shapes our versions of the meeting app around the demo's one fixed abstract. Any other processing of what an API returns is added later.
 
+## Taking a test set
+
+29. **A tester can choose which of AMS's talks the host app holds, and read back what each place recommends.** Over HTTPS, each request carrying a secret token, the tester reads a map of AMS's whole published programme, with each time block, session and conference and the talks in it; it sends the list of talks for the demo to hold and the abstracts to test, the first of which is the demo's fixed abstract; and, for each abstract tested, it reads back what each place chose from, what it shows visitors, and every verdict the matching API gave, with each talk that got no verdict marked as not judged. The host app holds those talks, sends them to the matching API itself, and never calls the tester. Nothing in the list says which talks are test cases, so neither the host app nor the matching API can tell them from the rest.
+
 # Rules for the whole app (from the global CLAUDE.md, except where the host app's rules about the CLAUDE.md files say otherwise; its rules about the CLAUDE.md files are replaced by the host app's own, above)
 
 ## System Rules
