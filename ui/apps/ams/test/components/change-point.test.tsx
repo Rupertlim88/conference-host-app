@@ -40,6 +40,12 @@ test("in the base, a change point shows what the base has there", async () => {
   expect(screen.queryByText(/^Our change/)).not.toBeInTheDocument();
 });
 
+test("a change point where the base shows nothing shows nothing until a version changes it", async () => {
+  state.version = undefined;
+  const { container } = renderApp(await ChangePoint({ at: "calendar.beforeDay", props: { date: "2027-01-12" } }));
+  expect(container).toBeEmptyDOMElement();
+});
+
 test("a version's change shows in place of the base, in a gold outline labelled with what it changed", async () => {
   renderApp(await ChangePoint({ at: "programmes.list", props: { tracks: [track()] }, children: <p>AMS's list</p> }));
   expect(screen.getByText("Our change: other conferences, ranked for your abstract")).toBeInTheDocument();
@@ -54,7 +60,7 @@ test("a change that edits several parts outlines each part with the label, and t
 });
 
 test("Our improvements show each improvement switched on in their list, at its own change point", async () => {
-  expect(Object.keys(chosen).sort()).toEqual(["conferencePicks", "relatedTalks", "sessionPicks", "timeBlockPicks"]);
+  expect(Object.keys(chosen).sort()).toEqual(["conferencePicks", "dayPicks", "relatedTalks", "sessionPicks", "timeBlockPicks"]);
   const changes = changesFrom(Object.values(chosen));
   for (const change of Object.values(chosen)) expect(changes[change.at]).toBe(change);
   renderApp(await ChangePoint({ at: "talk.afterAbstract", props: { talkId: "493803" } }));

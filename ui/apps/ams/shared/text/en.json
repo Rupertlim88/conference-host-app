@@ -332,7 +332,8 @@
       "relatedTalks": "Our change: related talks",
       "conferencePicks": "Our change: other conferences, ranked for your abstract",
       "calendarPicks": "Our change: recommended around your abstract",
-      "sessionPicks": "Our change: come for this talk"
+      "sessionPicks": "Our change: come for this talk",
+      "dayPicks": "Our change: your best talks today"
     }
   },
   "improvements": {
@@ -354,6 +355,11 @@
     "sessionPicks": {
       "board": "Our change: visit this board first",
       "why": "<b>Why, for your abstract:</b> {reason}"
+    },
+    "dayPicks": {
+      "pickedFor": "Picked for your abstract, from every event on {day}",
+      "unavailable": "The matching API cannot answer right now, so no talks are picked for your abstract today.",
+      "noAbstract": "The demo has no abstract to pick talks for yet."
     }
   }
 }
