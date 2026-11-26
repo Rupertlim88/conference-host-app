@@ -11,8 +11,8 @@ import { Badge } from "@/shared/ui/badge";
 import type { Change } from "@/versions/change";
 import { GoldOutline } from "@/versions/gold";
 
-/** The Meeting Calendar's day with each time block's recommendations at its top, each block's outline labelled with
- *  the change's label and the block's time. Without the abstract's matches, AMS's day stays, under one gold note. */
+/** The Meeting Calendar's day with each time block's recommendations at its top, each block's outline opening with the
+ *  block's start time as a heading, like AMS's own. Without the abstract's matches, AMS's day stays, under one gold note. */
 export function CalendarPicksView({ sessions, around, label }: { sessions: SessionSummary[]; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.calendarPicks");
   if (!around.abstract || !around.matches) {
@@ -30,16 +30,10 @@ export function CalendarPicksView({ sessions, around, label }: { sessions: Sessi
   return blocks.map((block) => (
     <Fragment key={block.startsAt}>
       {block.picks.length > 0 && (
-        <GoldOutline
-          label={
-            <>
-              {label} ·{" "}
-              <span className="whitespace-nowrap">
-                <When start={block.startsAt} mode="time" />
-              </span>
-            </>
-          }
-        >
+        <GoldOutline label={label}>
+          <h2 className="mb-2 text-center font-semibold text-heading">
+            <When start={block.startsAt} mode="time" />
+          </h2>
           <ul className="space-y-3">
             {block.picks.map((pick) => (
               <PickItem key={pick.session.id} pick={pick} />

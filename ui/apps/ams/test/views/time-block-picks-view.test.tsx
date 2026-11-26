@@ -49,9 +49,10 @@ function amsList(sessions = day) {
   return html;
 }
 
-test("a time block with recommendations starts with them in a gold outline labelled with its time", () => {
+test("a time block with recommendations starts with them in a gold outline that opens with the block's time as a heading", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
-  const outline = outlineOf(`${LABEL} · 8:30 AM`);
+  const outline = outlineOf(LABEL);
+  expect(within(outline).getByRole("heading", { level: 2 })).toHaveTextContent(/^8:30 AM$/);
   expect(sessionLinks(outline)).toEqual(["/sessions/77136", "/sessions/76096"]);
   expect(screen.getAllByText(/^Our change/)).toHaveLength(1);
 });
@@ -59,12 +60,12 @@ test("a time block with recommendations starts with them in a gold outline label
 test("the rest of the block follows in AMS's order without them, and other blocks stay as AMS has them", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
   expect(sessionLinks()).toEqual(["/sessions/77355", "/sessions/77136", "/sessions/76096", "/sessions/76879", "/sessions/75349"]);
-  expect(headings()).toEqual(["7:00 AM - 8:30 AM", "8:30 AM - 10:00 AM", "10:00 AM - 10:45 AM"]);
+  expect(headings()).toEqual(["7:00 AM - 8:30 AM", "8:30 AM", "8:30 AM - 10:00 AM", "10:00 AM - 10:45 AM"]);
 });
 
 test("each recommendation says whether it is a close or unexpected match, its related talks, the reason and when the first is", () => {
   renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
-  const [first, second] = within(outlineOf(`${LABEL} · 8:30 AM`)).getAllByRole("listitem");
+  const [first, second] = within(outlineOf(LABEL)).getAllByRole("listitem");
   expect(first).toHaveTextContent("Close match");
   expect(first).toHaveTextContent("2 related talks");
   expect(first).toHaveTextContent("Both count a record year of severe weather.");

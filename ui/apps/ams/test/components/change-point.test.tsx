@@ -54,7 +54,7 @@ test("a version's change shows in place of the base, in a gold outline labelled 
 
 test("a change that edits several parts outlines each part with the label, and the change point adds no outline", async () => {
   renderApp(await ChangePoint({ at: "calendar.day", props: { sessions: [lightning, coffee] }, children: <p>AMS's day</p> }));
-  expect(screen.getAllByText(/^Our change/).map((label) => label.textContent)).toEqual(["Our change: recommended around your abstract · 8:30 AM"]);
+  expect(screen.getAllByText(/^Our change/).map((label) => label.textContent)).toEqual(["Our change: recommended around your abstract"]);
   expect(screen.getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/sessions/76096", "/sessions/75349"]);
   expect(screen.queryByText("AMS's day")).not.toBeInTheDocument();
 });
