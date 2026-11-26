@@ -69,3 +69,11 @@ export const RecommendationsSchema = z.strictObject({
   places: z.array(PlaceSchema),
 });
 export type Recommendations = z.infer<typeof RecommendationsSchema>;
+
+/** The tester's forms by the name each is published under as JSON Schema. */
+export const TESTER_FORMS = {
+  "programme-map": ProgrammeMapSchema,
+  "test-set": TestSetSchema,
+  "test-set-reply": TestSetReplySchema,
+  recommendations: RecommendationsSchema,
+} as const;
