@@ -33,14 +33,14 @@ export function programmeMap(whole: WholeProgramme, conference: string): Program
     else timeBlocks.push({ start: session.start, sessions: [session.id] });
   }
 
-  // A talk is in its own conferences and in every conference of its session, which a joint session names.
+  // A talk is listed only under its own conferences, as the report's places and the matching API's pools count it,
+  // even when its joint session names more.
   const placed = sessions.flatMap((s) => s.talks);
   const placedIds = new Set(placed.map((t) => t.id));
   const loose = talks.filter((t) => !placedIds.has(t.id)).sort((a, b) => a.id.localeCompare(b.id));
-  const conferencesOf = (t: WholeTalk) => new Set([...t.trackIds, ...(sessionsById.get(t.sessionId ?? "")?.trackIds ?? [])]);
-  const withConferences = [...placed, ...loose].map((t) => ({ id: t.id, conferences: conferencesOf(t) }));
+  const ordered = [...placed, ...loose];
   const conferences = whole.tracks
-    .map((track) => ({ trackId: track.id, title: track.title, talks: withConferences.filter((t) => t.conferences.has(track.id)).map((t) => t.id) }))
+    .map((track) => ({ trackId: track.id, title: track.title, talks: ordered.filter((t) => t.trackIds.includes(track.id)).map((t) => t.id) }))
     .filter((c) => c.talks.length > 0);
 
   return { conference, timeBlocks, sessions: sessions.map((s) => ({ ...s, talks: s.talks.map((t) => t.id) })), conferences };
