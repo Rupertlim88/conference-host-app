@@ -1,7 +1,74 @@
 // The Meeting Calendar's recommendations around the demo's abstract, for each time block.
-import type { RelatedMatch, SessionSummary } from "@repo/host-contracts";
+import type { AroundAbstract, RelatedMatch, SessionSummary } from "@repo/host-contracts";
+import { useTranslations } from "next-intl";
+import { Fragment } from "react";
 
-import { timeBlocks, type TimeBlock } from "@/base/calendar";
+import { DayList, TimeBlockSessions, timeBlocks, type TimeBlock } from "@/base/calendar";
+import { SessionCard } from "@/base/cards";
+import { When } from "@/shared/meeting-time";
+import { Badge } from "@/shared/ui/badge";
+import { GoldOutline } from "@/versions/gold";
+
+/** The Meeting Calendar's day with each time block's recommendations at its top, each block's outline labelled with
+ *  the change's label and the block's time. Without the abstract's matches, AMS's day stays, under one gold note. */
+export function CalendarPicksView({ sessions, around, label }: { sessions: SessionSummary[]; around: AroundAbstract; label: string }) {
+  const t = useTranslations("improvements.calendarPicks");
+  if (!around.abstract || !around.matches) {
+    return (
+      <>
+        <GoldOutline label={label}>
+          <p className="text-sm">{t(around.abstract ? "unavailable" : "noAbstract")}</p>
+        </GoldOutline>
+        <DayList sessions={sessions} />
+      </>
+    );
+  }
+  const blocks = calendarBlocks(sessions, around.matches);
+  if (blocks.length === 0) return <DayList sessions={sessions} />;
+  return blocks.map((block) => (
+    <Fragment key={block.startsAt}>
+      {block.picks.length > 0 && (
+        <GoldOutline
+          label={
+            <>
+              {label} · <When start={block.startsAt} mode="time" />
+            </>
+          }
+        >
+          <ul className="space-y-3">
+            {block.picks.map((pick) => (
+              <PickItem key={pick.session.id} pick={pick} />
+            ))}
+          </ul>
+        </GoldOutline>
+      )}
+      {block.groups.map((group) => (
+        <TimeBlockSessions key={`${group.startsAt}-${group.endsAt}`} block={group} />
+      ))}
+    </Fragment>
+  ));
+}
+
+/** A recommended session: its card, then the kind of match, how many related talks, when the first is, and why. */
+function PickItem({ pick }: { pick: Recommendation }) {
+  const t = useTranslations();
+  return (
+    <li>
+      <SessionCard session={pick.session} />
+      <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-xs">
+        <Badge variant={pick.kind === "unexpected" ? "default" : "secondary"}>{pick.kind === "unexpected" ? t("related.unexpected") : t("related.core")}</Badge>{" "}
+        <span>{t("improvements.matches", { count: pick.related })}</span>
+        {pick.firstTalkAt && (
+          <>
+            {" "}
+            <span>{t.rich("improvements.calendarPicks.firstTalk", { time: () => <When start={pick.firstTalkAt} mode="time" /> })}</span>
+          </>
+        )}
+      </p>
+      <p className="mt-1 text-xs text-muted-foreground">{pick.reason}</p>
+    </li>
+  );
+}
 
 /** How many sessions a time block recommends at most. */
 const MOST_PICKS = 2;
