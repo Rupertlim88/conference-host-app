@@ -74,6 +74,31 @@ export const PoolSchema = z.discriminatedUnion("type", [
 ]);
 export type Pool = z.infer<typeof PoolSchema>;
 
+/** One kind of pool a search asks for: which pools of that kind, named as results name them (leave out = every one),
+ *  and how many matches from each of them, one number for all (leave out = as many as the kind lists). The whole
+ *  conference is one pool, named by no id. */
+function askedFor<T extends z.ZodType>(type: PoolType, id: T) {
+  return z.strictObject({
+    type: z.literal(type),
+    ids: z
+      .array(id)
+      .min(1)
+      .max(1000)
+      .refine((ids) => new Set(ids).size === ids.length, "names the same pool twice")
+      .meta({ uniqueItems: true })
+      .optional(),
+    count: z.int().min(1).max(POOL_SIZES[type]).optional(),
+  });
+}
+export const PoolRequestSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("conference"), count: z.int().min(1).max(POOL_SIZES.conference).optional() }),
+  askedFor("subConference", text(1, 100)),
+  askedFor("day", z.iso.date()),
+  askedFor("timeBlock", z.iso.datetime({ offset: true })),
+  askedFor("session", PartnerIdSchema),
+]);
+export type PoolRequest = z.infer<typeof PoolRequestSchema>;
+
 /** A pooled result is a match, ranked within as many as its pool lists. */
 function fitsItsPool(result: { match: boolean; rank: number; pool?: Pool }, ctx: z.RefinementCtx): void {
   if (result.pool === undefined) return;
@@ -123,13 +148,12 @@ export const MatchesSearchRequestSchema = z
     minScore: ScoreSchema.optional(),
     topPerPerson: z.int().min(1).max(1000).optional(),
     pools: z
-      .array(PoolTypeSchema)
+      .array(PoolRequestSchema)
       .min(1)
       .max(PoolTypeSchema.options.length)
-      .refine((pools) => new Set(pools).size === pools.length, "names the same pool twice")
+      .refine((pools) => new Set(pools.map((p) => p.type)).size === pools.length, "names the same kind of pool twice")
       .meta({ uniqueItems: true })
       .optional(),
-    perPool: z.int().min(1).max(Math.max(...Object.values(POOL_SIZES))).optional(),
     pageSize: z.int().min(1).max(1000).default(100),
     pageToken: PageTokenSchema.optional(),
   })
@@ -137,10 +161,7 @@ export const MatchesSearchRequestSchema = z
     if (request.people !== undefined && request.likeTalks !== undefined) {
       ctx.addIssue({ code: "custom", path: ["likeTalks"], message: "ask by people or by liked talks, not both" });
     }
-    if (request.pools === undefined) {
-      if (request.perPool !== undefined) ctx.addIssue({ code: "custom", path: ["perPool"], message: "only with pools" });
-      return;
-    }
+    if (request.pools === undefined) return;
     if (request.include === "all") ctx.addIssue({ code: "custom", path: ["include"], message: "pools list only matches" });
     if (request.topPerPerson !== undefined) {
       ctx.addIssue({ code: "custom", path: ["topPerPerson"], message: "pools set how many each lists" });

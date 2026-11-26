@@ -1,6 +1,8 @@
 {
   "pools": [
-    "day"
+    {
+      "type": "day"
+    }
   ],
   "include": "all"
 }

@@ -102,8 +102,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    in by its address and key. It is called at `/v1/conferences/<conference>/`, with the conference `ams-2027`, and the key as a bearer token.
    - **Requests.** Every request is checked against the conference API's contract before it is sent, and one that
      fails is never sent.
-   - **Matches by pool.** A matches search names the kinds of pool to list the matches in, asks for pages of a
-     thousand and reads every page; when one page fails, the whole search is unavailable.
+   - **Matches by pool.** A matches search names the kinds of pool to list the matches in, asking for every pool of
+     each kind and as many matches as each lists, asks for pages of a thousand and reads every page; when one page
+     fails, the whole search is unavailable.
    - **Every verdict.** A search for every verdict on a talk names the talks to judge it against, at most a thousand
      to a search, as the contract allows, asks for matches and non-matches alike, with no pools, and reads every page;
      when one fails, every verdict is unavailable.

@@ -49,7 +49,7 @@ describe("conferenceApi.pooled", () => {
       {
         url: "/v1/conferences/ams-2026/matches:search",
         auth: `Bearer ${"k".repeat(16)}`,
-        body: { likeTalks: ["T1"], pools: ["day", "session"], pageSize: 1000 },
+        body: { likeTalks: ["T1"], pools: [{ type: "day" }, { type: "session" }], pageSize: 1000 },
       },
     ]);
   });
@@ -65,8 +65,8 @@ describe("conferenceApi.pooled", () => {
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
     expect(await api.pooled("T1", ["day", "session"])).toEqual({ status: "ok", matches: [first, second] });
     expect(seen.map((s) => s.body)).toEqual([
-      { likeTalks: ["T1"], pools: ["day", "session"], pageSize: 1000 },
-      { likeTalks: ["T1"], pools: ["day", "session"], pageSize: 1000, pageToken: TOKEN },
+      { likeTalks: ["T1"], pools: [{ type: "day" }, { type: "session" }], pageSize: 1000 },
+      { likeTalks: ["T1"], pools: [{ type: "day" }, { type: "session" }], pageSize: 1000, pageToken: TOKEN },
     ]);
   });
 

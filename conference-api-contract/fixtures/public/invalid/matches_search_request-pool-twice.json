@@ -1,6 +1,10 @@
 {
   "pools": [
-    "day",
-    "day"
+    {
+      "type": "day"
+    },
+    {
+      "type": "day"
+    }
   ]
 }
