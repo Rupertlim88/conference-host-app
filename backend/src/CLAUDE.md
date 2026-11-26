@@ -155,11 +155,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 13. **A test set is checked, stored, held and sent to the matching API.** It names the conference, the abstracts to
     test, the first being the demo's fixed abstract, and the talks for the demo to hold. It is refused, with a plain
-    message, when it names a talk the published programme does not have, or an abstract to test that is not among its
-    talks. Once it is stored and held, the programme is sent to the matching API as one run, and the answer gives the
-    programme version that send returned.
+    message, when it names another conference, lists nothing, names a talk the published programme does not have, or
+    an abstract to test that is not among its talks or has no abstract to match. Once it is stored and held, the
+    programme is sent to the matching API as one run, and the answer gives the programme version that send returned.
+    While another send runs, or when the send fails, the test set stays held and the answer says so.
     *How:* code alone: the store holds the test set, then the send runs as the organiser console's does.
-    *File:* needed
+    *File:* `test-set.ts`
 
 14. **For each abstract tested, the host app reports what each place chose from, what it shows, and every verdict the matching API gave.**
     The places are the abstract's related talks; each other conference; each of the abstract's own conferences, for

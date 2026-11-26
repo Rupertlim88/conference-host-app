@@ -7,6 +7,7 @@ import {
   createOrganiserStore,
   createProgramme,
   createSyncLog,
+  createTestSets,
   createWholeProgramme,
 } from "@repo/host-store";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
@@ -19,6 +20,7 @@ import { authOptions, createCallerFactory, router, viewerFrom } from "./gate";
 import { keepAlive } from "./keep-alive";
 import { CONFERENCE_IDS, conferenceApi, unconfiguredApi } from "./matching-api";
 import { answerProgrammeMap } from "./programme-map";
+import { takeTestSet } from "./test-set";
 import { testerOnly } from "./tester-token";
 
 const optional = z.preprocess((v) => (v === "" ? undefined : v), z.string().optional());
@@ -131,6 +133,7 @@ function build(env: Record<string, string | undefined>) {
   const auth = betterAuth(authOptions(config, db));
   const viewer = (headers: Headers) => viewerFrom(auth, headers);
   const whole = createWholeProgramme(db, config.society);
+  const testSets = createTestSets(db, config.society);
   /** A tester's request, handled only with the secret token. */
   const tester = (req: Request, handle: () => Promise<Response>) => testerOnly(req, config.testerToken, handle);
 
@@ -140,6 +143,7 @@ function build(env: Record<string, string | undefined>) {
     handleAuth: (req: Request) => auth.handler(req),
     handleKeepAlive: (req: Request) => keepAlive(req, config.cronSecret, () => store.ping()),
     handleProgrammeMap: (req: Request) => tester(req, () => answerProgrammeMap(whole, conference)),
+    handleTestSet: (req: Request) => tester(req, () => takeTestSet(req, { conference, whole, testSets, store, log, api })),
     /** The router for server components, as the person behind these headers. */
     callerFor: async (headers: Headers): Promise<HostCaller> =>
       createHostCaller({ store, organiser, log, demo, api, settings, viewer: await viewer(headers) }),
