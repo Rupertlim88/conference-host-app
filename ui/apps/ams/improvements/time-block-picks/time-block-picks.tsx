@@ -5,8 +5,8 @@ import { Fragment } from "react";
 
 import { DayList, TimeBlockSessions, timeBlocks, type TimeBlock } from "@/base/calendar";
 import { SessionCard } from "@/base/cards";
+import { aroundAbstract } from "@/improvements/matches/matches";
 import { When } from "@/shared/meeting-time";
-import { serverApi } from "@/shared/server";
 import { Badge } from "@/shared/ui/badge";
 import type { Change } from "@/versions/change";
 import { GoldOutline } from "@/versions/gold";
@@ -60,7 +60,7 @@ export const timeBlockPicks: Change<"calendar.day"> = {
   label: "calendarPicks",
   outlinesItself: true,
   render: async ({ sessions }, label) => (
-    <CalendarPicksView sessions={sessions} around={await (await serverApi()).improvements.aroundAbstract()} label={label} />
+    <CalendarPicksView sessions={sessions} around={await aroundAbstract()} label={label} />
   ),
 };
 
