@@ -1,4 +1,4 @@
-import type { Match, Restriction, RestrictionRequest } from "@repo/contracts";
+import type { Match, Restriction } from "@repo/contracts";
 import {
   amsTables,
   connect,
@@ -91,18 +91,14 @@ const JUDGED_FROM_T1 = new Set(["T2", "T3", "T4"]);
 const TALKS: Restriction = { type: "talks" };
 const verdict = (basedOn: string, talkId: string, rank: number): Match => ({ ...result(basedOn, talkId, rank, TALKS), match: talkId !== "T2", shared: talkId === "T2" ? [] : ["intent"] });
 
-/** Whether a search asked for this restriction, by kind and, where it names them, by id. */
-const askedFor = (asked: RestrictionRequest[], listed: Restriction) =>
-  asked.some((r) => r.type === listed.type && (!("ids" in r) || !("id" in listed) || (r.ids as string[]).includes(listed.id)));
-
-/** The matching API, which runs elsewhere, as a script: it lists only what a search asks for, and records every
+/** The matching API, which runs elsewhere, as a script: it lists only the kinds a search asks for, and records every
  *  search for verdicts and every restricted search. */
-function scripted(asked: { talkId: string; talks: string[] }[], over: Partial<ConferenceApi> = {}, searched: RestrictionRequest[][] = []): ConferenceApi {
+function scripted(asked: { talkId: string; talks: string[] }[], over: Partial<ConferenceApi> = {}, searched: string[][] = []): ConferenceApi {
   return {
-    restricted: async (talkId, restrictions) => {
-      searched.push(restrictions);
+    restricted: async (talkId, kinds) => {
+      searched.push(kinds);
       const listed = talkId === "T1" ? [...conferenceT1, ...aroundT1] : [];
-      return { status: "ok", matches: listed.filter((m) => askedFor(restrictions, m.restriction!)), judging: [] };
+      return { status: "ok", matches: listed.filter((m) => (kinds as string[]).includes(m.restriction!.type)), judging: [] };
     },
     verdicts: async (talkId, talks) => {
       asked.push({ talkId, talks });
@@ -160,21 +156,10 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     ]);
   });
 
-  test("asks in one search for what each place shows, as the pages ask: the whole conference, and each other conference listed, day, time block and session by name", async () => {
-    const searched: RestrictionRequest[][] = [];
+  test("asks in one search for what every place shows: the whole conference, and every one of each other kind", async () => {
+    const searched: string[][] = [];
     await ask("?abstract=T1", scripted([], {}, searched));
-    expect(searched).toEqual([
-      [
-        { type: "conference" },
-        { type: "subConference", ids: ["P3", "P4"] },
-        { type: "day", ids: ["2026-01-27", "2026-01-28"] },
-        { type: "timeBlock", ids: ["2026-01-27T13:45:00-06:00", "2026-01-28T09:00:00-06:00"] },
-        { type: "session", ids: ["S1", "S2", "S3"] },
-      ],
-    ]);
-    searched.length = 0;
-    await ask("?abstract=T3", scripted([], {}, searched));
-    expect(searched[0]![1]).toEqual({ type: "subConference", ids: ["P4"] });
+    expect(searched).toEqual([["conference", "subConference", "day", "timeBlock", "session"]]);
   });
 
   test("asks for every verdict on each place's pool, passes each on as the API gave it, and marks the rest not judged", async () => {
@@ -219,7 +204,7 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     expect((await ask("?abstract=../T1", scripted([]))).status).toBe(400);
   });
 
-  test("while the matching API is still judging the talks of some places, there is no report yet: 202, naming how many", async () => {
+  test("while the matching API is still judging the talks of some places, there is no report yet: 202, saying how many", async () => {
     const asked: { talkId: string; talks: string[] }[] = [];
     const judgingT5 = scripted(asked, {
       verdicts: async (talkId, talks) => {
@@ -231,7 +216,7 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     const res = await ask("?abstract=T1", judgingT5);
     expect(res.status).toBe(202);
     // T5 is in the related talks, conference P4, the day 28 January, its 9:00 AM time block and session S3.
-    expect(await res.text()).toBe("The matching API is still judging 5 places for this abstract; ask again shortly.");
+    expect(await res.text()).toBe("The matching API is still judging 5 restrictions for this abstract; ask again shortly.");
     expect(asked).toHaveLength(11);
   });
 
@@ -242,7 +227,14 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     ];
     const res = await ask("?abstract=T1", scripted([], { restricted: async () => ({ status: "ok", matches: [], judging }) }));
     expect(res.status).toBe(202);
-    expect(await res.text()).toBe("The matching API is still judging 2 places for this abstract; ask again shortly.");
+    expect(await res.text()).toBe("The matching API is still judging 2 restrictions for this abstract; ask again shortly.");
+  });
+
+  test("while the matching API is still judging anything for the abstract, even what no place shows, there is no report yet", async () => {
+    const judging: Judging[] = [{ basedOn: "T1", restriction: { type: "session", id: "S9" } }];
+    const res = await ask("?abstract=T1", scripted([], { restricted: async () => ({ status: "ok", matches: [], judging }) }));
+    expect(res.status).toBe(202);
+    expect(await res.text()).toBe("The matching API is still judging 1 restriction for this abstract; ask again shortly.");
   });
 
   test("is 502 when the matching API cannot answer", async () => {

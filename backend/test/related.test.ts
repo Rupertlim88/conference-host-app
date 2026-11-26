@@ -50,7 +50,7 @@ describe("relatedTalks", () => {
   test("asks the matching API for its matches around the talk in the whole conference", async () => {
     asked.length = 0;
     await relatedTalks({ talkSummaries }, apiAnswering({ status: "ok", matches: [], judging: [] }), "T1");
-    expect(asked).toEqual([["T1", [{ type: "conference" }]]]);
+    expect(asked).toEqual([["T1", ["conference"]]]);
   });
 
   test("joins each match to its talk, in the API's order, skipping talks this programme lacks", async () => {

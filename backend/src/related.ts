@@ -9,7 +9,7 @@ type Talks = { talkSummaries(ids: string[]): Promise<TalkSummary[]> };
 /** The related-talks panel for one talk: the matches the API lists under the whole conference, joined to this
  *  programme's talks, the first five of them. */
 export async function relatedTalks(store: Talks, api: ConferenceApi, talkId: string): Promise<RelatedTalks> {
-  const answer = await api.restricted(talkId, [{ type: "conference" }]);
+  const answer = await api.restricted(talkId, ["conference"]);
   if (answer.status === "unavailable") return { status: "unavailable" };
   return relatedFrom(store, answer.matches);
 }

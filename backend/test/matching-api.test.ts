@@ -40,18 +40,17 @@ const TOKEN = "AAAAAAAAAAAAAAAAAAAAAA";
 const judging = (restriction: object) => ({ basedOn: "T1", restriction });
 
 describe("conferenceApi.restricted", () => {
-  test("sends matches:search with the key, the liked talk and the restrictions as asked, in pages of a thousand", async () => {
+  test("sends matches:search with the key, the liked talk and each kind of restriction, every one of it, in pages of a thousand", async () => {
     const found = listed("T2", { type: "session", id: "S1" });
     const stillJudged = judging({ type: "day", id: "2027-01-12" });
     const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [found], judging: [stillJudged] }) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
-    const asked = [{ type: "day" as const, ids: ["2027-01-12"] }, { type: "session" as const, ids: ["S1"] }];
-    expect(await api.restricted("T1", asked)).toEqual({ status: "ok", matches: [found], judging: [stillJudged] });
+    expect(await api.restricted("T1", ["day", "session"])).toEqual({ status: "ok", matches: [found], judging: [stillJudged] });
     expect(seen).toEqual([
       {
         url: "/v1/conferences/ams-2026/matches:search",
         auth: `Bearer ${"k".repeat(16)}`,
-        body: { likeTalks: ["T1"], restrictions: asked, pageSize: 1000 },
+        body: { likeTalks: ["T1"], restrictions: [{ type: "day" }, { type: "session" }], pageSize: 1000 },
       },
     ]);
   });
@@ -66,8 +65,8 @@ describe("conferenceApi.restricted", () => {
         : { status: 200, body: JSON.stringify({ matches: [second], judging: [stillJudged] }) },
     );
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
-    const asked = [{ type: "conference" as const }, { type: "session" as const, ids: ["S1"] }];
-    expect(await api.restricted("T1", asked)).toEqual({ status: "ok", matches: [first, second], judging: [stillJudged] });
+    const asked = [{ type: "conference" }, { type: "session" }];
+    expect(await api.restricted("T1", ["conference", "session"])).toEqual({ status: "ok", matches: [first, second], judging: [stillJudged] });
     expect(seen.map((s) => s.body)).toEqual([
       { likeTalks: ["T1"], restrictions: asked, pageSize: 1000 },
       { likeTalks: ["T1"], restrictions: asked, pageSize: 1000, pageToken: TOKEN },
@@ -77,27 +76,7 @@ describe("conferenceApi.restricted", () => {
   test("an answer with nothing being judged has an empty list of what is being judged", async () => {
     const { url } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [] }) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
-    expect(await api.restricted("T1", [{ type: "conference" }])).toEqual({ status: "ok", matches: [], judging: [] });
-  });
-
-  test("names at most a thousand of a kind to a search, the contract's limit, and joins the answers in order", async () => {
-    const sessions = Array.from({ length: 2500 }, (_, i) => `S${i}`);
-    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [listed(`T${seen.length + 1}`, { type: "conference" })] }) }));
-    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
-    const got = await api.restricted("T1", [{ type: "conference" }, { type: "session", ids: sessions }, { type: "day", ids: ["2027-01-12"] }]);
-    expect(seen.map((s) => s.body)).toEqual([
-      { likeTalks: ["T1"], restrictions: [{ type: "conference" }, { type: "session", ids: sessions.slice(0, 1000) }, { type: "day", ids: ["2027-01-12"] }], pageSize: 1000 },
-      { likeTalks: ["T1"], restrictions: [{ type: "session", ids: sessions.slice(1000, 2000) }], pageSize: 1000 },
-      { likeTalks: ["T1"], restrictions: [{ type: "session", ids: sessions.slice(2000) }], pageSize: 1000 },
-    ]);
-    expect(got).toEqual({ status: "ok", matches: ["T2", "T3", "T4"].map((id) => listed(id, { type: "conference" })), judging: [] });
-  });
-
-  test("with no restrictions to ask for, asks nothing", async () => {
-    const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [] }) }));
-    const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
-    expect(await api.restricted("T1", [])).toEqual({ status: "ok", matches: [], judging: [] });
-    expect(seen).toEqual([]);
+    expect(await api.restricted("T1", ["conference"])).toEqual({ status: "ok", matches: [], judging: [] });
   });
 
   test("a page that fails makes the whole search unavailable", async () => {
@@ -105,7 +84,7 @@ describe("conferenceApi.restricted", () => {
       seen.length === 1 ? { status: 200, body: JSON.stringify({ matches: [], nextPageToken: TOKEN }) } : { status: 500, body: "{}" },
     );
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
-    expect(await api.restricted("T1", [{ type: "conference" }])).toEqual({ status: "unavailable" });
+    expect(await api.restricted("T1", ["conference"])).toEqual({ status: "unavailable" });
   });
 
   test("the time limit covers every page together", async () => {
@@ -115,7 +94,7 @@ describe("conferenceApi.restricted", () => {
       delayMs: 60,
     }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026", timeoutMs: 100 });
-    expect(await api.restricted("T1", [{ type: "conference" }])).toEqual({ status: "unavailable" });
+    expect(await api.restricted("T1", ["conference"])).toEqual({ status: "unavailable" });
   });
 
   test("an error status, a bad answer or a slow answer is unavailable", async () => {
@@ -128,7 +107,7 @@ describe("conferenceApi.restricted", () => {
     ]) {
       const { url } = await serve(() => answer);
       const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026", timeoutMs: 100 });
-      expect(await api.restricted("T1", [{ type: "conference" }])).toEqual({ status: "unavailable" });
+      expect(await api.restricted("T1", ["conference"])).toEqual({ status: "unavailable" });
       await new Promise<void>((r) => server!.close(() => r()));
       server = null;
     }
@@ -136,7 +115,7 @@ describe("conferenceApi.restricted", () => {
 
   test("an unreachable API is unavailable", async () => {
     const api = conferenceApi({ url: "http://127.0.0.1:9", key: "k".repeat(16), conference: "ams-2026" });
-    expect(await api.restricted("T1", [{ type: "conference" }])).toEqual({ status: "unavailable" });
+    expect(await api.restricted("T1", ["conference"])).toEqual({ status: "unavailable" });
   });
 });
 
@@ -298,7 +277,7 @@ describe("requests are checked against the conference API's contract before they
   test("a matches search that breaks the contract is never sent, and its matches are unavailable", async () => {
     const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: [] }) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2027" });
-    expect(await api.restricted("-not-an-id", [{ type: "conference" }])).toEqual({ status: "unavailable" });
+    expect(await api.restricted("-not-an-id", ["conference"])).toEqual({ status: "unavailable" });
     expect(seen).toEqual([]);
   });
 });

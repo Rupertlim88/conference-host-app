@@ -8,6 +8,7 @@ import {
   type Match,
   type MatchesSearchResponse,
   type RestrictionRequest,
+  type RestrictionType,
   type TalksWriteRequest,
   type TalksWriteResponse,
 } from "@repo/contracts";
@@ -23,13 +24,16 @@ export type Judging = NonNullable<MatchesSearchResponse["judging"]>[number];
 /** The results of a restricted search, in the API's order, and the restrictions it is still judging. */
 export type RestrictedAnswer = { status: "ok"; matches: Match[]; judging: Judging[] } | { status: "unavailable" };
 
-/** The most ids one restriction may name, as the conference API's contract allows. */
-export const IDS_PER_RESTRICTION = 1000;
+/** A kind of restriction that groups the programme: every kind but the talks a search names. */
+export type StandardKind = Exclude<RestrictionType, "talks">;
+
+/** The most talks one matches search may name, as the conference API's contract allows. */
+export const TALKS_PER_SEARCH = 1000;
 
 export interface ConferenceApi {
-  /** The matches the matching API lists for a talk under these restrictions, and those it is still judging: every
-   *  page of one matches search for each thousand ids of a kind. */
-  restricted(talkId: string, restrictions: RestrictionRequest[]): Promise<RestrictedAnswer>;
+  /** The matches the matching API lists for a talk under every restriction of these kinds, and those it is still
+   *  judging: every page of one matches search. */
+  restricted(talkId: string, kinds: StandardKind[]): Promise<RestrictedAnswer>;
   /** Every verdict the matching API has for a talk against these talks, matches or not, as it gave them, and whether
    *  it is still judging them: every page of one search of the talks restriction for each thousand talks. */
   verdicts(talkId: string, talks: string[]): Promise<RestrictedAnswer>;
@@ -89,23 +93,6 @@ export const unconfiguredApi: ConferenceApi = {
   check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
 };
 
-/** The restrictions split into searches that name at most a thousand ids of a kind each: the first search asks every
- *  kind, with its first thousand ids, and each later one only the kinds with ids left. */
-function splitRestrictions(restrictions: RestrictionRequest[]): RestrictionRequest[][] {
-  const searches: RestrictionRequest[][] = [];
-  for (const restriction of restrictions) {
-    const ids: readonly string[] | undefined = "ids" in restriction ? restriction.ids : undefined;
-    if (!ids) {
-      (searches[0] ??= []).push(restriction);
-      continue;
-    }
-    for (let i = 0; i < ids.length; i += IDS_PER_RESTRICTION) {
-      (searches[i / IDS_PER_RESTRICTION] ??= []).push({ ...restriction, ids: ids.slice(i, i + IDS_PER_RESTRICTION) } as RestrictionRequest);
-    }
-  }
-  return searches;
-}
-
 export function conferenceApi(opts: {
   url: string;
   key: string;
@@ -157,10 +144,15 @@ export function conferenceApi(opts: {
   }
 
   return {
-    restricted: (talkId, restrictions) => everySearch(talkId, splitRestrictions(restrictions), opts.timeoutMs ?? 3000),
+    // Every restriction of each kind, as many matches as each lists: no ids and no K.
+    restricted: (talkId, kinds) => everySearch(talkId, [kinds.map((type) => ({ type }) as RestrictionRequest)], opts.timeoutMs ?? 3000),
 
     // The talks restriction lists every verdict on the talks it names, matches or not.
-    verdicts: (talkId, talks) => everySearch(talkId, splitRestrictions(talks.length ? [{ type: "talks", ids: talks }] : []), opts.timeoutMs ?? 10_000),
+    verdicts: (talkId, talks) => {
+      const searches: RestrictionRequest[][] = [];
+      for (let i = 0; i < talks.length; i += TALKS_PER_SEARCH) searches.push([{ type: "talks", ids: talks.slice(i, i + TALKS_PER_SEARCH) }]);
+      return everySearch(talkId, searches, opts.timeoutMs ?? 10_000);
+    },
 
     async check(talkId) {
       const started = performance.now();

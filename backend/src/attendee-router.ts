@@ -1,7 +1,6 @@
 // The attendee app's requests read the programme through the store, and a missing item is "not found".
 import {
   AroundAbstractSchema,
-  AroundScopeSchema,
   CodeInputSchema,
   DateInputSchema,
   DaySchema,
@@ -87,9 +86,8 @@ export const attendeeRoutes = {
 
   improvements: router({
     aroundAbstract: viewerProcedure
-      .input(AroundScopeSchema)
       .output(AroundAbstractSchema)
-      .query(({ ctx, input }) => aroundAbstract(ctx.store, ctx.demo, ctx.api, input)),
+      .query(({ ctx }) => aroundAbstract(ctx.store, ctx.demo, ctx.api)),
   }),
 
   sessions: router({

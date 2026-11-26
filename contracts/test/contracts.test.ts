@@ -6,7 +6,7 @@ import {
   NoteInputSchema,
   RelatedTalksSchema,
   SearchInputSchema,
-  TalkDetailSchema, SavedNoteSchema, SocietySchema, CodeInputSchema, HighlightInputSchema, NamePageInputSchema, AroundAbstractSchema, AroundScopeSchema, FixedAbstractInputSchema } from "../src/index";
+  TalkDetailSchema, SavedNoteSchema, SocietySchema, CodeInputSchema, HighlightInputSchema, NamePageInputSchema, AroundAbstractSchema, FixedAbstractInputSchema } from "../src/index";
 
 const summary = {
   id: "464598",
@@ -101,34 +101,6 @@ describe("the demo's menu, highlights, pages of names and fixed abstract", () =>
     expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: ["1878", "1912"], pools: noPools }).success).toBe(true);
     expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: ["../x"], pools: noPools }).success).toBe(false);
     expect(AroundAbstractSchema.safeParse({ abstract: summary, pools: noPools }).success).toBe(false);
-  });
-
-  describe("what a page asks to see around the abstract", () => {
-    test("names, by kind, the conferences a list shows, a day, its time blocks' start instants and a session", () => {
-      expect(AroundScopeSchema.safeParse({ subConference: ["1878", "1912"] }).success).toBe(true);
-      expect(AroundScopeSchema.safeParse({ day: ["2027-01-12"], timeBlock: ["2027-01-12T15:30:00.000Z", "2027-01-12T17:00:00.000Z"] }).success).toBe(true);
-      expect(AroundScopeSchema.safeParse({ session: ["76096"] }).success).toBe(true);
-      expect(AroundScopeSchema.safeParse({}).success).toBe(true);
-    });
-
-    test("names each kind by the host app's own forms: ids, dates and instants", () => {
-      expect(AroundScopeSchema.safeParse({ subConference: ["../x"] }).success).toBe(false);
-      expect(AroundScopeSchema.safeParse({ day: ["2027-01-12T15:30:00.000Z"] }).success).toBe(false);
-      expect(AroundScopeSchema.safeParse({ timeBlock: ["2027-01-12"] }).success).toBe(false);
-      expect(AroundScopeSchema.safeParse({ timeBlock: ["2027-01-12T08:30:00-07:00"] }).success).toBe(false);
-    });
-
-    test("leaves out a kind it has none of, names each one once, and at most a thousand of a kind", () => {
-      expect(AroundScopeSchema.safeParse({ session: [] }).success).toBe(false);
-      expect(AroundScopeSchema.safeParse({ session: ["76096", "76096"] }).success).toBe(false);
-      expect(AroundScopeSchema.safeParse({ session: Array.from({ length: 1000 }, (_, i) => `S${i}`) }).success).toBe(true);
-      expect(AroundScopeSchema.safeParse({ session: Array.from({ length: 1001 }, (_, i) => `S${i}`) }).success).toBe(false);
-    });
-
-    test("only the four kinds the improvements show around the abstract", () => {
-      expect(AroundScopeSchema.safeParse({ conference: [] }).success).toBe(false);
-      expect(AroundScopeSchema.safeParse({ talks: ["T1"] }).success).toBe(false);
-    });
   });
 
   describe("the matching API's pools around the abstract", () => {

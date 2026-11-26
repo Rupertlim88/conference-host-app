@@ -16,9 +16,9 @@ export interface ChangePoints {
   /** Conferences and Symposia's whole list. */
   "programmes.list": { tracks: Track[] };
   /** Above the Meeting Calendar's list of one day's sessions; the base shows nothing there. */
-  "calendar.beforeDay": { date: string; sessions: SessionSummary[] };
+  "calendar.beforeDay": { date: string };
   /** The Meeting Calendar's list of one day's sessions, below the day's heading and the strip of days. */
-  "calendar.day": { date: string; sessions: SessionSummary[] };
+  "calendar.day": { sessions: SessionSummary[] };
   /** On a session's page, its list of talks, under Presentations. */
   "session.talks": { session: SessionDetail };
 }

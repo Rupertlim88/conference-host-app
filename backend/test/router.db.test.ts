@@ -134,23 +134,8 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
         }
       ),
     };
-    const around = await caller({ api: answering }).improvements.aroundAbstract({
-      subConference: ["P1", "P3"],
-      day: ["2026-01-27"],
-      timeBlock: ["2026-01-27T19:45:00.000Z"],
-      session: ["S1"],
-    });
-    expect(asked).toEqual([
-      [
-        "T1",
-        [
-          { type: "subConference", ids: ["P3"] },
-          { type: "day", ids: ["2026-01-27"] },
-          { type: "timeBlock", ids: ["2026-01-27T13:45:00-06:00"] },
-          { type: "session", ids: ["S1"] },
-        ],
-      ],
-    ]);
+    const around = await caller({ api: answering }).improvements.aroundAbstract();
+    expect(asked).toEqual([["T1", ["subConference", "day", "timeBlock", "session"]]]);
     const education = { id: "P1", code: "EDU", title: "Education" };
     const t2 = { talk: expect.objectContaining({ id: "T2", sessionId: "S1" }), kind: "unexpected", score: 0.9, reason: "Why T2", tracks: [education] };
     const t1 = { talk: expect.objectContaining({ id: "T1" }), kind: "unexpected", score: 0.9, reason: "Why T1", tracks: [education] };
@@ -164,29 +149,15 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
         session: [{ id: "S1", matches: [t2, t1] }],
       },
     });
-    const down = await caller({}).improvements.aroundAbstract({ session: ["S1"] });
+    const down = await caller({}).improvements.aroundAbstract();
     expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), abstractTrackIds: ["P1"], pools: null });
-  });
-
-  test("each page asks only for what it shows, never for the abstract's own conferences, and leaves out a kind with none", async () => {
-    const asked: unknown[] = [];
-    const recording: ConferenceApi = {
-      ...api({ status: "unavailable" }),
-      restricted: async (_talkId, restrictions) => (asked.push(restrictions), { status: "ok", matches: [], judging: [] }),
-    };
-    const c = caller({ api: recording });
-    await c.improvements.aroundAbstract({ session: ["S1"] });
-    await c.improvements.aroundAbstract({ day: ["2026-01-28"] });
-    expect(await c.improvements.aroundAbstract({ subConference: ["P1"] })).toMatchObject({ pools: { subConference: [], day: [], timeBlock: [], session: [] } });
-    expect(asked).toEqual([[{ type: "session", ids: ["S1"] }], [{ type: "day", ids: ["2026-01-28"] }], []]);
-    await expect(c.improvements.aroundAbstract({ session: [] })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 
   test("the developer console fixes the demo to a talk, and names why a talk is refused", async () => {
     const c = caller({});
     expect((await c.developer.fixedAbstract())?.id).toBe("T1");
     expect((await c.developer.setFixedAbstract({ talkId: "T2" })).id).toBe("T2");
-    expect((await c.improvements.aroundAbstract({})).abstract?.id).toBe("T2");
+    expect((await c.improvements.aroundAbstract()).abstract?.id).toBe("T2");
     await expect(c.developer.setFixedAbstract({ talkId: "nope" })).rejects.toMatchObject({
       code: "BAD_REQUEST",
       message: "That talk cannot be the demo's abstract: it must be shown, and have an abstract.",

@@ -1,5 +1,5 @@
 // For each abstract tested, the host app reports what each place chose from, what it shows, and every verdict the matching API gave.
-import type { Restriction, TalkInput } from "@repo/contracts";
+import type { TalkInput } from "@repo/contracts";
 import {
   PlaceLayoutSchema,
   RecommendationsInputSchema,
@@ -7,7 +7,6 @@ import {
   SHOWN_PER_PLACE,
   type AroundMatch,
   type AroundPools,
-  type AroundScope,
   type Place,
   type PlaceLayout,
   type Recommendations,
@@ -15,7 +14,7 @@ import {
 } from "@repo/host-contracts";
 import type { ProgrammeStore, SyncLog, TestSets } from "@repo/host-store";
 
-import { poolsFrom, restrictionsFor } from "./around-abstract";
+import { AROUND_KINDS, poolsFrom } from "./around-abstract";
 import type { ConferenceApi } from "./matching-api";
 import { relatedFrom } from "./related";
 import { toPartnerTalk } from "./send";
@@ -63,19 +62,6 @@ export function placesAround(abstract: string, ownTrackIds: string[], sent: Talk
   return [...places.values()].sort((a, b) => LAYOUTS.indexOf(a.layout) - LAYOUTS.indexOf(b.layout) || a.key.localeCompare(b.key));
 }
 
-/** What the pages would ask the matching API about to show these places: each other conference Conferences and
- *  Symposia lists, and each day, time block and session, each kind left out when no place is of it. */
-function scopeOf(places: PlaceToAsk[], listed: Set<string>): AroundScope {
-  const keys = (layout: PlaceLayout) => places.filter((p) => p.layout === layout).map((p) => p.key);
-  const kinds: AroundScope = {
-    subConference: keys("conference_outside").filter((id) => listed.has(id)),
-    day: keys("day"),
-    timeBlock: places.filter((p) => p.layout === "time_block").map((p) => new Date(p.start!).toISOString()),
-    session: keys("session"),
-  };
-  return Object.fromEntries(Object.entries(kinds).filter(([, ids]) => ids.length > 0));
-}
-
 /** What a place shows visitors with this abstract as the attendee's: the picks the pages make, from the same answers,
  *  as many as the place shows. */
 function shownIn(place: PlaceToAsk, pools: AroundPools, related: RelatedTalks, listed: Set<string>, sessionStart: Map<string, string | null>): string[] {
@@ -100,60 +86,38 @@ function shownIn(place: PlaceToAsk, pools: AroundPools, related: RelatedTalks, l
   }
 }
 
-/** Whether a place shows what the matching API lists under this restriction. A place's talks restriction is its own
- *  search, so no place shows another's. */
-function showsFrom(place: PlaceToAsk, restriction: Restriction): boolean {
-  switch (restriction.type) {
-    case "conference":
-      return place.layout === "related";
-    case "subConference":
-      return (place.layout === "conference_outside" || place.layout === "conference_inside") && place.key === restriction.id;
-    case "day":
-      return place.layout === "day" && place.key === restriction.id;
-    case "timeBlock":
-      return place.layout === "time_block" && Date.parse(place.start!) === Date.parse(restriction.id);
-    case "session":
-      return place.layout === "session" && place.key === restriction.id;
-    case "talks":
-      return false;
-  }
-}
-
 /** The report on one abstract: null when the demo does not hold and show it, "unavailable" when the matching API cannot
- *  answer one of the searches, and the number of places it is still judging, when it is judging any. */
-export type Report = { status: "ready"; report: Recommendations } | { status: "judging"; places: number } | { status: "unavailable" } | null;
+ *  answer one of the searches, and how many restrictions it is still judging for the abstract, when it is judging any. */
+export type Report = { status: "ready"; report: Recommendations } | { status: "judging"; restrictions: number } | { status: "unavailable" } | null;
 
 /** The report on one abstract the demo holds. Every search is made even while some are still being judged, so that a
  *  single later ask finds every place judged. */
 export async function reportOn(abstractId: string, deps: RecommendationsDeps): Promise<Report> {
   const [abstract] = await deps.store.talkSummaries([abstractId]);
   if (!abstract) return null;
-  const [session, forSync, tracks, runs, meeting] = await Promise.all([
+  const [session, forSync, tracks, runs] = await Promise.all([
     abstract.sessionId ? deps.store.session(abstract.sessionId) : null,
     deps.store.talksForSync(),
     deps.store.tracks(),
     deps.log.runs(),
-    deps.store.meeting(),
   ]);
   const sent = forSync.map(toPartnerTalk).filter((t): t is TalkInput => t !== null);
   const sessionStart = new Map(sent.map((t) => [t.id, t.session?.start ?? null]));
   const listed = new Set(tracks.map((t) => t.id));
-  const own = session?.trackIds ?? [];
-  const toAsk = placesAround(abstract.id, own, sent);
+  const toAsk = placesAround(abstract.id, session?.trackIds ?? [], sent);
 
-  // What each place shows comes from one search for exactly these places, asked as the pages ask for them.
-  const standard = restrictionsFor(scopeOf(toAsk, listed), own, meeting.timeZone);
-  const shown = await deps.api.restricted(abstract.id, [{ type: "conference" }, ...standard]);
+  // What each place shows comes from one search of the restrictions the pages ask for.
+  const shown = await deps.api.restricted(abstract.id, ["conference", ...AROUND_KINDS]);
   if (shown.status === "unavailable") return { status: "unavailable" };
   const [related, pools] = await Promise.all([relatedFrom(deps.store, shown.matches), poolsFrom(deps.store, shown.matches)]);
-  const judging = new Set(toAsk.filter((place) => shown.judging.some((j) => showsFrom(place, j.restriction))));
+  let judging = shown.judging.length;
 
   const places: Place[] = [];
   // One search at a time, so a large test set never floods the matching API.
   for (const place of toAsk) {
     const answer = await deps.api.verdicts(abstract.id, place.pool);
     if (answer.status === "unavailable") return { status: "unavailable" };
-    if (answer.judging.length > 0) judging.add(place);
+    judging += answer.judging.length;
     const judged = new Set(answer.matches.map((m) => m.talk));
     places.push({
       layout: place.layout,
@@ -164,7 +128,7 @@ export async function reportOn(abstractId: string, deps: RecommendationsDeps): P
       notJudged: place.pool.filter((id) => !judged.has(id)),
     });
   }
-  if (judging.size > 0) return { status: "judging", places: judging.size };
+  if (judging > 0) return { status: "judging", restrictions: judging };
   const versioned = places.flatMap((p) => p.verdicts).find((v) => typeof v.programmeVersion === "string");
   return {
     status: "ready",
@@ -178,7 +142,7 @@ export async function reportOn(abstractId: string, deps: RecommendationsDeps): P
 }
 
 /** The report on an abstract the stored test set tests: 400 without an abstract named, 404 for one it does not test or
- *  the demo does not show, 202 while the matching API is still judging some of its places, 502 when the matching API
+ *  the demo does not show, 202 while the matching API is still judging anything for it, 502 when the matching API
  *  cannot answer. */
 export async function answerRecommendations(req: Request, deps: RecommendationsDeps): Promise<Response> {
   const input = RecommendationsInputSchema.safeParse({ abstract: new URL(req.url).searchParams.get("abstract") });
@@ -192,8 +156,8 @@ export async function answerRecommendations(req: Request, deps: RecommendationsD
     case "unavailable":
       return plain(502, "The matching API could not answer, so there is no report.");
     case "judging": {
-      const places = report.places === 1 ? "1 place" : `${report.places} places`;
-      return plain(202, `The matching API is still judging ${places} for this abstract; ask again shortly.`);
+      const count = report.restrictions === 1 ? "1 restriction" : `${report.restrictions} restrictions`;
+      return plain(202, `The matching API is still judging ${count} for this abstract; ask again shortly.`);
     }
     case "ready":
       return Response.json(RecommendationsSchema.parse(report.report));

@@ -3,7 +3,7 @@ import { SHOWN_PER_PLACE, type AroundAbstract, type AroundMatch, type AroundPool
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 
-import { aroundAbstract, calendarScope } from "@/improvements/matches/matches";
+import { aroundAbstract } from "@/improvements/matches/matches";
 import { When } from "@/shared/meeting-time";
 import { Badge } from "@/shared/ui/badge";
 import type { Change } from "@/versions/change";
@@ -14,7 +14,7 @@ export const dayPicks: Change<"calendar.beforeDay"> = {
   at: "calendar.beforeDay",
   label: "dayPicks",
   outlinesItself: true,
-  render: async ({ date, sessions }, label) => <DayPicksView date={date} around={await aroundAbstract(calendarScope(date, sessions))} label={label} />,
+  render: async ({ date }, label) => <DayPicksView date={date} around={await aroundAbstract()} label={label} />,
 };
 
 /** The first three talks the matching API lists in its pool for this day, which holds one talk from each session, the

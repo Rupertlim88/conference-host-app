@@ -6,12 +6,12 @@ import { beforeEach, expect, test, vi } from "vitest";
 import * as chosen from "@/improvements";
 import { ChangePoint, changesFrom, type Change } from "@/versions/change";
 
-import { aroundPools, sessionDetail, sessionSummary, talkSummary, track } from "../fixtures";
+import { aroundPools, sessionSummary, talkSummary, track } from "../fixtures";
 import { renderApp } from "../render";
 
 // Next's request cookies, its server translations and the backend cannot run outside Next; the change point and the
 // changes are the real ones.
-const state = vi.hoisted(() => ({ version: undefined as string | undefined, around: null as AroundAbstract | null, asked: [] as unknown[] }));
+const state = vi.hoisted(() => ({ version: undefined as string | undefined, around: null as AroundAbstract | null }));
 vi.mock("next/headers", () => ({
   cookies: async () => ({ get: () => (state.version ? { value: state.version } : undefined) }),
 }));
@@ -21,10 +21,7 @@ vi.mock("next-intl/server", async () => {
   return { getTranslations: async (namespace: "versions.change") => createTranslator({ locale: "en", messages, namespace }) };
 });
 vi.mock("@/shared/server", () => ({
-  serverApi: async () => ({
-    improvements: { aroundAbstract: async (scope: unknown) => (state.asked.push(scope), state.around) },
-    talks: { related: async () => ({ status: "none" }) },
-  }),
+  serverApi: async () => ({ improvements: { aroundAbstract: async () => state.around }, talks: { related: async () => ({ status: "none" }) } }),
 }));
 
 const lightning = sessionSummary({ id: "76096", startsAt: "2027-01-12T15:30:00.000Z", endsAt: "2027-01-12T17:00:00.000Z" });
@@ -33,20 +30,19 @@ const match = { talk: talkSummary({ id: "490001", sessionId: "76096" }), kind: "
 
 beforeEach(() => {
   state.version = "improvements";
-  state.asked = [];
   state.around = { abstract: talkSummary(), abstractTrackIds: [], pools: aroundPools({ timeBlock: [{ id: "2027-01-12T15:30:00.000Z", matches: [match] }] }) };
 });
 
 test("in the base, a change point shows what the base has there", async () => {
   state.version = undefined;
-  renderApp(await ChangePoint({ at: "calendar.day", props: { date: "2027-01-12", sessions: [lightning] }, children: <p>AMS's day</p> }));
+  renderApp(await ChangePoint({ at: "calendar.day", props: { sessions: [lightning] }, children: <p>AMS's day</p> }));
   expect(screen.getByText("AMS's day")).toBeInTheDocument();
   expect(screen.queryByText(/^Our change/)).not.toBeInTheDocument();
 });
 
 test("a change point where the base shows nothing shows nothing until a version changes it", async () => {
   state.version = undefined;
-  const { container } = renderApp(await ChangePoint({ at: "calendar.beforeDay", props: { date: "2027-01-12", sessions: [lightning] } }));
+  const { container } = renderApp(await ChangePoint({ at: "calendar.beforeDay", props: { date: "2027-01-12" } }));
   expect(container).toBeEmptyDOMElement();
 });
 
@@ -57,7 +53,7 @@ test("a version's change shows in place of the base, in a gold outline labelled 
 });
 
 test("a change that edits several parts outlines each part with the label, empty where it has nothing to show, and the change point adds no outline", async () => {
-  renderApp(await ChangePoint({ at: "calendar.day", props: { date: "2027-01-12", sessions: [lightning, coffee] }, children: <p>AMS's day</p> }));
+  renderApp(await ChangePoint({ at: "calendar.day", props: { sessions: [lightning, coffee] }, children: <p>AMS's day</p> }));
   const outlines = screen.getAllByText(/^Our change/).map((label) => label.closest("section")!);
   expect(outlines.map((outline) => outline.textContent)).toEqual([
     expect.stringMatching(/^Our change: recommended around your abstract8:30 AM.+/),
@@ -65,15 +61,6 @@ test("a change that edits several parts outlines each part with the label, empty
   ]);
   expect(screen.getAllByRole("link").map((a) => a.getAttribute("href"))).toEqual(["/sessions/76096", "/sessions/75349"]);
   expect(screen.queryByText("AMS's day")).not.toBeInTheDocument();
-});
-
-test("each improvement around the abstract asks the backend for exactly what its page shows", async () => {
-  await ChangePoint({ at: "programmes.list", props: { tracks: [track({ id: "1878" }), track({ id: "1912" })] } });
-  await ChangePoint({ at: "calendar.beforeDay", props: { date: "2027-01-12", sessions: [lightning, coffee] } });
-  await ChangePoint({ at: "calendar.day", props: { date: "2027-01-12", sessions: [lightning, coffee] } });
-  await ChangePoint({ at: "session.talks", props: { session: sessionDetail({ id: "76096" }) } });
-  const day = { day: ["2027-01-12"], timeBlock: ["2027-01-12T15:30:00.000Z", "2027-01-12T17:00:00.000Z"] };
-  expect(state.asked).toEqual([{ subConference: ["1878", "1912"] }, day, day, { session: ["76096"] }]);
 });
 
 test("Our improvements show each improvement switched on in their list, at its own change point", async () => {
