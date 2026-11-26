@@ -36,3 +36,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
    test's outcome and HTTP status, the API status the developer console shows, and the talk the demo is fixed to.
    *How:* code alone: zod schemas.
    *File:* `sending.ts`
+
+5. **The tester's three requests have fixed forms.** The programme map, the test set and the report on each abstract
+   tested have one form each, checked where they enter and leave; AMS ids are strings, times are the meeting's clock
+   to the minute, and the report passes on each verdict exactly as the matching API gave it. How many talks each place
+   shows visitors is fixed in one place, which the pages and the report both read.
+   *How:* code alone: one schema for each form.
+   *File:* needed

@@ -135,9 +135,43 @@ Everything else is a lower level, written by Claude to carry out these specifica
    model-checked with TLA+ (the verify-send-runs skill).
    *File:* `send.ts`
 
+### The tester
+
+11. **Every request from a tester needs the secret token, and with no token set the tester's requests are switched off.**
+    A request without the right token is refused, and so is every tester request while no token is set; the token is
+    a setting, kept secret like the matching API's key.
+    *How:* code alone: one check every tester request passes, comparing the bearer token in constant time.
+    *File:* needed
+
+12. **The programme map lists every time block, session and conference of AMS's whole published programme, with its talks.**
+    A time block is every session that starts at the same time on one day, on the meeting's clock, and a lone session
+    is a block of its own. Every session lists its talks, and every conference lists its talks, a joint session's talk
+    under each conference it belongs to. Times are the meeting's clock, to the minute, and ids are AMS's.
+    *How:* code alone, from the store's whole published programme.
+    *File:* needed
+
+13. **A test set is checked, stored, held and sent to the matching API.** It names the conference, the abstracts to
+    test, the first being the demo's fixed abstract, and the talks for the demo to hold. It is refused, with a plain
+    message, when it names a talk the published programme does not have, or an abstract to test that is not among its
+    talks. Once it is stored and held, the programme is sent to the matching API as one run, and the answer gives the
+    programme version that send returned.
+    *How:* code alone: the store holds the test set, then the send runs as the organiser console's does.
+    *File:* needed
+
+14. **For each abstract tested, the host app reports what each place chose from, what it shows, and every verdict the matching API gave.**
+    The places are the abstract's related talks; each other conference; each of the abstract's own conferences, for
+    the tester only, which shows nothing; each day; each time block; and each session. For each place it gives the
+    held talks the place chose from, the talks it shows visitors, in order and exactly as the pages show them, every
+    verdict the matching API has for the abstract against those talks, passed on as the API gave it, and each of those
+    talks that has no verdict, marked as not judged. It also gives the programme version of the last send and of the
+    matches.
+    *How:* code alone: the same pooled search and picks the pages use for what is shown, and one search of every
+    verdict for each place.
+    *File:* needed
+
 ### Staying on
 
-11. **The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.** A
+15. **The keep-alive stops the hosted database pausing, and only the scheduled call with the secret can use it.** A
     request without the secret, or with the wrong one, or when no secret is set, is refused and touches nothing. A
     failure answers only "The database read failed", and the error is logged on the server.
     *How:* code alone: Vercel's daily cron calls it with the secret; the secret is compared in constant time; it runs
