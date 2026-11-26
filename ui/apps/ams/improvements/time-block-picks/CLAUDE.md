@@ -22,8 +22,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    it is a close or an unexpected match, how many related talks it holds, the reason, and the time of its first related
    talk. They sit at the top of the block in a gold outline that opens with the block's time as a heading, like AMS's
    own, so that it reads as the start of that block; the rest of the block follows in AMS's order, without them. A
-   block with no recommendation stays exactly as AMS has it. When the matching API cannot answer, the calendar stays as
-   AMS has it, and one gold note says so.
+   block with no recommendation opens with its box empty, and the rest of the block stays as AMS has it. When the
+   matching API cannot answer, every block's box is empty, the rest of the calendar stays as AMS has it, and one gold
+   note says so.
    *How:* code alone: our improvements' change to the calendar's day, from the fixed abstract's matches sorted into
    time blocks by their sessions' start times.
    *File:* `time-block-picks.tsx`

@@ -11,41 +11,45 @@ import { Badge } from "@/shared/ui/badge";
 import type { Change } from "@/versions/change";
 import { GoldOutline } from "@/versions/gold";
 
-/** The Meeting Calendar's day with each time block's recommendations at its top, each block's outline opening with the
- *  block's start time as a heading, like AMS's own. Without the abstract's matches, AMS's day stays, under one gold note. */
+/** The Meeting Calendar's day with each time block opening with its gold outline: the block's start time as a heading,
+ *  like AMS's own, then its recommendations, or nothing. Without the abstract's matches, every outline is empty and
+ *  one gold note above the day says why. */
 export function CalendarPicksView({ sessions, around, label }: { sessions: SessionSummary[]; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.calendarPicks");
-  if (!around.abstract || !around.matches) {
-    return (
-      <>
+  const matches = around.abstract ? around.matches : null;
+  const blocks = calendarBlocks(sessions, matches ?? []);
+  return (
+    <>
+      {!matches && (
         <GoldOutline label={label}>
           <p className="text-sm">{t(around.abstract ? "unavailable" : "noAbstract")}</p>
         </GoldOutline>
-        <DayList sessions={sessions} />
-      </>
-    );
-  }
-  const blocks = calendarBlocks(sessions, around.matches);
-  if (blocks.length === 0) return <DayList sessions={sessions} />;
-  return blocks.map((block) => (
-    <Fragment key={block.startsAt}>
-      {block.picks.length > 0 && (
-        <GoldOutline label={label}>
-          <h2 className="mb-2 text-center font-semibold text-heading">
-            <When start={block.startsAt} mode="time" />
-          </h2>
-          <ul className="space-y-3">
-            {block.picks.map((pick) => (
-              <PickItem key={pick.session.id} pick={pick} />
-            ))}
-          </ul>
-        </GoldOutline>
       )}
-      {block.groups.map((group) => (
-        <TimeBlockSessions key={`${group.startsAt}-${group.endsAt}`} block={group} />
-      ))}
-    </Fragment>
-  ));
+      {blocks.length === 0 ? (
+        <DayList sessions={sessions} />
+      ) : (
+        blocks.map((block) => (
+          <Fragment key={block.startsAt}>
+            <GoldOutline label={label}>
+              <h2 className="mb-2 text-center font-semibold text-heading">
+                <When start={block.startsAt} mode="time" />
+              </h2>
+              {block.picks.length > 0 && (
+                <ul className="space-y-3">
+                  {block.picks.map((pick) => (
+                    <PickItem key={pick.session.id} pick={pick} />
+                  ))}
+                </ul>
+              )}
+            </GoldOutline>
+            {block.groups.map((group) => (
+              <TimeBlockSessions key={`${group.startsAt}-${group.endsAt}`} block={group} />
+            ))}
+          </Fragment>
+        ))
+      )}
+    </>
+  );
 }
 
 /** In place of the Meeting Calendar's day, the day with each time block's recommendations at its top. */

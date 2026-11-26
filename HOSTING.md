@@ -31,7 +31,7 @@ From the repository root, with the session pooler string:
 HOST_DATABASE_URL='<session pooler string>' npm run load --workspace=@repo/host-store -- ams
 ```
 
-It applies the migrations, then prints the counts it loaded, such as `ams: 49 tracks, 922 sessions, 4531 talks, 3788 people`.
+It applies the migrations, then prints the counts it loaded. The demo loads a sample: every conference and session, with five talks per conference plus the talks AMS highlights, such as `ams: 52 tracks, 1070 sessions, 391 talks, 266 people`.
 
 ## 3. Create the Google sign-in client
 

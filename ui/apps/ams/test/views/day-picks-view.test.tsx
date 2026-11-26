@@ -46,9 +46,9 @@ test("each shows its time, number and title, the kind of match, its conference a
   expect(second).toHaveTextContent("19th Symposium on Aerosol-Cloud-Climate Interactions");
 });
 
-test("a day with none of the abstract's matches shows nothing", () => {
-  const { container } = renderApp(<DayPicksView date="2027-01-13" around={around()} label={LABEL} />);
-  expect(container).toBeEmptyDOMElement();
+test("a day with none of the abstract's matches shows the box empty", () => {
+  renderApp(<DayPicksView date="2027-01-13" around={around()} label={LABEL} />);
+  expect(outline().textContent).toBe(LABEL);
 });
 
 test("when the matching API cannot answer, one line in the outline says so", () => {

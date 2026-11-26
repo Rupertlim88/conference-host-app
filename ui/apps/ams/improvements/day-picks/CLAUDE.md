@@ -20,7 +20,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    the matching API's matches for the fixed abstract, the better score first and never padded with weak ones. Each
    shows its time, number and title, whether it is a close or an unexpected match, its conference and the reason, and
    links to the talk. They sit in a gold outline saying they were picked for the attendee's abstract. A day with none
-   shows nothing there; when the matching API cannot answer, one line there says so.
+   shows the box empty; when the matching API cannot answer, one line there says so.
    *How:* code alone: the improvement's addition above the calendar's day, from the fixed abstract's matches that start
    on that day.
    *File:* `day-picks.tsx`

@@ -39,7 +39,7 @@ export function picksOn(date: string, matches: AroundMatch[]): AroundMatch[] {
     .slice(0, MOST_PICKS);
 }
 
-/** The day's best talks for the abstract in a gold outline; nothing on a day with none; one line when the matching API
+/** The day's best talks for the abstract in a gold outline, empty on a day with none; one line when the matching API
  *  cannot answer or the demo has no abstract. */
 export function DayPicksView({ date, around, label }: { date: string; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.dayPicks");
@@ -52,15 +52,18 @@ export function DayPicksView({ date, around, label }: { date: string; around: Ar
     );
   }
   const picks = picksOn(date, around.matches);
-  if (picks.length === 0) return null;
   return (
     <GoldOutline label={label}>
-      <p className="mb-2 text-xs">{t("pickedFor", { day: format.dateTime(new Date(`${date}T12:00:00Z`), { weekday: "long", timeZone: "UTC" }) })}</p>
-      <ul className="space-y-2">
-        {picks.map((pick) => (
-          <PickItem key={pick.talk.id} pick={pick} />
-        ))}
-      </ul>
+      {picks.length > 0 && (
+        <>
+          <p className="mb-2 text-xs">{t("pickedFor", { day: format.dateTime(new Date(`${date}T12:00:00Z`), { weekday: "long", timeZone: "UTC" }) })}</p>
+          <ul className="space-y-2">
+            {picks.map((pick) => (
+              <PickItem key={pick.talk.id} pick={pick} />
+            ))}
+          </ul>
+        </>
+      )}
     </GoldOutline>
   );
 }

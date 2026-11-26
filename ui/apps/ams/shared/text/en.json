@@ -55,7 +55,6 @@
     "title": "Related talks",
     "subtitle": "Talks related to this one, found by the conference API",
     "loading": "Finding related talks…",
-    "none": "No related talks for this talk yet.",
     "unavailable": "Related talks are unavailable right now.",
     "unexpected": "Unexpected match",
     "core": "Close match"
@@ -346,7 +345,6 @@
     "why": "<b>Why:</b> {reason}",
     "conferencePicks": {
       "pickedFor": "Picked for your abstract: <b>{abstract}</b>",
-      "none": "No other conference holds a talk matched to your abstract yet.",
       "rest": "The rest, in AMS's order",
       "yours": "Your conference",
       "unavailable": "The matching API cannot answer right now, so AMS's order stays.",

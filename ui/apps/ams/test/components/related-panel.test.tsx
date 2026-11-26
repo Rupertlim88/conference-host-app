@@ -49,9 +49,10 @@ test("each match links to its talk with its kind, day and time, number, title an
   expect(links[1]).toHaveAccessibleName("Unexpected match Tue, Jan 12 · 8:30 AM 5.1 A Cloud-to-Ground Lightning Time Series A method from data assimilation.");
 });
 
-test("when the API has no matches, the panel says so", () => {
+test("when the API has no matches, the panel shows empty", () => {
   renderApp(<RelatedPanel related={{ status: "none" }} loading={false} failed={false} />);
-  expect(within(region()).getByText("No related talks for this talk yet.")).toBeInTheDocument();
+  expect(region()).toHaveTextContent(/^Related talksTalks related to this one, found by the conference API$/);
+  expect(within(region()).queryByRole("list")).not.toBeInTheDocument();
 });
 
 test("when the API is down or the call fails, the panel says so and the page goes on", () => {

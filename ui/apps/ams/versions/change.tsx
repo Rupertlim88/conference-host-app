@@ -30,7 +30,7 @@ export interface Change<P extends Point> {
   at: P;
   label: string;
   /** Set when the change edits only parts of what the base shows there and outlines each part itself, with the label;
-   *  such a change adds no outline where it changes nothing. */
+   *  such a change draws an empty outline where it has nothing to show. */
   outlinesItself?: true;
   render: (props: ChangePoints[P], label: string) => React.ReactNode | Promise<React.ReactNode>;
 }
@@ -55,8 +55,8 @@ export async function chosenVersion(): Promise<VersionId> {
   return versionFrom((await cookies()).get(VERSION_COOKIE)?.value);
 }
 
-/** What the base shows here, or the chosen version's change in a gold outline that says what was changed; a change
- *  that outlines each of its parts itself shows as it is. */
+/** What the base shows here, or the chosen version's change in a gold outline that says what was changed, drawn even
+ *  when the change shows nothing; a change that outlines each of its parts itself shows as it is. */
 export async function ChangePoint<P extends Point>({ at, props, children }: { at: P; props: ChangePoints[P]; children?: React.ReactNode }) {
   const change = CHANGES[await chosenVersion()][at] as Change<P> | undefined;
   if (!change) return <>{children}</>;

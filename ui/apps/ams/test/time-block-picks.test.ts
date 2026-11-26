@@ -68,7 +68,7 @@ describe("calendarBlocks", () => {
     expect(block.groups).toEqual([{ startsAt: at("15:30"), endsAt: at("17:00"), sessions: [A] }]);
   });
 
-  test("a block with no recommendation stays exactly as AMS has it", () => {
+  test("a block with no recommendation has no picks, and keeps AMS's groups as they are", () => {
     const blocks = calendarBlocks(day, [match("b1", "B", 0.6)]);
     expect(blocks.find((b) => b.startsAt === at("14:00"))).toEqual({
       startsAt: at("14:00"),
