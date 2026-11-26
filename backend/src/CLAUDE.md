@@ -65,11 +65,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
 6. **Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.**
    One request asks the matching API for the fixed abstract's matches in four kinds of restriction: each other
    conference, each day, each time block and each session. Its pools are grouped by kind: a conference by its track, a
-   day by its date, a time block by its start instant and a session by its id. Each pool keeps the API's order, and each match
-   carries its talk, kind, score and reason, and the conferences its talk is in; a match to a talk this programme does
-   not show is left out, and so is a pool this programme cannot name. The conferences of the abstract's session are the
-   attendee's own. When the API cannot answer, the pools are left out, and the abstract and its conferences still show;
-   a restriction the API is still judging has no pool until it is judged.
+   day by its date, a time block by its start instant and a session by its id. Each pool keeps the API's order, and
+   each match carries its talk, kind, score and reason, and the conferences its talk is in; a match to a talk this
+   programme does not show is left out, and so is a pool this programme cannot name. The conferences of the abstract's
+   session are the attendee's own. When the API cannot answer, the pools are left out, and the abstract and its
+   conferences still show; a restriction the API is still judging has no pool until it is judged.
    *How:* code alone: one restricted matches search, every page of it, with the abstract's session and each matched
    talk and its conferences read from the store.
    *File:* `around-abstract.ts`
