@@ -33,7 +33,7 @@ Each feature file has an H1 title and one paragraph on what the user sees, then 
 - [Sign-in gate](./sign-in.md): signed-out visitors land on the sign-in page.
 - [Browse the programme](./browse-programme.md): home, the day calendar, a session, and a talk.
 - [AMS's buttons and pages](./ams-pages.md): AMS's menu and home tiles, and every page they open.
-- [Our versions](./versions.md): the demo bar and the Control key switch between AMS's meeting app and Our improvements, whose changes show in gold: the conferences ordered around the abstract, and each calendar time block's recommended sessions.
+- [Our versions](./versions.md): the demo bar and the Control key switch between AMS's meeting app and Our improvements, whose changes show in gold: the conferences ranked for the abstract, each calendar day's best talks, each time block's recommended sessions, and a session's talk to come for.
 - [Related talks](./related-talks.md): in Our improvements, the conference API's matches on every talk page. This is the demo.
 - [My Schedule](./my-schedule.md): starring a talk and finding it on My Schedule.
 - [Search](./search.md): finding a talk by its title.

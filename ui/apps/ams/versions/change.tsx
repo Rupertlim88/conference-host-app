@@ -29,7 +29,8 @@ type Point = keyof ChangePoints;
 export interface Change<P extends Point> {
   at: P;
   label: string;
-  /** Set when the change edits several parts of the page and outlines each part itself, with the label. */
+  /** Set when the change edits only parts of what the base shows there and outlines each part itself, with the label;
+   *  such a change adds no outline where it changes nothing. */
   outlinesItself?: true;
   render: (props: ChangePoints[P], label: string) => React.ReactNode | Promise<React.ReactNode>;
 }
