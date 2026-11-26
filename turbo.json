@@ -52,7 +52,8 @@
     "GOOGLE_CLIENT_SECRET",
     "HOST_DATABASE_URL",
     "HOST_SOCIETY",
-    "PLAYWRIGHT_BASE_URL"
+    "PLAYWRIGHT_BASE_URL",
+    "TESTER_TOKEN"
   ],
   "boundaries": {
     "tags": {

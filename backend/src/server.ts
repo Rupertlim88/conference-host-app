@@ -1,6 +1,14 @@
 // The backend is built once per process, from settings checked when it starts.
 import { SocietySchema, type Society } from "@repo/host-contracts";
-import { connect, createDemoSettings, createGuestData, createOrganiserStore, createProgramme, createSyncLog } from "@repo/host-store";
+import {
+  connect,
+  createDemoSettings,
+  createGuestData,
+  createOrganiserStore,
+  createProgramme,
+  createSyncLog,
+  createWholeProgramme,
+} from "@repo/host-store";
 import { fetchRequestHandler } from "@trpc/server/adapters/fetch";
 import { betterAuth } from "better-auth";
 import { z } from "zod";
@@ -10,6 +18,8 @@ import { developerRouter, organiserRouter } from "./console-router";
 import { authOptions, createCallerFactory, router, viewerFrom } from "./gate";
 import { keepAlive } from "./keep-alive";
 import { CONFERENCE_IDS, conferenceApi, unconfiguredApi } from "./matching-api";
+import { answerProgrammeMap } from "./programme-map";
+import { testerOnly } from "./tester-token";
 
 const optional = z.preprocess((v) => (v === "" ? undefined : v), z.string().optional());
 
@@ -35,6 +45,7 @@ const EnvSchema = z
     CONFERENCE_API_URL: optionalAddress,
     CONFERENCE_API_KEY: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(16).optional()),
     CRON_SECRET: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(16).optional()),
+    TESTER_TOKEN: z.preprocess((v) => (v === "" ? undefined : v), z.string().min(32).optional()),
   });
 
 /** Settings that come together or not at all. They are checked on the raw settings, so a pair is named even when
@@ -60,6 +71,8 @@ export interface HostConfig {
   api: { url: string; key: string } | null;
   /** The secret Vercel's cron sends to the keep-alive route. */
   cronSecret: string | null;
+  /** The secret every tester request carries; with none, the tester's requests are switched off. */
+  testerToken: string | null;
 }
 
 /** Parses settings once, naming every setting that is wrong. */
@@ -82,6 +95,7 @@ export function readConfig(env: Record<string, string | undefined>): HostConfig 
         : null,
     api: e.CONFERENCE_API_URL && e.CONFERENCE_API_KEY ? { url: e.CONFERENCE_API_URL, key: e.CONFERENCE_API_KEY } : null,
     cronSecret: e.CRON_SECRET ?? null,
+    testerToken: e.TESTER_TOKEN ?? null,
   };
 }
 
@@ -103,8 +117,9 @@ function build(env: Record<string, string | undefined>) {
   const config = readConfig(env);
   const { db } = connect(config.databaseUrl);
   const store = { ...createProgramme(db, config.society), ...createGuestData(db, config.society) };
+  const conference = CONFERENCE_IDS[config.society];
   const api = config.api
-    ? conferenceApi({ url: config.api.url, key: config.api.key, conference: CONFERENCE_IDS[config.society] })
+    ? conferenceApi({ url: config.api.url, key: config.api.key, conference })
     : unconfiguredApi;
   const organiser = createOrganiserStore(db, config.society);
   const log = createSyncLog(db, config.society);
@@ -115,12 +130,16 @@ function build(env: Record<string, string | undefined>) {
   };
   const auth = betterAuth(authOptions(config, db));
   const viewer = (headers: Headers) => viewerFrom(auth, headers);
+  const whole = createWholeProgramme(db, config.society);
+  /** A tester's request, handled only with the secret token. */
+  const tester = (req: Request, handle: () => Promise<Response>) => testerOnly(req, config.testerToken, handle);
 
   return {
     config,
     viewer,
     handleAuth: (req: Request) => auth.handler(req),
     handleKeepAlive: (req: Request) => keepAlive(req, config.cronSecret, () => store.ping()),
+    handleProgrammeMap: (req: Request) => tester(req, () => answerProgrammeMap(whole, conference)),
     /** The router for server components, as the person behind these headers. */
     callerFor: async (headers: Headers): Promise<HostCaller> =>
       createHostCaller({ store, organiser, log, demo, api, settings, viewer: await viewer(headers) }),

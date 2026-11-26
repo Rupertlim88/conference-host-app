@@ -19,9 +19,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
    at once, and every wrong one is named in a single error. A blank optional setting counts as unset. Web addresses
    must be encrypted (https) unless they stay on this machine. The matching API's address and key come together or not
    at all, as do Google's client id and secret; the key has at least 16 characters, the sign-in secret at least 32, and
-   the keep-alive's secret, when set, at least 16. From the settings it builds one backend: the store, the matching API
-   for the meeting's conference (or none, when no address is set), sign-in, the keep-alive, and one router joining the
-   attendee app's and the consoles' requests. The developer console is told only the API's address, without any query
+   the keep-alive's secret, when set, at least 16, and the tester's token, when set, at least 32. From the settings it
+   builds one backend: the store, the matching API for the meeting's conference (or none, when no address is set),
+   sign-in, the keep-alive, the tester's requests, and one router joining the attendee app's and the consoles'
+   requests. The developer console is told only the API's address, without any query
    or credentials, and whether a key is set: never the key. An unexpected error in a request from the browser is logged
    on the server.
    *How:* code alone: the settings are parsed with zod into typed values once, and one backend is built from them on
@@ -139,16 +140,18 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 11. **Every request from a tester needs the secret token, and with no token set the tester's requests are switched off.**
     A request without the right token is refused, and so is every tester request while no token is set; the token is
-    a setting, kept secret like the matching API's key.
+    a setting, kept secret like the matching API's key. An unexpected error tells the tester only that something went
+    wrong, and is logged on the server.
     *How:* code alone: one check every tester request passes, comparing the bearer token in constant time.
-    *File:* needed
+    *File:* `tester-token.ts`
 
 12. **The programme map lists every time block, session and conference of AMS's whole published programme, with its talks.**
     A time block is every session that starts at the same time on one day, on the meeting's clock, and a lone session
     is a block of its own. Every session lists its talks, and every conference lists its talks, a joint session's talk
-    under each conference it belongs to. Times are the meeting's clock, to the minute, and ids are AMS's.
+    under each conference it belongs to. Times are the meeting's clock, to the minute, and ids are AMS's. Before the
+    whole programme is loaded, the map answers that it is not loaded yet.
     *How:* code alone, from the store's whole published programme.
-    *File:* needed
+    *File:* `programme-map.ts`
 
 13. **A test set is checked, stored, held and sent to the matching API.** It names the conference, the abstracts to
     test, the first being the demo's fixed abstract, and the talks for the demo to hold. It is refused, with a plain
