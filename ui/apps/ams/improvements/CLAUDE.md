@@ -13,9 +13,17 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ## The user's specification of Our improvements: the changes we make to the base
 
+### The list of changes
+
+2. **Our improvements list their changes, each at a change point in the base.** After a talk's abstract, its related
+   talks; in place of Conferences and Symposia's list, the list ordered around the demo's abstract. Each change has a
+   label naming what it changed.
+   *How:* code alone: a map from change point to its change.
+   *File:* `changes.tsx`
+
 ### Changes on a talk's page
 
-2. **In our improvements, every talk page shows a related-talks panel with the matching API's matches for that talk, and never breaks the page.** While loading it shows placeholders. When the API cannot answer, it says the related talks are unavailable
+3. **In our improvements, every talk page shows a related-talks panel with the matching API's matches for that talk, and never breaks the page.** While loading it shows placeholders. When the API cannot answer, it says the related talks are unavailable
     right now; with none, it says so. Each match shows whether it is close or unexpected, its time, number, title and
     reason, and links to the talk.
     *How:* code alone: our improvements' change after a talk's abstract, outlined in gold; it loads in the browser after
@@ -24,9 +32,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### Changes to finding talks
 
-3. **In our improvements, Conferences and Symposia puts the tracks with talks related to the demo's abstract first.**
+4. **In our improvements, Conferences and Symposia puts the tracks with talks related to the demo's abstract first.**
    Tracks are ordered by how many of the matching API's matches for the fixed abstract each holds, the rest after them
    in AMS's order. The list is outlined in gold, naming the abstract; when the API cannot answer, AMS's order stays and
    the outline says so.
    *How:* code alone: our improvements' change to the conferences list.
-   *File:* needed
+   *File:* `programme-order.tsx`

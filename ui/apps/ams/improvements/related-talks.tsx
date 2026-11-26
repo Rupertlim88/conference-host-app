@@ -1,6 +1,6 @@
 "use client";
 
-// On every talk page, a related-talks panel shows the matching API's matches for that talk, and never breaks the page.
+// In our improvements, every talk page shows a related-talks panel with the matching API's matches for that talk, and never breaks the page.
 
 import type { RelatedTalks } from "@repo/host-contracts";
 import { Sparkles } from "lucide-react";

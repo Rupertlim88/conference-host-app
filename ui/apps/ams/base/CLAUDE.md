@@ -16,10 +16,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### The frame and its buttons
 
 2. **Every attendee page sits in one frame, like the Confex meeting app's, and Home opens it.** A skip link; a top bar
-   with sign-out, the time-zone switch, search and, on phones, a menu sheet that closes when a link is picked; a banner
-   with the logo and the meeting's name and city; a link to My Schedule; on computers, a side menu; and the bar that switches between the base
-   and our versions. What the menu and Home offer is the rule on Home and the menu.
-   *How:* code alone; the attendee layout and the home page count with this file.
+   with sign-out, the time-zone switch, My Schedule, search and, on phones, a menu sheet that closes when a link is
+   picked; a banner with the logo and the meeting's name and city; on computers, a side menu; and the demo's bar that
+   switches between the base and our versions. What the menu and Home offer is the rule on Home and the menu.
+   *How:* code alone; the attendee layout counts with this file.
    *File:* `frame.tsx`
 
 3. **Home and the menu offer every button on the AMS meeting app's main screen, with an icon for each, in AMS's order, and nothing else.**
@@ -35,7 +35,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    AMS's own content.
    *How:* code alone: one list of buttons, with lucide icons that stand for AMS's own; the home page and the groups'
    pages count with this file.
-   *File:* needed
+   *File:* `menu.tsx`
 
 4. **Sessions and talks show as cards, and a page shows when and where in one box.** A session card shows its label
     (its kind and number; a plain session shows only its number, and a break only its title), its title and place,
@@ -99,18 +99,17 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 12. **Program Highlights' lists show the sessions or talks AMS marks for each.** People Themed lists the meeting's
    PEOPLE-themed sessions and Posters its poster sessions, by day; Supplementary Materials, Core Science Keynotes and New
-   Fellows list their talks. Presidential Conference and Town Hall Meetings open as programmes. A list with nothing in
-   it says so.
-   *How:* code alone; the highlight pages count with this file.
-   *File:* needed
+   Fellows list their talks. A list with nothing in it says so.
+   *How:* code alone; the highlight lists' page counts with this file.
+   *File:* `highlights.tsx`
 
 13. **Participating Program Committees and Officers show AMS's lists of names under their headings.** Each heading
    with its lines of names, in AMS's order, and none of AMS's own words around them.
    *How:* code alone; the two pages count with this file.
-   *File:* needed
+   *File:* `names.tsx`
 
 14. **The pages that are AMS's own text are short pages in the demo's own words.** Each of General Information's
    nine pages, Attendee Resources' six and Technical Support says in a sentence or two what the page is for at a
    meeting, and that the demo leaves its content to the society.
    *How:* code alone, with the words in the English text; the pages count with this file.
-   *File:* needed
+   *File:* `our-words.tsx`

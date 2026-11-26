@@ -6,8 +6,9 @@ import Link from "next/link";
 import { PageTitle } from "@/base/frame";
 import { InfoBox } from "@/base/cards";
 
-/** A talk as the meeting app shows it: title, star, when and where, authors, abstract, related talks, session and citation. */
-export function TalkView({ talk, star, related }: { talk: TalkDetail; star: React.ReactNode; related: React.ReactNode }) {
+/** A talk as the meeting app shows it: title, star, when and where, authors, abstract, session and citation. What our
+ *  versions add after the abstract comes in `afterAbstract`. */
+export function TalkView({ talk, star, afterAbstract }: { talk: TalkDetail; star: React.ReactNode; afterAbstract: React.ReactNode }) {
   const t = useTranslations("talk");
   const paragraphs = talk.abstract.split("\n\n").filter(Boolean);
   return (
@@ -29,7 +30,7 @@ export function TalkView({ talk, star, related }: { talk: TalkDetail; star: Reac
           <p className="text-sm text-muted-foreground">{t("noAbstract")}</p>
         )}
       </section>
-      {related}
+      {afterAbstract}
       {talk.session && (
         <p className="text-sm">
           {t("session")}:{" "}

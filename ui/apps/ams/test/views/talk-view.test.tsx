@@ -7,7 +7,7 @@ import { TalkView } from "@/base/talk";
 import { talkDetail } from "../fixtures";
 import { renderApp } from "../render";
 
-const slots = { star: null, related: null };
+const slots = { star: null, afterAbstract: null };
 
 test("the title reads number, dash, title, as the meeting app prints it", () => {
   renderApp(<TalkView talk={talkDetail()} {...slots} />);
@@ -65,8 +65,8 @@ test("the citation is shown under its heading", () => {
   expect(screen.getByText(/^Rosenow, A\. A\. \(2027\)/)).toBeInTheDocument();
 });
 
-test("the star sits under the title and the related talks come after the abstract", () => {
-  renderApp(<TalkView talk={talkDetail()} star={<button type="button">star</button>} related={<section aria-label="related" />} />);
+test("the star sits under the title, and what our versions add comes after the abstract", () => {
+  renderApp(<TalkView talk={talkDetail()} star={<button type="button">star</button>} afterAbstract={<section aria-label="related" />} />);
   const star = screen.getByRole("button", { name: "star" });
   const abstract = screen.getByRole("heading", { name: "Abstract" });
   const related = screen.getByRole("region", { name: "related" });

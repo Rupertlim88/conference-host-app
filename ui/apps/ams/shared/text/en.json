@@ -6,10 +6,6 @@
     "skip": "Skip to content"
   },
   "nav": {
-    "home": "Home",
-    "programs": "Conferences and Symposia",
-    "calendar": "Meeting Calendar",
-    "people": "People",
     "schedule": "My Schedule",
     "search": "Search",
     "menu": "Menu",
@@ -32,9 +28,7 @@
   },
   "home": {
     "welcome": "Welcome to the 107th AMS Annual Meeting",
-    "intro": "Browse the full programme: every conference, session, talk and poster, with times, rooms and abstracts. Star talks to build your schedule.",
-    "location": "Location",
-    "where": "The meeting is held at the {venue}, {city}, and online. A session held elsewhere names its building."
+    "intro": "Explore the programme with the tiles below or the menu."
   },
   "calendar": {
     "empty": "No sessions on this day."
@@ -247,11 +241,102 @@
     "resetConfirm": "Undo every organiser change and restore withdrawn papers?",
     "resetNow": "Reset now",
     "resetting": "Resetting the programme…",
-    "resetDone": "Programme reset: {talks, plural, one {# paper} other {# papers}} and {sessions, plural, one {# session} other {# sessions}} put back."
+    "resetDone": "Programme reset: {talks, plural, one {# paper} other {# papers}} and {sessions, plural, one {# session} other {# sessions}} put back.",
+    "fixed": {
+      "title": "The demo's abstract",
+      "none": "No talk with an abstract yet.",
+      "label": "Talk id",
+      "submit": "Fix the demo to this talk",
+      "saving": "Saving…",
+      "refused": "That talk cannot be the demo's abstract: it must be shown, and have an abstract."
+    }
   },
   "info": {
     "day": "Day",
     "time": "Time",
     "place": "Place"
+  },
+  "menu": {
+    "home": "Home",
+    "search": "Search",
+    "programs": "Conferences and Symposia",
+    "events": "Events",
+    "calendar": "Meeting Calendar",
+    "committees": "Participating Program Committees",
+    "officers": "Officers of the 107th Annual Meeting",
+    "exhibitHall": "Main Exhibit Hall",
+    "careerFair": "Career Resource and Graduate School Fair",
+    "sponsors": "Sponsor Index",
+    "support": "Technical Support",
+    "highlights": {
+      "title": "Program Highlights",
+      "people-themed": "People Themed",
+      "supplementary": "Supplementary Materials",
+      "keynotes": "Core Science Keynotes",
+      "new-fellows": "New Fellows",
+      "posters": "Posters",
+      "presidential": "Presidential Conference",
+      "town-halls": "Town Hall Meetings"
+    },
+    "information": {
+      "title": "General Information",
+      "faqs": "FAQs",
+      "presenters": "Information for Presenters",
+      "policies": "Policies",
+      "accessibility": "Inclusion and Accessibility",
+      "green-meetings": "Green Meetings",
+      "social-media": "Social Media",
+      "slack": "Slack",
+      "press": "Press",
+      "clear-cache": "How to Clear Cache"
+    },
+    "resources": {
+      "title": "Attendee Resources",
+      "registration": "Registration",
+      "health-resources": "Health Resources",
+      "wellness-rooms": "Wellness Rooms",
+      "safety-tips": "Safety Tips",
+      "transportation": "Transportation",
+      "local-restaurants": "Local Restaurants and Attractions"
+    }
+  },
+  "ourWords": {
+    "faqs": "At a meeting, this page answers the questions attendees ask most. The demo leaves its content to the society.",
+    "presenters": "At a meeting, this page tells presenters how to prepare and upload their talks and posters. The demo leaves its content to the society.",
+    "policies": "At a meeting, this page sets out the society's policies for everyone who attends. The demo leaves its content to the society.",
+    "accessibility": "At a meeting, this page describes how the meeting is made accessible to all. The demo leaves its content to the society.",
+    "green-meetings": "At a meeting, this page explains what the society does to reduce the meeting's footprint. The demo leaves its content to the society.",
+    "social-media": "At a meeting, this page lists where to follow and share the meeting online. The demo leaves its content to the society.",
+    "slack": "At a meeting, this page explains how to join the attendees' chat workspace. The demo leaves its content to the society.",
+    "press": "At a meeting, this page tells journalists how to cover the meeting. The demo leaves its content to the society.",
+    "clear-cache": "At a meeting, this page explains how to clear a browser's cache when the app shows old information. The demo leaves its content to the society.",
+    "registration": "At a meeting, this page explains how to register and what registration includes. The demo leaves its content to the society.",
+    "health-resources": "At a meeting, this page lists health services for attendees. The demo leaves its content to the society.",
+    "wellness-rooms": "At a meeting, this page says where attendees can rest, pray or nurse. The demo leaves its content to the society.",
+    "safety-tips": "At a meeting, this page gives safety advice and how to report a concern. The demo leaves its content to the society.",
+    "transportation": "At a meeting, this page explains how to reach the venue and get around the city. The demo leaves its content to the society.",
+    "local-restaurants": "At a meeting, this page suggests places to eat and things to see nearby. The demo leaves its content to the society.",
+    "support": "At a meeting, this page says how to get help with the meeting app. The demo leaves its content to the society."
+  },
+  "lists": {
+    "empty": "Nothing is listed here yet."
+  },
+  "versions": {
+    "showing": "Showing: {name}",
+    "switchTo": "Switch to {name}",
+    "base": "AMS's meeting app",
+    "improvements": "Our improvements",
+    "bar": "Demo",
+    "hint": "or press Control",
+    "change": {
+      "relatedTalks": "Our change: related talks",
+      "programmeOrder": "Our change: conferences ordered around your abstract"
+    }
+  },
+  "improvements": {
+    "orderedAround": "Ordered around your abstract: {abstract}",
+    "unavailable": "The matching API cannot answer right now, so AMS's order stays.",
+    "noAbstract": "The demo has no abstract to order around yet.",
+    "matches": "{count, plural, one {# related talk} other {# related talks}}"
   }
 }

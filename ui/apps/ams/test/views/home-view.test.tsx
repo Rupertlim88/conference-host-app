@@ -2,31 +2,31 @@
 import { screen } from "@testing-library/react";
 import { expect, test } from "vitest";
 
-import { HomeView } from "@/base/frame";
+import { HomeView } from "@/base/menu";
 
-import { meeting } from "../fixtures";
 import { renderApp } from "../render";
 
-test("home welcomes the guest to the meeting", () => {
-  renderApp(<HomeView meeting={meeting()} />);
+test("home welcomes the guest in the demo's own words, with none of AMS's content", () => {
+  renderApp(<HomeView />);
   expect(screen.getByRole("heading", { level: 1, name: "Welcome to the 107th AMS Annual Meeting" })).toBeInTheDocument();
-  expect(screen.getByText(/^Browse the full programme/)).toBeInTheDocument();
+  expect(screen.getByText("Explore the programme with the tiles below or the menu.")).toBeInTheDocument();
+  expect(screen.queryByRole("heading", { name: "Location" })).not.toBeInTheDocument();
 });
 
-test("a Location section names the meeting's venue, and says a session held elsewhere names its building", () => {
-  // 39 of the 2027 sessions are in hotels, so the venue is not every session's place.
-  renderApp(<HomeView meeting={meeting()} />);
-  const location = screen.getByRole("heading", { level: 2, name: "Location" }).parentElement!;
-  expect(location).toHaveTextContent("The meeting is held at the Colorado Convention Center, Denver, CO, and online. A session held elsewhere names its building.");
-});
-
-test("home leads to each part of the programme", () => {
-  renderApp(<HomeView meeting={meeting()} />);
-  expect(screen.getAllByRole("link").map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
+test("home shows AMS's ten tiles, in AMS's order, each with an icon", () => {
+  renderApp(<HomeView />);
+  const tiles = screen.getAllByRole("link");
+  expect(tiles.map((a) => [a.textContent, a.getAttribute("href")])).toEqual([
     ["Conferences and Symposia", "/programs"],
+    ["Events", "/events"],
     ["Meeting Calendar", "/calendar"],
-    ["People", "/people"],
-    ["My Schedule", "/schedule"],
-    ["Search", "/search"],
+    ["Participating Program Committees", "/committees"],
+    ["Officers of the 107th Annual Meeting", "/officers"],
+    ["Main Exhibit Hall", "/exhibit-hall"],
+    ["Career Resource and Graduate School Fair", "/career-fair"],
+    ["Program Highlights", "/highlights"],
+    ["General Information", "/information"],
+    ["Attendee Resources", "/resources"],
   ]);
+  for (const tile of tiles) expect(tile.querySelector("svg")).not.toBeNull();
 });

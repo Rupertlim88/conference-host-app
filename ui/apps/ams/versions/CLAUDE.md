@@ -15,23 +15,26 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### The versions
 
-2. **The demo's versions are the base AMS meeting app and Our improvements, and each version names the places it changes.**
-   The base changes nothing. Each other version lists its changes by change point; a change replaces what the base shows
-   there, or adds to it. A version is added, changed or removed here alone, without touching the base or another version.
-   *How:* code alone: one list of versions, each a map from change point to its change.
-   *File:* needed
+2. **The demo's versions are the base AMS meeting app and Our improvements, chosen on each guest's device.** They are
+   kept in one order, the base first, and switching goes to the next and from the last back to the base. A missing or
+   unknown choice is the base.
+   *How:* code alone: the list of versions and the name of the cookie that keeps the choice, small enough for the
+   switch to use in the browser.
+   *File:* `versions.ts`
 
 ### Showing and switching
 
-3. **A change point shows the base, or the chosen version's change outlined in gold.** The chosen version is read on
-   the server from the guest's choice, so a page never shows the base first. A change is outlined in gold, with a short
-   label saying what was changed; where the version changes nothing, the base shows as it is.
-   *How:* code alone: a server component reading the guest's cookie.
-   *File:* needed
+3. **A change point shows the base, or the chosen version's change outlined in gold.** It names every place in the
+   base a version may change, and holds each version's changes: the base changes nothing, and each other version's
+   list of changes comes from its own folder. A change replaces what the base shows there, or adds to it. The chosen
+   version is read on the server from the guest's choice, so a page never shows the base first. A change is outlined in
+   gold, with a short label saying what was changed; where the version changes nothing, the base shows as it is.
+   *How:* code alone: a server component reading the guest's cookie; the pages place the change points.
+   *File:* `change.tsx`
 
 4. **A button on the screen, and pressing Control on its own, switch between the base and our versions.** The bar
    names the version shown; the button goes to the next one. Pressing and releasing Control with no other key does the
    same. The choice is kept on the guest's device for a year, and the page reloads its data. The same bar, which is the
    demo's own and not AMS's, links the organiser console and the developer console.
    *How:* code alone: a client component that writes the choice to a cookie and refreshes the page.
-   *File:* needed
+   *File:* `switch.tsx`

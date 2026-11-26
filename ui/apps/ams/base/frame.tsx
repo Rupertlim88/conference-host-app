@@ -3,21 +3,12 @@
 // Every attendee page sits in one frame, like the Confex meeting app's, and Home opens it.
 
 import type { Meeting } from "@repo/host-contracts";
-import {
-  CalendarDays,
-  ClipboardList,
-  Home,
-  Layers,
-  Menu,
-  Search,
-  Star,
-  Terminal,
-  Users,
-} from "lucide-react";
+import { Menu, Search, Star } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 
+import { NavLinks } from "@/base/menu";
 import { TimeZoneProvider, TimeZoneSwitch } from "@/shared/meeting-time";
 import {
   Sheet,
@@ -26,14 +17,18 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/shared/ui/sheet";
+import { VersionSwitch } from "@/versions/switch";
+import type { VersionId } from "@/versions/versions";
 
-/** The meeting app's frame: grey top bar, a banner, and on computers a left-hand menu. */
+/** The meeting app's frame: grey top bar, a banner, on computers a left-hand menu, and the demo's version bar. */
 export function AppShell({
   meeting,
+  version,
   signOut,
   children,
 }: {
   meeting: Meeting;
+  version: VersionId;
   signOut: React.ReactNode;
   children: React.ReactNode;
 }) {
@@ -63,16 +58,18 @@ export function AppShell({
           <aside className="hidden w-64 shrink-0 border-r lg:block">
             <NavLinks />
           </aside>
-          <main id="main" className="min-w-0 flex-1 px-4 py-5 lg:px-8">
+          <main id="main" className="min-w-0 flex-1 px-4 pt-5 pb-24 lg:px-8">
             {children}
           </main>
         </div>
+        <VersionSwitch current={version} />
       </div>
     </TimeZoneProvider>
   );
 }
 
-/** The meeting app's grey bar: sign-out and the time-zone switch on the left, search and the phone menu on the right. */
+/** The meeting app's grey bar: sign-out and the time-zone switch on the left, My Schedule, search and the phone menu on
+ *  the right. */
 export function TopBar({ signOut }: { signOut: React.ReactNode }) {
   const t = useTranslations("nav");
   const [open, setOpen] = useState(false);
@@ -83,6 +80,9 @@ export function TopBar({ signOut }: { signOut: React.ReactNode }) {
         <TimeZoneSwitch />
       </div>
       <div className="flex items-center gap-3 text-heading">
+        <Link href="/schedule" aria-label={t("schedule")}>
+          <Star className="size-6" aria-hidden />
+        </Link>
         <Link href="/search" aria-label={t("search")}>
           <Search className="size-6" aria-hidden />
         </Link>
@@ -99,37 +99,6 @@ export function TopBar({ signOut }: { signOut: React.ReactNode }) {
         </Sheet>
       </div>
     </div>
-  );
-}
-
-const NAV = [
-  { href: "/", key: "home", icon: Home },
-  { href: "/programs", key: "programs", icon: Layers },
-  { href: "/calendar", key: "calendar", icon: CalendarDays },
-  { href: "/people", key: "people", icon: Users },
-  { href: "/schedule", key: "schedule", icon: Star },
-  { href: "/search", key: "search", icon: Search },
-  { href: "/organiser", key: "organiser", icon: ClipboardList },
-  { href: "/developer", key: "developer", icon: Terminal },
-] as const;
-
-/** The app's sections, in the meeting app's order, then the demo's two consoles. Used in the side bar and in the phone menu, which closes on a choice. */
-export function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
-  const t = useTranslations("nav");
-  return (
-    <nav className="flex flex-col py-2">
-      {NAV.map(({ href, key, icon: Icon }) => (
-        <Link
-          key={href}
-          href={href}
-          onClick={onNavigate}
-          className="flex items-center gap-3 px-4 py-2.5 text-sm text-heading hover:bg-primary/5"
-        >
-          <Icon className="size-4" aria-hidden />
-          {t(key)}
-        </Link>
-      ))}
-    </nav>
   );
 }
 
@@ -183,47 +152,5 @@ export function PageTitle({
         {children}
       </h1>
     </header>
-  );
-}
-
-const TILES = [
-  { href: "/programs", key: "programs", icon: Layers },
-  { href: "/calendar", key: "calendar", icon: CalendarDays },
-  { href: "/people", key: "people", icon: Users },
-  { href: "/schedule", key: "schedule", icon: Star },
-  { href: "/search", key: "search", icon: Search },
-] as const;
-
-/** The meeting app's home: a welcome, a Location section, and a tile for each part of the programme. */
-export function HomeView({ meeting }: { meeting: Meeting }) {
-  const t = useTranslations("home");
-  const nav = useTranslations("nav");
-  return (
-    <>
-      <h1 className="mb-3 text-center text-2xl font-medium text-heading">
-        {t("welcome")}
-      </h1>
-      <p className="mx-auto mb-5 max-w-prose text-sm">{t("intro")}</p>
-      <section className="mx-auto mb-6 max-w-prose">
-        <h2 className="mb-2 border-b pb-1 text-lg font-medium text-heading">
-          {t("location")}
-        </h2>
-        <p className="text-sm">
-          {t("where", { venue: meeting.venue, city: meeting.city })}
-        </p>
-      </section>
-      <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-        {TILES.map(({ href, key, icon: Icon }) => (
-          <Link
-            key={href}
-            href={href}
-            className="flex aspect-square flex-col items-center justify-center gap-3 rounded-md border bg-white p-4 text-center text-sm text-heading shadow-sm hover:shadow"
-          >
-            <Icon className="size-12 stroke-[1.5]" aria-hidden />
-            {nav(key)}
-          </Link>
-        ))}
-      </div>
-    </>
   );
 }

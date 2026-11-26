@@ -2,7 +2,13 @@
 
 // The developer console shows the matching API's settings, tests the connection, and can put the published programme back.
 
-import type { ApiStatus, ConnectionTest, ResetResult, SyncRun } from "@repo/host-contracts";
+import type {
+  ApiStatus,
+  ConnectionTest,
+  ResetResult,
+  SyncRun,
+  TalkSummary,
+} from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
@@ -13,15 +19,29 @@ import { ChangesSummary } from "@/consoles/console-frame";
 import { PageTitle } from "@/base/frame";
 import { SendControl, type SendProblem, useSend } from "@/consoles/send";
 import { Button } from "@/shared/ui/button";
+import { Input } from "@/shared/ui/input";
 
 /** The developer console: how the app reaches the conference API, the last send, the changes, and the actions. */
-export function DeveloperView({ status, actions }: { status: ApiStatus; actions: React.ReactNode }) {
+export function DeveloperView({
+  status,
+  actions,
+}: {
+  status: ApiStatus;
+  actions: React.ReactNode;
+}) {
   const t = useTranslations("developer");
   const c = useTranslations("console");
   const format = useFormatter();
   const run = status.lastRun;
   const at = (iso: string) =>
-    format.dateTime(new Date(iso), { weekday: "short", month: "short", day: "numeric", hour: "numeric", minute: "2-digit", timeZone: MEETING_ZONE });
+    format.dateTime(new Date(iso), {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "numeric",
+      minute: "2-digit",
+      timeZone: MEETING_ZONE,
+    });
   return (
     <>
       <PageTitle>{t("title")}</PageTitle>
@@ -31,10 +51,19 @@ export function DeveloperView({ status, actions }: { status: ApiStatus; actions:
         <dt className="font-semibold">{t("key")}</dt>
         <dd>{status.keySet ? t("set") : t("notSet")}</dd>
         <dt className="font-semibold">{t("lastSend")}</dt>
-        <dd>{run ? t("lastRun", { state: c(`runState.${run.state}`), at: at(run.startedAt) }) : t("noneYet")}</dd>
+        <dd>
+          {run
+            ? t("lastRun", {
+                state: c(`runState.${run.state}`),
+                at: at(run.startedAt),
+              })
+            : t("noneYet")}
+        </dd>
       </dl>
       <section className="mb-6">
-        <h2 className="mb-2 text-lg font-semibold text-heading">{c("changes.title")}</h2>
+        <h2 className="mb-2 text-lg font-semibold text-heading">
+          {c("changes.title")}
+        </h2>
         <ChangesSummary changes={status.changes} />
       </section>
       {actions}
@@ -42,7 +71,10 @@ export function DeveloperView({ status, actions }: { status: ApiStatus; actions:
   );
 }
 
-function connectionText(t: ReturnType<typeof useTranslations<"developer.result">>, r: ConnectionTest): string {
+function connectionText(
+  t: ReturnType<typeof useTranslations<"developer.result">>,
+  r: ConnectionTest,
+): string {
   const status = String(r.httpStatus ?? "");
   switch (r.status) {
     case "ok":
@@ -52,7 +84,9 @@ function connectionText(t: ReturnType<typeof useTranslations<"developer.result">
     case "refused-key":
       return t("refusedKey", { status });
     case "no-programme":
-      return r.httpStatus === null ? t("noTalks") : t("noProgramme", { status });
+      return r.httpStatus === null
+        ? t("noTalks")
+        : t("noProgramme", { status });
     case "unreachable":
       return t("unreachable");
     case "unexpected-answer":
@@ -83,7 +117,12 @@ export function DeveloperControls({
   return (
     <div className="space-y-6">
       <section className="space-y-2">
-        <Button type="button" variant="outline" disabled={test.busy} onClick={onTest}>
+        <Button
+          type="button"
+          variant="outline"
+          disabled={test.busy}
+          onClick={onTest}
+        >
           {t("test")}
         </Button>
         {test.busy && <p className="text-sm">{t("testing")}</p>}
@@ -102,7 +141,12 @@ export function DeveloperControls({
         <SendControl label={t("sendAgain")} {...send} onSend={onSend} />
       </section>
       <section className="space-y-2">
-        <Button type="button" variant="destructive" disabled={reset.busy || confirmReset} onClick={() => setConfirmReset(true)}>
+        <Button
+          type="button"
+          variant="destructive"
+          disabled={reset.busy || confirmReset}
+          onClick={() => setConfirmReset(true)}
+        >
           {t("reset")}
         </Button>
         {confirmReset && (
@@ -118,7 +162,11 @@ export function DeveloperControls({
             >
               {t("resetNow")}
             </Button>
-            <Button type="button" variant="outline" onClick={() => setConfirmReset(false)}>
+            <Button
+              type="button"
+              variant="outline"
+              onClick={() => setConfirmReset(false)}
+            >
               {c("cancel")}
             </Button>
           </div>
@@ -139,20 +187,100 @@ export function DeveloperControls({
   );
 }
 
-/** The developer controls, wired to the backend. A send or reset reloads the page so the status shows it. */
-export function DeveloperActions() {
+/** The abstract the demo is fixed to, and a field to fix it to another talk by its id. */
+export function FixedAbstractControl({
+  abstract,
+  busy,
+  refused,
+  onFix,
+}: {
+  abstract: TalkSummary | null;
+  busy: boolean;
+  refused: boolean;
+  onFix: (talkId: string) => void;
+}) {
+  const t = useTranslations("developer.fixed");
+  const [talkId, setTalkId] = useState("");
+  const typed = talkId.trim();
+  return (
+    <section className="mb-6 space-y-2">
+      <h2 className="text-lg font-semibold text-heading">{t("title")}</h2>
+      <p className="text-sm">
+        {abstract
+          ? abstract.number
+            ? `${abstract.number} - ${abstract.title}`
+            : abstract.title
+          : t("none")}
+      </p>
+      <form
+        className="flex flex-wrap items-end gap-2"
+        onSubmit={(e) => {
+          e.preventDefault();
+          if (typed) onFix(typed);
+        }}
+      >
+        <label className="text-sm">
+          {t("label")}
+          <Input
+            value={talkId}
+            onChange={(e) => setTalkId(e.target.value)}
+            className="mt-1 w-40"
+          />
+        </label>
+        <Button type="submit" variant="outline" disabled={busy || !typed}>
+          {t("submit")}
+        </Button>
+      </form>
+      {busy && <p className="text-sm">{t("saving")}</p>}
+      {!busy && refused && (
+        <p role="alert" className="text-sm text-destructive">
+          {t("refused")}
+        </p>
+      )}
+    </section>
+  );
+}
+
+/** The developer controls, wired to the backend. A send, a reset or a new fixed abstract reloads the page so the
+ *  status shows it. */
+export function DeveloperActions({
+  abstract,
+}: {
+  abstract: TalkSummary | null;
+}) {
   const router = useRouter();
   const test = trpc.developer.testConnection.useMutation();
-  const reset = trpc.developer.reset.useMutation({ onSuccess: () => router.refresh() });
+  const reset = trpc.developer.reset.useMutation({
+    onSuccess: () => router.refresh(),
+  });
+  const fix = trpc.developer.setFixedAbstract.useMutation({
+    onSuccess: () => router.refresh(),
+  });
   const send = useSend();
   return (
-    <DeveloperControls
-      test={{ busy: test.isPending, failed: test.isError, result: test.data ?? null }}
-      send={send}
-      reset={{ busy: reset.isPending, failed: reset.isError, result: reset.data ?? null }}
-      onTest={() => test.mutate()}
-      onSend={send.onSend}
-      onReset={() => reset.mutate()}
-    />
+    <>
+      <FixedAbstractControl
+        abstract={abstract}
+        busy={fix.isPending}
+        refused={fix.isError}
+        onFix={(talkId) => fix.mutate({ talkId })}
+      />
+      <DeveloperControls
+        test={{
+          busy: test.isPending,
+          failed: test.isError,
+          result: test.data ?? null,
+        }}
+        send={send}
+        reset={{
+          busy: reset.isPending,
+          failed: reset.isError,
+          result: reset.data ?? null,
+        }}
+        onTest={() => test.mutate()}
+        onSend={send.onSend}
+        onReset={() => reset.mutate()}
+      />
+    </>
   );
 }
