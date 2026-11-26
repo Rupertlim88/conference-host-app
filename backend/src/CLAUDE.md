@@ -53,15 +53,16 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `attendee-router.ts`
 
 5. **A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.** Up
-   to five matches are asked for. Each is shown with its kind, score and reason, as the talk this programme holds; a
+   to five matches are asked for a talk's panel; a caller may ask for more. Each is shown with its kind, score and reason, as the talk this programme holds; a
    match to a talk this programme does not show is left out. When the API cannot answer, the panel says so; when
    nothing is left, it says there are none.
    *How:* code alone: one matches search per talk, joined to the store's talk summaries by talk id.
    *File:* `related.ts`
 
 6. **Our improvements see the demo's fixed abstract, and how the matching API's matches for it fall across the tracks.**
-   The matches are the fixed abstract's related talks, and each counts for every track it is in. When the API cannot
-   answer, the counts are left out, and the abstract still shows.
+   The matches are the fixed abstract's related talks, up to twenty of them, each with its talk, kind, score and
+   reason, and each counts for every track it is in. When the API cannot answer, the matches and the counts are left
+   out, and the abstract still shows.
    *How:* code alone: the related-talks file's matches, counted by the store.
    *File:* `around-abstract.ts`
 

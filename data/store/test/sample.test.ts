@@ -43,13 +43,18 @@ const rows = (talks: TalkRow[]): SocietyRows => ({
 });
 
 describe("sampleRows", () => {
-  test("keeps the first five talks with an abstract in each track, in time order", () => {
-    const all = [7, 1, 6, 2, 5, 3, 4].map((m) => talk(`t${m}`, m));
-    expect(sampleRows(rows(all)).talks.map((t) => t.id).sort()).toEqual(["t1", "t2", "t3", "t4", "t5"]);
+  test("keeps five talks with an abstract from each track, spread evenly through its time order", () => {
+    const all = [9, 0, 8, 1, 7, 2, 6, 3, 5, 4].map((m) => talk(`t${m}`, m * 60));
+    expect(sampleRows(rows(all)).talks.map((t) => t.id).sort()).toEqual(["t0", "t2", "t4", "t6", "t8"]);
     expect(SAMPLE_SIZE).toBe(5);
   });
 
-  test("a talk counts for every track it is in, and a track still short of five keeps its next talk", () => {
+  test("a track with five or fewer talks keeps them all", () => {
+    const all = [3, 1, 2].map((m) => talk(`t${m}`, m));
+    expect(sampleRows(rows(all)).talks.map((t) => t.id).sort()).toEqual(["t1", "t2", "t3"]);
+  });
+
+  test("a talk counts for every track it is in, so a track already holding five keeps no more", () => {
     const all = [...[1, 2, 3, 4, 5].map((m) => talk(`a${m}`, m, { trackIds: ["A", "B"] })), talk("b6", 6, { trackIds: ["B"] }), talk("a7", 7)];
     expect(sampleRows(rows(all)).talks.map((t) => t.id)).toEqual(["a1", "a2", "a3", "a4", "a5"]);
   });

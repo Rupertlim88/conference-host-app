@@ -16,7 +16,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### The list of changes
 
 2. **Our improvements list their changes, each at a change point in the base.** After a talk's abstract, its related
-   talks; in place of Conferences and Symposia's list, the list ordered around the demo's abstract. Each change has a
+   talks; in place of Conferences and Symposia's list, the list ordered around the demo's abstract; in place of the
+   Meeting Calendar's day, the day with each time block's recommendations at its top. Each change has a
    label naming what it changed.
    *How:* code alone: a map from change point to its change.
    *File:* `changes.tsx`
@@ -38,3 +39,15 @@ Everything else is a lower level, written by Claude to carry out these specifica
    the outline says so.
    *How:* code alone: our improvements' change to the conferences list.
    *File:* `programme-order.tsx`
+
+5. **In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.**
+   A time block is every session that starts at the same time on that day. Its recommendations are the sessions that
+   hold the matching API's best matches for the fixed abstract within that block: at most two, from different sessions,
+   the session with more related talks first, then the better score, and never padded with weak ones. Each shows whether
+   it is a close or an unexpected match, how many related talks it holds, the reason, and the time of its first related
+   talk. They sit at the top of the block in a gold outline labelled with the block's time; the rest of the block
+   follows in AMS's order, without them. A block with no recommendation stays exactly as AMS has it. When the matching
+   API cannot answer, the calendar stays as AMS has it, and one gold note says so.
+   *How:* code alone: our improvements' change to the calendar's day, from the fixed abstract's matches sorted into
+   time blocks by their sessions' start times.
+   *File:* needed

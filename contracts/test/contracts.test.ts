@@ -95,9 +95,16 @@ describe("the demo's menu, highlights, pages of names and fixed abstract", () =>
   });
 
   test("the counts around the abstract are positive whole numbers, or null when the API cannot answer", () => {
-    expect(AroundAbstractSchema.safeParse({ abstract: null, matchesByTrack: null }).success).toBe(true);
-    expect(AroundAbstractSchema.safeParse({ abstract: null, matchesByTrack: { "1878": 2 } }).success).toBe(true);
-    expect(AroundAbstractSchema.safeParse({ abstract: null, matchesByTrack: { "1878": 0 } }).success).toBe(false);
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matches: null, matchesByTrack: null }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matches: [], matchesByTrack: { "1878": 2 } }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matches: [], matchesByTrack: { "1878": 0 } }).success).toBe(false);
+  });
+
+  test("the view around the abstract carries its matches, each with its talk, kind, score and reason", () => {
+    const talk = { id: "T2", sessionId: "S1", number: "5.2", title: "T", kind: "oral", startsAt: null, endsAt: null, room: "", building: "", booth: "", presentingAuthor: "", authorLine: "" };
+    const match = { talk, kind: "unexpected", score: 0.8, reason: "Same technique." };
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matches: [match], matchesByTrack: { P1: 1 } }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: null, matchesByTrack: null }).success).toBe(false);
   });
 
   test("the fixed abstract is named by a talk id", () => {

@@ -39,6 +39,7 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   beforeAll(async () => {
     await migrateStore(db);
     await loadRows(db, amsTables, rows);
+    await db.delete(amsTables.demoSettings);
     await store.unstar("u1", { targetKind: "talk", targetId: "T1" });
   });
   afterAll(async () => {
@@ -108,12 +109,19 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
     expect(await c.names.get({ page: "officers" })).toEqual([{ heading: "Local Organizing Committee", lines: ["Ada Author, Chair"] }]);
   });
 
-  test("our improvements see the fixed abstract and how its matches fall across the tracks", async () => {
+  test("our improvements see the fixed abstract, up to twenty of its matches, and how they fall across the tracks", async () => {
     const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
-    const around = await caller({ api: api({ status: "ok", matches: [match] }) }).improvements.aroundAbstract();
-    expect(around).toEqual({ abstract: expect.objectContaining({ id: "T1" }), matchesByTrack: { P1: 1 } });
+    const asked: number[] = [];
+    const counting: ConferenceApi = { ...api({ status: "ok", matches: [match] }), related: async (_id, top) => (asked.push(top), { status: "ok", matches: [match] }) };
+    const around = await caller({ api: counting }).improvements.aroundAbstract();
+    expect(asked).toEqual([20]);
+    expect(around).toEqual({
+      abstract: expect.objectContaining({ id: "T1" }),
+      matches: [{ talk: expect.objectContaining({ id: "T2", sessionId: "S1" }), kind: "unexpected", score: 0.9, reason: "r" }],
+      matchesByTrack: { P1: 1 },
+    });
     const down = await caller({}).improvements.aroundAbstract();
-    expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), matchesByTrack: null });
+    expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), matches: null, matchesByTrack: null });
   });
 
   test("the developer console fixes the demo to a talk, and names why a talk is refused", async () => {

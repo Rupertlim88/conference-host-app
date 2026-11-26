@@ -77,7 +77,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `load.ts`
 
 10. **The demo carries a sample: every track and session, with five talks with an abstract from each track.** The
-    talks are taken in time order, and a talk counts for every track it is in. Breaks and the talks on Program
+    five are spread evenly through the track's talks in time order, so that every day of the meeting holds some, and a
+    talk counts for every track it is in. Breaks and the talks on Program
     Highlights' lists are always kept, and count against no track. People stay only with a talk that stays.
     *How:* code alone; the `load` command applies it to AMS's files before loading.
     *File:* `sample.ts`

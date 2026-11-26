@@ -33,10 +33,19 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 8. **The demo is fixed to one abstract, set in the developer console.** The demo opens as if the person using it were the author of one AMS 2027 abstract, the same for everyone, so that its results can be controlled. Until one is set, it is a paper that is cited a lot in AMS, so that everything is matched with respect to that. Our versions make their changes around that abstract, using the matching API's results for it.
 
+9. **Our improvements make five edits of AMS, one for each kind of match the matching API works out ahead of time.** Each edit is matched around the demo's fixed abstract:
+   - **Across the whole meeting:** each talk's related talks.
+   - **Per conference:** Conferences and Symposia ranked, each conference with its best match and reason.
+   - **Per conference per day:** a conference's page, its sessions with matches first within each day.
+   - **Per time block:** the Meeting Calendar, with up to two recommended sessions at the top of each time block.
+   - **Per session:** a session page's talk to come for, and in a poster session the board to visit first.
+
+   Any of the five can be limited to talks outside the asker's own conferences, to posters or to talks, to the same field or to other fields, or to a minimum score.
+
 ### Organisers
 
-9. **The organiser side approximates the Confex tools AMS uses to collect abstracts and build its programme**, from what is publicly known about them.
+10. **The organiser side approximates the Confex tools AMS uses to collect abstracts and build its programme**, from what is publicly known about them.
 
 ### This UI's further CLAUDE.md files
 
-10. **This UI's code sits in five folders, each with a CLAUDE.md holding one rule for each of its files.** The shared folder holds what every screen uses; the base folder, the AMS meeting app as AMS has it; the improvements folder, Our improvements; the versions folder, the switching between them; and the consoles folder, the organiser and developer consoles. The files the web framework needs in its own folders, such as its pages, which read what their address needs from the backend, hand over to one file, and count with that file.
+11. **This UI's code sits in five folders, each with a CLAUDE.md holding one rule for each of its files.** The shared folder holds what every screen uses; the base folder, the AMS meeting app as AMS has it; the improvements folder, Our improvements; the versions folder, the switching between them; and the consoles folder, the organiser and developer consoles. The files the web framework needs in its own folders, such as its pages, which read what their address needs from the backend, hand over to one file, and count with that file.
