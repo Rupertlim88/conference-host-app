@@ -17,8 +17,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 2. **The meeting has its own schema in the database, and sign-in has a schema of its own.** The meeting's schema
    holds its meeting, tracks, sessions, talks, people, who gives which talk, the pages of names, the demo's settings,
-   stars, notes, send runs, every talk AMS publishes with its people, and the latest test set. A track says whether the conferences list shows it, and sessions and talks carry Program
-   Highlights' marks. Sessions
+   stars, notes, send runs, every talk AMS publishes with its people, and the latest test set. A track says whether
+   the conferences list shows it, and sessions and talks carry Program Highlights' marks. Sessions
    and talks keep the published programme beside the live one, so that every organiser's change can be shown and undone.
    Sign-in's tables (users, sessions, accounts, verifications) sit in their own schema, and an account is unique by
    issuer and account id.
