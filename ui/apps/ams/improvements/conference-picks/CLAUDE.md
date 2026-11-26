@@ -24,4 +24,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
    demo has no abstract, AMS's order stays and the outline says so.
    *How:* code alone: the improvement's change to the conferences list, from the fixed abstract's matches and the
    conferences each talk is in.
-   *File:* needed
+   *File:* `conference-picks.tsx`

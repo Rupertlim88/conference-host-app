@@ -23,4 +23,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
    shows nothing there; when the matching API cannot answer, one line there says so.
    *How:* code alone: the improvement's addition above the calendar's day, from the fixed abstract's matches that start
    on that day.
-   *File:* needed
+   *File:* `day-picks.tsx`

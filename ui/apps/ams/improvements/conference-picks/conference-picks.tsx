@@ -1,4 +1,4 @@
-// Conferences and Symposia, ranked around the demo's abstract.
+// In our improvements, Conferences and Symposia puts first the other conferences that hold a talk for the attendee's abstract, each with that talk and its reason.
 import type { AroundAbstract, AroundMatch, Track } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Link from "next/link";

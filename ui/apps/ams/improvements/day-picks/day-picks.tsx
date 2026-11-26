@@ -1,4 +1,4 @@
-// The Meeting Calendar's day, opening with the best talks that day for the demo's abstract.
+// In our improvements, each day of the Meeting Calendar starts with the attendee's best talks that day.
 import type { AroundAbstract, AroundMatch } from "@repo/host-contracts";
 import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";

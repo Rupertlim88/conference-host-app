@@ -1,4 +1,4 @@
-// A session's page, with the talk to come for marked for the demo's abstract.
+// In our improvements, a session's page marks the talk to come for.
 import type { AroundAbstract, AroundMatch, SessionDetail, TalkSummary } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 
