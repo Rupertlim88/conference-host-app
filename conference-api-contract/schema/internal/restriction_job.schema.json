@@ -143,9 +143,6 @@
           "type": "null"
         }
       ]
-    },
-    "every": {
-      "type": "boolean"
     }
   },
   "required": [
@@ -154,8 +151,7 @@
     "anchor",
     "restriction",
     "among",
-    "k",
-    "every"
+    "k"
   ],
   "additionalProperties": false
 }

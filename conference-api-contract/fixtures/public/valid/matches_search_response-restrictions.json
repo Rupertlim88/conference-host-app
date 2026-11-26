@@ -34,8 +34,10 @@
       "person": "P1",
       "basedOn": "T17",
       "talk": "T9",
-      "match": false,
-      "shared": [],
+      "match": true,
+      "shared": [
+        "technique"
+      ],
       "kind": "unexpected",
       "rank": 1,
       "score": 0.86,

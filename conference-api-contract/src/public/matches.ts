@@ -89,7 +89,7 @@ function distinct<T extends z.ZodType>(item: T, what: string) {
 const EffectiveKSchema = z.int().min(1).max(100);
 
 /** A standard restriction a search asks for: which ones of its kind, named as results name them (leave out = every
- *  one), and K. */
+ *  one), and K. A set of talks a search names is restricted to in the same way, with its own K. */
 function standard<T extends z.ZodType>(type: Exclude<RestrictionType, "conference" | "talks">, id: T) {
   return z.strictObject({ type: z.literal(type), ids: distinct(id, "one").optional(), k: EffectiveKSchema.optional() });
 }
@@ -99,15 +99,14 @@ export const RestrictionRequestSchema = z.discriminatedUnion("type", [
   standard("day", z.iso.date()),
   standard("timeBlock", z.iso.datetime({ offset: true })),
   standard("session", PartnerIdSchema),
-  z.strictObject({ type: z.literal("talks"), ids: distinct(PartnerIdSchema, "talk") }),
+  z.strictObject({ type: z.literal("talks"), ids: distinct(PartnerIdSchema, "talk"), k: EffectiveKSchema.optional() }),
 ]);
 export type RestrictionRequest = z.infer<typeof RestrictionRequestSchema>;
 
-/** A result listed under a standard restriction is a match; under the talks a search named, every verdict is listed. */
+/** A result listed under a restriction is a match. */
 function fitsItsRestriction(result: { match: boolean; restriction?: Restriction }, ctx: z.RefinementCtx): void {
-  if (result.restriction === undefined || result.restriction.type === "talks") return;
-  if (!result.match) {
-    ctx.addIssue({ code: "custom", path: ["restriction"], message: "standard restrictions list only matches" });
+  if (result.restriction !== undefined && !result.match) {
+    ctx.addIssue({ code: "custom", path: ["restriction"], message: "restrictions list only matches" });
   }
 }
 
@@ -169,7 +168,7 @@ export const MatchesSearchRequestSchema = z
       ctx.addIssue({ code: "custom", path: ["restrictions"], message: "restrict the matches of named people or liked talks" });
     }
     if (request.include === "all") {
-      ctx.addIssue({ code: "custom", path: ["include"], message: "restrictions list only matches, or every verdict on named talks" });
+      ctx.addIssue({ code: "custom", path: ["include"], message: "restrictions list only matches" });
     }
     if (request.topPerPerson !== undefined) {
       ctx.addIssue({ code: "custom", path: ["topPerPerson"], message: "restrictions set how many each gives" });

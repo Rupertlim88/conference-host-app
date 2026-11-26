@@ -110,8 +110,8 @@ export type CompleteMatchingJob = z.infer<typeof CompleteMatchingJobSchema>;
 
 /** Match a person's own text against the programme, on the spot. */
 /** A restriction to judge for one talk, the first time a search asks for it: the talks the restriction holds, by the
- *  data layer's IDs, never the talk itself; and either K, the connections each of the talk's methods gets inside it
- *  (null: the engine works K out from the restriction's size), or every talk in it, for a set of talks a search named. */
+ *  data layer's IDs, never the talk itself; and K, the connections each of the talk's methods gets inside it (null: the
+ *  engine works K out from the restriction's size). */
 export const RestrictionJobSchema = z
   .strictObject({
     id: JobIdSchema,
@@ -125,11 +125,9 @@ export const RestrictionJobSchema = z
       .refine((ids) => new Set(ids).size === ids.length, "lists a talk twice")
       .meta({ uniqueItems: true }),
     k: z.int().min(1).max(100).nullable(),
-    every: z.boolean(),
   })
   .superRefine((job, ctx) => {
     if (job.among.includes(job.anchor)) ctx.addIssue({ code: "custom", path: ["among"], message: "never the talk itself" });
-    if (job.every && job.k !== null) ctx.addIssue({ code: "custom", path: ["k"], message: "every talk is judged: no K" });
   });
 export type RestrictionJob = z.infer<typeof RestrictionJobSchema>;
 

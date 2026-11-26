@@ -174,10 +174,10 @@ describe("matches:search with restrictions", () => {
         ]),
       ).success,
     ).toBe(true));
-  test("a search can restrict to a set of talks it names, every one judged", () => {
+  test("a search can restrict to a set of talks it names, with its own K like any restriction", () => {
     expect(MatchesSearchRequestSchema.safeParse(asking([{ type: "talks", ids: ["T1", "T2"] }])).success).toBe(true);
+    expect(MatchesSearchRequestSchema.safeParse(asking([{ type: "talks", ids: ["T1"], k: 2 }])).success).toBe(true);
     expect(MatchesSearchRequestSchema.safeParse(asking([{ type: "talks" }])).success).toBe(false);
-    expect(MatchesSearchRequestSchema.safeParse(asking([{ type: "talks", ids: ["T1"], k: 2 }])).success).toBe(false);
   });
   test("refuses a restriction outside the six kinds", () =>
     expect(MatchesSearchRequestSchema.safeParse(asking([{ type: "building" }])).success).toBe(false));
@@ -196,7 +196,7 @@ describe("matches:search with restrictions", () => {
   });
   test("restricts the matches of named people or liked talks, never of everyone", () =>
     expect(issuePaths(MatchesSearchRequestSchema, { restrictions: [{ type: "day" }] })).toContain("restrictions"));
-  test("lists only matches, apart from a set of named talks, and sets no cap per person", () => {
+  test("lists only matches, and sets no cap per person", () => {
     expect(issuePaths(MatchesSearchRequestSchema, asking([{ type: "day" }], { include: "all" }))).toContain("include");
     expect(issuePaths(MatchesSearchRequestSchema, asking([{ type: "day" }], { topPerPerson: 3 }))).toContain("topPerPerson");
   });
@@ -212,12 +212,12 @@ describe("matches:search with restrictions", () => {
       expect(MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, restriction }] }).success).toBe(true);
     }
   });
-  test("a result listed under a standard restriction is a match; under named talks it may not be", () => {
+  test("a result listed under any restriction is a match", () => {
     expect(
       issuePaths(MatchesSearchResponseSchema, { matches: [{ ...restricted, match: false, shared: [] }] }),
     ).toContain("matches.0.restriction");
-    const verdict = { ...searchMatch, match: false, shared: [], restriction: { type: "talks" } };
-    expect(MatchesSearchResponseSchema.safeParse({ matches: [verdict] }).success).toBe(true);
+    const named = { ...searchMatch, match: false, shared: [], restriction: { type: "talks" } };
+    expect(issuePaths(MatchesSearchResponseSchema, { matches: [named] })).toContain("matches.0.restriction");
   });
   test("an answer lists the restrictions still being judged, for each talk they restrict", () => {
     const judging = [{ basedOn: "T42", restriction: { type: "timeBlock", id: "2027-01-11T08:30:00-06:00" } }];

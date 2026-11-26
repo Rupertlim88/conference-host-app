@@ -120,11 +120,11 @@ describe("conferenceApi.restricted", () => {
 });
 
 describe("conferenceApi.verdicts", () => {
-  const judged = (talk: string, rank: number) => ({ ...match, talk, rank, restriction: { type: "talks" }, match: false, shared: [], score: 0.1, description: "Nothing shared." });
+  const judged = (talk: string, rank: number) => ({ ...match, talk, rank, restriction: { type: "talks" } });
   const talksAsked = (s: Seen) => (s.body as { restrictions: { ids: string[] }[] }).restrictions[0]!.ids;
 
-  test("asks matches:search for every verdict on these talks, as the talks restriction, and returns each as the API gave it", async () => {
-    const answers = [judged("T2", 1), { ...match, talk: "T3", rank: 2, restriction: { type: "talks" } }];
+  test("asks matches:search for the verdicts on these talks, as the talks restriction, and returns each as the API gave it", async () => {
+    const answers = [judged("T2", 1), judged("T3", 2)];
     const { url, seen } = await serve(() => ({ status: 200, body: JSON.stringify({ matches: answers }) }));
     const api = conferenceApi({ url, key: "k".repeat(16), conference: "ams-2026" });
     expect(await api.verdicts("T1", ["T2", "T3", "T4"])).toEqual({ status: "ok", matches: answers, judging: [] });
@@ -167,9 +167,12 @@ describe("conferenceApi.verdicts", () => {
   });
 
   test("a failed page, a bad answer or a slow search makes every verdict unavailable", async () => {
+    const notAMatch = { ...judged("T2", 1), match: false, shared: [], description: "Nothing shared." };
     for (const answer of [
       { status: 500, body: "{}" },
       { status: 200, body: JSON.stringify({ matches: [{ talk: "T2" }] }) },
+      // The talks restriction, like every restriction, lists only matches.
+      { status: 200, body: JSON.stringify({ matches: [notAMatch] }) },
       { status: 200, body: JSON.stringify({ matches: [] }), delayMs: 300 },
     ]) {
       const { url } = await serve(() => answer);

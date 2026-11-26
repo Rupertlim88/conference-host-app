@@ -1,14 +1,15 @@
 # How the host app asks the conference API for matches
 
 The host app asks `matches:search` for matches by **restriction**. A restriction is a group of talks that the API
-lists the best matches within, or a set of talks it judges one by one. There are six kinds:
+lists the best matches within. There are six kinds:
 
 - `conference`: the whole conference.
 - `subConference`: one conference or symposium, named by its track id.
 - `day`: one day of the meeting, named by its date.
 - `timeBlock`: every session that starts at one time, named by that start.
 - `session`: one session, named by its id.
-- `talks`: the talks a search names. The API judges every one of them and lists every verdict, match or not.
+- `talks`: the talks a search names. Like any restriction, it lists only those that match. A talk it judged not to
+  match is not listed, and neither is a talk it never reached.
 
 The first five are the standard kinds. The API builds them from the programme the host app sends. Each talk carries
 its tracks, and its session carries its id and its start (`session.start`). The start is the meeting's clock time with
@@ -23,12 +24,12 @@ kind, with as many matches as each lists.
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------- | ---------------------------- |
 | Around the talk on screen                | `{ "likeTalks": [talkId], "restrictions": [{ "type": "conference" }], "pageSize": 1000 }`                                                                           | Related talks on a talk page |
 | Around the fixed abstract, once per page | `{ "likeTalks": [abstractId], "restrictions": [{ "type": "subConference" }, { "type": "day" }, { "type": "timeBlock" }, { "type": "session" }], "pageSize": 1000 }` | The other four improvements  |
-| Every verdict, for the tester's report   | `{ "likeTalks": [abstractId], "restrictions": [{ "type": "talks", "ids": [...] }], "pageSize": 1000 }`                                                              | One for each place reported  |
+| The verdicts, for the tester's report    | `{ "likeTalks": [abstractId], "restrictions": [{ "type": "talks", "ids": [...] }], "pageSize": 1000 }`                                                              | One for each place reported  |
 
-Each request reads every page. A standard search has 3 seconds in all; a search for every verdict has 10 seconds for
-each thousand talks, and names at most a thousand talks, so a larger place takes several searches. If one page fails,
-the whole search counts as unavailable. Every request is checked against the host app's copy of the conference API's
-contract before it is sent.
+Each request reads every page. A standard search has 3 seconds in all; a talks search has 10 seconds for each thousand
+talks, and names at most a thousand talks, so a larger place takes several searches. The host app never sends `k`. If
+one page fails, the whole search counts as unavailable. Every request is checked against the host app's copy of the
+conference API's contract before it is sent.
 
 ## What each box shows
 
@@ -81,8 +82,9 @@ others are judged the first time they are asked for, and kept until the programm
 - **In the tester's report,** nothing is partial. The report makes every search, so that each restriction starts being
   judged, and while anything for the abstract is still being judged it answers `202` with a plain message, such as
   `The matching API is still judging 14 restrictions for this abstract; ask again shortly.` Once nothing is being
-  judged, it answers `200` in its usual form. Each place's `verdicts` are then every verdict from its talks
-  restriction, and `notJudged` lists the place's talks with none.
+  judged, it answers `200` in its usual form. Each place's `verdicts` are then exactly the results its talks
+  restriction lists, which are only matches, passed on unchanged. Its `notJudged` lists each of the place's talks the
+  matching API listed no verdict for: a talk it judged not to match, or one it never reached.
 
 ## The connection test
 

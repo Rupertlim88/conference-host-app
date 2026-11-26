@@ -48,8 +48,8 @@ export const SHOWN_PER_PLACE = {
   session: 1,
 } as const satisfies Record<PlaceLayout, number>;
 
-/** One place: the held talks it chose from, the talks it shows, every verdict the matching API gave on those talks,
- *  passed on as the API gave it, and the talks that got none. */
+/** One place: the held talks it chose from, the talks it shows, every verdict the matching API listed on those talks,
+ *  passed on as the API gave it, and the talks it listed no verdict for. */
 export const PlaceSchema = z.strictObject({
   layout: PlaceLayoutSchema,
   key: z.string(),

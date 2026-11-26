@@ -34,8 +34,9 @@ export interface ConferenceApi {
   /** The matches the matching API lists for a talk under every restriction of these kinds, and those it is still
    *  judging: every page of one matches search. */
   restricted(talkId: string, kinds: StandardKind[]): Promise<RestrictedAnswer>;
-  /** Every verdict the matching API has for a talk against these talks, matches or not, as it gave them, and whether
-   *  it is still judging them: every page of one search of the talks restriction for each thousand talks. */
+  /** The verdicts the matching API lists for a talk under the talks restriction of these talks, which are only
+   *  matches, as it gave them, and whether it is still judging them: every page of one search for each thousand
+   *  talks. */
   verdicts(talkId: string, talks: string[]): Promise<RestrictedAnswer>;
   /** Writes talks; stops when `signal` aborts or the API takes longer than a minute. */
   writeTalks(req: TalksWriteRequest, signal?: AbortSignal): Promise<TalksWriteResponse>;
@@ -147,7 +148,7 @@ export function conferenceApi(opts: {
     // Every restriction of each kind, as many matches as each lists: no ids and no K.
     restricted: (talkId, kinds) => everySearch(talkId, [kinds.map((type) => ({ type }) as RestrictionRequest)], opts.timeoutMs ?? 3000),
 
-    // The talks restriction lists every verdict on the talks it names, matches or not.
+    // The talks restriction, like every restriction, lists only the talks it names that match.
     verdicts: (talkId, talks) => {
       const searches: RestrictionRequest[][] = [];
       for (let i = 0; i < talks.length; i += TALKS_PER_SEARCH) searches.push([{ type: "talks", ids: talks.slice(i, i + TALKS_PER_SEARCH) }]);

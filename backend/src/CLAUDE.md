@@ -108,11 +108,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
      for every one of each kind and as many matches as each lists, asks for pages of a thousand, reads every page,
      keeps the API's order, and keeps each restriction the API is still judging; when one page fails, the whole search
      is unavailable.
-   - **Every verdict.** A search for every verdict on a talk names the talks to judge it against as the talks
-     restriction, which lists matches and non-matches alike, at most a thousand to a search, as the contract allows,
-     reads every page, and keeps whether those talks are still being judged; when one fails, every verdict is
-     unavailable.
-   - **Time limits.** A matches search waits 3 seconds in all, across its pages, a search for every verdict 10 seconds
+   - **Verdicts on named talks.** A search for the verdicts on a talk names the talks to judge it against as the talks
+     restriction, which, like every restriction, lists only matches, at most a thousand to a search, as the contract
+     allows; it reads every page, and keeps whether those talks are still being judged; when one fails, the verdicts
+     are unavailable.
+   - **Time limits.** A matches search waits 3 seconds in all, across its pages, a search of named talks 10 seconds
      for each thousand talks, a connection test 5 seconds, a talks write a minute, and a write also stops when its
      send's deadline passes.
    - **Answers.** Every answer is checked against the contract. A refused write reports its status, its problem title
@@ -175,15 +175,16 @@ Everything else is a lower level, written by Claude to carry out these specifica
     The places are the abstract's related talks; each other conference; each of the abstract's own conferences, for
     the tester only, which shows nothing; each day; each time block; and each session. For each place it gives the
     held talks the place chose from, the talks it shows visitors, in order and exactly as the pages show them, every
-    verdict the matching API has for the abstract against those talks, passed on as the API gave it, and each of those
-    talks that has no verdict, marked as not judged. It also gives the programme version of the last send and of the
+    verdict the matching API lists for the abstract under those talks, which are only matches, passed on as the API
+    gave it, and each of those talks the matching API listed no verdict for, marked as not judged, which covers both
+    talks it judged not to match and talks it never reached. It also gives the programme version of the last send and of the
     matches. The held talks a place chooses from are those the send carries, placed as the matching API places them,
     the abstract itself left out, and a place that holds none is left out. It reports only on an abstract the stored
     test set tests; when the matching API cannot answer, there is no report. While the matching API is still judging
     anything for the abstract, there is no partial report: the answer is 202, saying how many restrictions are still
     being judged, to ask again shortly.
     *How:* code alone: the same restricted search and picks the pages use for what is shown, in one search, and one
-    search of every verdict for each place, all made even while some are still being judged.
+    search of the talks restriction for each place, all made even while some are still being judged.
     *File:* `recommendations.ts`
 
 ### Staying on

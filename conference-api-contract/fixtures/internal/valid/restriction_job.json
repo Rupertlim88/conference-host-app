@@ -8,7 +8,6 @@
     11
   ],
   "k": 1,
-  "every": false,
   "restriction": {
     "type": "session",
     "id": "G21"

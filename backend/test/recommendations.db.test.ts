@@ -85,11 +85,12 @@ const aroundT1: Match[] = [
   result("T1", "T3", 2, { type: "session", id: "S2" }),
 ];
 const conferenceT1 = ["T3", "T5", "T2", "T4"].map((id, i) => result("T1", id, i + 1, { type: "conference" }));
-/** The talks the matching API has judged from T1: T5, T7 and T8 it has not. */
-const JUDGED_FROM_T1 = new Set(["T2", "T3", "T4"]);
+/** The talks the matching API has judged from T1: T2 does not match, so it is not listed; T5, T7 and T8 it has not
+ *  reached. */
+const MATCHED_FROM_T1 = new Set(["T3", "T4"]);
 
 const TALKS: Restriction = { type: "talks" };
-const verdict = (basedOn: string, talkId: string, rank: number): Match => ({ ...result(basedOn, talkId, rank, TALKS), match: talkId !== "T2", shared: talkId === "T2" ? [] : ["intent"] });
+const verdict = (basedOn: string, talkId: string, rank: number): Match => ({ ...result(basedOn, talkId, rank, TALKS), shared: ["intent"] });
 
 /** The matching API, which runs elsewhere, as a script: it lists only the kinds a search asks for, and records every
  *  search for verdicts and every restricted search. */
@@ -102,8 +103,8 @@ function scripted(asked: { talkId: string; talks: string[] }[], over: Partial<Co
     },
     verdicts: async (talkId, talks) => {
       asked.push({ talkId, talks });
-      const judged = talkId === "T1" ? talks.filter((id) => JUDGED_FROM_T1.has(id)) : [];
-      return { status: "ok", matches: judged.map((id, i) => verdict(talkId, id, i + 1)), judging: [] };
+      const matched = talkId === "T1" ? talks.filter((id) => MATCHED_FROM_T1.has(id)) : [];
+      return { status: "ok", matches: matched.map((id, i) => verdict(talkId, id, i + 1)), judging: [] };
     },
     writeTalks: async () => {
       throw new Error("the report never writes");
@@ -162,14 +163,14 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     expect(searched).toEqual([["conference", "subConference", "day", "timeBlock", "session"]]);
   });
 
-  test("asks for every verdict on each place's pool, passes each on as the API gave it, and marks the rest not judged", async () => {
+  test("asks for the verdicts on each place's pool, passes each on as the API gave it, and marks every talk it listed no verdict for", async () => {
     const asked: { talkId: string; talks: string[] }[] = [];
     const report = await (await ask("?abstract=T1", scripted(asked))).json();
     const related = report.places[0];
     expect(asked[0]).toEqual({ talkId: "T1", talks: ["T2", "T3", "T4", "T5", "T7", "T8"] });
     expect(asked).toHaveLength(report.places.length);
-    expect(related.verdicts).toEqual([verdict("T1", "T2", 1), verdict("T1", "T3", 2), verdict("T1", "T4", 3)]);
-    expect(related.notJudged).toEqual(["T5", "T7", "T8"]);
+    expect(related.verdicts).toEqual([verdict("T1", "T3", 1), verdict("T1", "T4", 2)]);
+    expect(related.notJudged).toEqual(["T2", "T5", "T7", "T8"]);
     expect(report.places.find((p: { key: string }) => p.key === "S3")).toMatchObject({ verdicts: [], notJudged: ["T5"] });
   });
 

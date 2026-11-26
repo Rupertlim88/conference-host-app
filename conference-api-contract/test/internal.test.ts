@@ -70,13 +70,13 @@ describe("internal rules", () => {
     expect(Object.keys(job.matches[0])).not.toContain("pools");
     expect(CompleteMatchingJobSchema.safeParse({ ...job, matches: [{ ...job.matches[0], pools: [] }] }).success).toBe(false);
   });
-  test("a restriction job names the talk, the talks the restriction holds, and K or every talk", () => {
+  test("a restriction job names the talk, the talks the restriction holds, and K or none", () => {
     const job = valid("restriction_job");
     expect(RestrictionJobSchema.safeParse({ ...job, k: null }).success).toBe(true);
     expect(issuePaths(RestrictionJobSchema, { ...job, among: [] })).toContain("among");
     expect(issuePaths(RestrictionJobSchema, { ...job, among: [job.anchor] })).toContain("among");
     expect(issuePaths(RestrictionJobSchema, { ...job, among: [7, 7] })).toContain("among");
-    expect(issuePaths(RestrictionJobSchema, { ...job, every: true, k: 2 })).toContain("k");
+    expect(RestrictionJobSchema.safeParse({ ...job, every: false }).success).toBe(false);
   });
   test("a restriction result hands back the pairs it judged", () => {
     const result = valid("restriction_result");
