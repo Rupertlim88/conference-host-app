@@ -80,7 +80,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 9. **A session's page shows its time, place, chairs and talks.** Its tracks above the title; its label, then the
     title ("Session 5 - Wind Energy Forecasting", "Joint Session J1 - Decision Support I");
     a star; time and place; its description; its organisers; its presentations, or that none are listed; links to its
-    tracks.
+    tracks. Its list of talks is a change point, where our versions can change it.
     *How:* code alone; the session page counts with this file.
     *File:* `session.tsx`
 

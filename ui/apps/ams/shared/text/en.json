@@ -331,7 +331,8 @@
     "change": {
       "relatedTalks": "Our change: related talks",
       "conferencePicks": "Our change: other conferences, ranked for your abstract",
-      "calendarPicks": "Our change: recommended around your abstract"
+      "calendarPicks": "Our change: recommended around your abstract",
+      "sessionPicks": "Our change: come for this talk"
     }
   },
   "improvements": {
@@ -349,6 +350,10 @@
       "yours": "Your conference",
       "unavailable": "The matching API cannot answer right now, so AMS's order stays.",
       "noAbstract": "The demo has no abstract to order around yet."
+    },
+    "sessionPicks": {
+      "board": "Our change: visit this board first",
+      "why": "<b>Why, for your abstract:</b> {reason}"
     }
   }
 }

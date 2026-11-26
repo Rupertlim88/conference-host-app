@@ -1,7 +1,7 @@
 // A change point shows the base, or the chosen version's change outlined in gold.
 import "server-only";
 
-import type { SessionSummary, Track } from "@repo/host-contracts";
+import type { SessionDetail, SessionSummary, Track } from "@repo/host-contracts";
 import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 
@@ -17,6 +17,8 @@ export interface ChangePoints {
   "programmes.list": { tracks: Track[] };
   /** The Meeting Calendar's list of one day's sessions, below the day's heading and the strip of days. */
   "calendar.day": { sessions: SessionSummary[] };
+  /** On a session's page, its list of talks, under Presentations. */
+  "session.talks": { session: SessionDetail };
 }
 type Point = keyof ChangePoints;
 

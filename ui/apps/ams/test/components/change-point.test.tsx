@@ -54,7 +54,7 @@ test("a change that edits several parts outlines each part with the label, and t
 });
 
 test("Our improvements show each improvement switched on in their list, at its own change point", async () => {
-  expect(Object.keys(chosen).sort()).toEqual(["conferencePicks", "relatedTalks", "timeBlockPicks"]);
+  expect(Object.keys(chosen).sort()).toEqual(["conferencePicks", "relatedTalks", "sessionPicks", "timeBlockPicks"]);
   const changes = changesFrom(Object.values(chosen));
   for (const change of Object.values(chosen)) expect(changes[change.at]).toBe(change);
   renderApp(await ChangePoint({ at: "talk.afterAbstract", props: { talkId: "493803" } }));
