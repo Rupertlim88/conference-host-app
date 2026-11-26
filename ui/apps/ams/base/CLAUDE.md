@@ -52,7 +52,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 5. **The Meeting Calendar shows one day at a time, its sessions grouped by time.** It opens on the first day with
     sessions from the meeting's start, or else the earliest day with sessions; with no sessions at all it goes home. A
     strip of days marks the current one. Sessions with the same start and end are grouped, earliest first; untimed
-    sessions are left out; a day with none says so; an address that is not a date is "not found".
+    sessions are left out; a day with none says so; an address that is not a date is "not found". The day's list is
+    a change point, where our versions can change it.
     *How:* code alone; the calendar's pages count with this file.
     *File:* `calendar.tsx`
 

@@ -9,10 +9,10 @@ import { renderApp } from "../render";
 
 const region = () => screen.getByRole("region", { name: "Related talks" });
 
-test("the panel always names itself and says the conference API picked the talks", () => {
+test("the panel always names itself and says its talks are related to this one", () => {
   renderApp(<RelatedPanel related={undefined} loading failed={false} />);
   expect(within(region()).getByRole("heading", { name: "Related talks" })).toBeInTheDocument();
-  expect(within(region()).getByText("Picked for you by the conference API")).toBeInTheDocument();
+  expect(within(region()).getByText("Talks related to this one, found by the conference API")).toBeInTheDocument();
 });
 
 test("while the API is asked, the panel says it is finding talks", () => {

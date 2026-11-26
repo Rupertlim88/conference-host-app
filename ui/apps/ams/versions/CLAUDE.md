@@ -28,7 +28,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    base a version may change, and holds each version's changes: the base changes nothing, and each other version's
    list of changes comes from its own folder. A change replaces what the base shows there, or adds to it. The chosen
    version is read on the server from the guest's choice, so a page never shows the base first. A change is outlined in
-   gold, with a short label saying what was changed; where the version changes nothing, the base shows as it is.
+   gold, with a short label saying what was changed, by the change point; a change that edits several parts of a page,
+   such as each time block of a calendar day, outlines each part itself. Where the version changes nothing, the base
+   shows as it is.
    *How:* code alone: a server component reading the guest's cookie; the pages place the change points.
    *File:* `change.tsx`
 
@@ -38,3 +40,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    demo's own and not AMS's, links the organiser console and the developer console.
    *How:* code alone: a client component that writes the choice to a cookie and refreshes the page.
    *File:* `switch.tsx`
+
+5. **Every change is outlined in gold, with a label saying what changed.** The outline and its label look the same
+   wherever a change shows, so anyone can tell at a glance what AMS has and what we changed.
+   *How:* code alone: one component that change points and changes use.
+   *File:* `gold.tsx`
