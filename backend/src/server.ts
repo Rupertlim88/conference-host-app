@@ -20,6 +20,7 @@ import { authOptions, createCallerFactory, router, viewerFrom } from "./gate";
 import { keepAlive } from "./keep-alive";
 import { CONFERENCE_IDS, conferenceApi, unconfiguredApi } from "./matching-api";
 import { answerProgrammeMap } from "./programme-map";
+import { answerRecommendations } from "./recommendations";
 import { takeTestSet } from "./test-set";
 import { testerOnly } from "./tester-token";
 
@@ -144,6 +145,7 @@ function build(env: Record<string, string | undefined>) {
     handleKeepAlive: (req: Request) => keepAlive(req, config.cronSecret, () => store.ping()),
     handleProgrammeMap: (req: Request) => tester(req, () => answerProgrammeMap(whole, conference)),
     handleTestSet: (req: Request) => tester(req, () => takeTestSet(req, { conference, whole, testSets, store, log, api })),
+    handleRecommendations: (req: Request) => tester(req, () => answerRecommendations(req, { store, testSets, log, api })),
     /** The router for server components, as the person behind these headers. */
     callerFor: async (headers: Headers): Promise<HostCaller> =>
       createHostCaller({ store, organiser, log, demo, api, settings, viewer: await viewer(headers) }),

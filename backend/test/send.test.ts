@@ -92,6 +92,7 @@ describe("syncProgramme", () => {
     const sent: TalksWriteRequest[] = [];
     const api: ConferenceApi = {
       pooled: async () => ({ status: "unavailable" }),
+      verdicts: async () => ({ status: "unavailable" }),
     check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
       writeTalks: async (req, signal) => {
         expect(signal).toBe(stop);
@@ -112,6 +113,7 @@ describe("syncProgramme", () => {
     const sent: TalksWriteRequest[] = [];
     const api: ConferenceApi = {
       pooled: async () => ({ status: "unavailable" }),
+      verdicts: async () => ({ status: "unavailable" }),
       check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
       writeTalks: async (req) => {
         sent.push(req);

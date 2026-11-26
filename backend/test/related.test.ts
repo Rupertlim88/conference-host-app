@@ -24,6 +24,7 @@ const talkSummaries = async (ids: string[]) => ids.filter((id) => known.has(id))
 const asked: unknown[] = [];
 const apiAnswering = (answer: PooledAnswer): ConferenceApi => ({
   pooled: async (talkId, pools) => (asked.push([talkId, pools]), answer),
+  verdicts: async () => ({ status: "unavailable" }),
   writeTalks: async () => {
     throw new Error("not used");
   },

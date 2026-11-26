@@ -25,6 +25,7 @@ const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
 function taking(sent: TalksWriteRequest[]): ConferenceApi {
   return {
     pooled: async () => ({ status: "unavailable" }),
+    verdicts: async () => ({ status: "unavailable" }),
     check: async () => ({ outcome: { kind: "not-set" }, ms: 0 }),
     writeTalks: async (req) => {
       sent.push(req);

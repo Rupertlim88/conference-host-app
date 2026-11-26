@@ -12,6 +12,7 @@ import { rows } from "./programme";
 const url = process.env.HOST_BACKEND_TEST_DATABASE_URL;
 const api = (answer: PooledAnswer): ConferenceApi => ({
   pooled: async () => answer,
+  verdicts: async () => ({ status: "unavailable" }),
   writeTalks: async () => {
     throw new Error("not used");
   },

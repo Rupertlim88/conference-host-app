@@ -104,8 +104,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
      fails is never sent.
    - **Matches by pool.** A matches search names the kinds of pool to list the matches in, asks for pages of a
      thousand and reads every page; when one page fails, the whole search is unavailable.
-   - **Time limits.** A matches search waits 3 seconds in all, across its pages, a connection test 5 seconds, a talks
-     write a minute, and a write also stops when its send's deadline passes.
+   - **Every verdict.** A search for every verdict on a talk names the talks to judge it against, at most a thousand
+     to a search, as the contract allows, asks for matches and non-matches alike, with no pools, and reads every page;
+     when one fails, every verdict is unavailable.
+   - **Time limits.** A matches search waits 3 seconds in all, across its pages, a search for every verdict 10 seconds
+     for each thousand talks, a connection test 5 seconds, a talks write a minute, and a write also stops when its
+     send's deadline passes.
    - **Answers.** Every answer is checked against the contract. A refused write reports its status, its problem title
      and its first five errors.
    - **The connection test** sends one matches search for a talk, writes nothing, keeps no body, and reports one of:
@@ -168,10 +172,12 @@ Everything else is a lower level, written by Claude to carry out these specifica
     held talks the place chose from, the talks it shows visitors, in order and exactly as the pages show them, every
     verdict the matching API has for the abstract against those talks, passed on as the API gave it, and each of those
     talks that has no verdict, marked as not judged. It also gives the programme version of the last send and of the
-    matches.
+    matches. The held talks a place chooses from are those the send carries, placed as the matching API places them,
+    the abstract itself left out, and a place that holds none is left out. It reports only on an abstract the stored
+    test set tests; when the matching API cannot answer, there is no report.
     *How:* code alone: the same pooled search and picks the pages use for what is shown, and one search of every
     verdict for each place.
-    *File:* needed
+    *File:* `recommendations.ts`
 
 ### Staying on
 
