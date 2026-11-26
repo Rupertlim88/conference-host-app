@@ -114,6 +114,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
      control characters other than tabs and line breaks become spaces, and each field is cut, never inside a character, to the contract's limits
      (abstract 10,000, title 500, number 64, session title 500, presenter's name 300; at most 20 tracks). An end is
      sent only when it is after the start, or when there is no start. The presenter is sent as an author and a presenter.
+     A talk's session is sent with its start, as the meeting's clock shows it, with its offset, which sets the talk's
+     day and time block at the API; a session with no start is sent without one.
    - **How it is sent:** in parts of 1,000 under one sync name. Every part is checked against the conference API's
      contract before the first is written, so a talk that breaks it leaves nothing half sent. The last part completes
      the sync, so the API withdraws talks no longer in the programme. The counts of added, changed, withdrawn and unchanged talks are added up.

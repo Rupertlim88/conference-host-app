@@ -69,4 +69,11 @@ describe.skipIf(!url)("stars, notes and the sync list", { timeout: 60_000 }, () 
     expect(j71).toMatchObject({ id: "464598", sessionId: "73193", sessionTitle: expect.stringContaining("Beyond the Basics") });
     expect(j71.startsAt?.toISOString()).toBe("2026-01-27T19:45:00.000Z");
   });
+
+  test("each talk in the sync list carries its session's start on the meeting's clock, with its offset", async () => {
+    const all = await ams.talksForSync();
+    const j71 = all.find((x) => x.number === "J7.1")!;
+    // Session 73193 starts at 19:45 UTC: 12:45 in Denver, the meeting's zone, in January.
+    expect(j71.sessionStart).toBe("2026-01-27T12:45:00-07:00");
+  });
 });
