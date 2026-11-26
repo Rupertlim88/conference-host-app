@@ -42,4 +42,4 @@ Everything else is a lower level, written by Claude to carry out these specifica
    to the minute, and the report passes on each verdict exactly as the matching API gave it. How many talks each place
    shows visitors is fixed in one place, which the pages and the report both read.
    *How:* code alone: one schema for each form.
-   *File:* needed
+   *File:* `tester.ts`
