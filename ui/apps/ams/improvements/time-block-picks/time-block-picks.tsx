@@ -6,7 +6,9 @@ import { Fragment } from "react";
 import { DayList, TimeBlockSessions, timeBlocks, type TimeBlock } from "@/base/calendar";
 import { SessionCard } from "@/base/cards";
 import { When } from "@/shared/meeting-time";
+import { serverApi } from "@/shared/server";
 import { Badge } from "@/shared/ui/badge";
+import type { Change } from "@/versions/change";
 import { GoldOutline } from "@/versions/gold";
 
 /** The Meeting Calendar's day with each time block's recommendations at its top, each block's outline labelled with
@@ -51,6 +53,16 @@ export function CalendarPicksView({ sessions, around, label }: { sessions: Sessi
     </Fragment>
   ));
 }
+
+/** In place of the Meeting Calendar's day, the day with each time block's recommendations at its top. */
+export const timeBlockPicks: Change<"calendar.day"> = {
+  at: "calendar.day",
+  label: "calendarPicks",
+  outlinesItself: true,
+  render: async ({ sessions }, label) => (
+    <CalendarPicksView sessions={sessions} around={await (await serverApi()).improvements.aroundAbstract()} label={label} />
+  ),
+};
 
 /** A recommended session: its card, then the kind of match, how many related talks, when the first is, and why. */
 function PickItem({ pick }: { pick: Recommendation }) {

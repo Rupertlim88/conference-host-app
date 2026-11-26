@@ -4,6 +4,8 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { PageTitle } from "@/base/frame";
+import { serverApi } from "@/shared/server";
+import type { Change } from "@/versions/change";
 
 /** Tracks with more of the abstract's matches first; ties, and tracks with none, keep AMS's order. */
 export function ProgrammeOrderView({ tracks, around }: { tracks: Track[]; around: AroundAbstract }) {
@@ -36,3 +38,10 @@ export function ProgrammeOrderView({ tracks, around }: { tracks: Track[]; around
     </>
   );
 }
+
+/** In place of the conferences list, the list ordered around the abstract. */
+export const conferencePicks: Change<"programmes.list"> = {
+  at: "programmes.list",
+  label: "programmeOrder",
+  render: async ({ tracks }) => <ProgrammeOrderView tracks={tracks} around={await (await serverApi()).improvements.aroundAbstract()} />,
+};

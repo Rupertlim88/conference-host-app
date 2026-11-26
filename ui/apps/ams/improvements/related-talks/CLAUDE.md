@@ -19,6 +19,6 @@ Everything else is a lower level, written by Claude to carry out these specifica
     right now; with none, it says so. Each match shows whether it is close or unexpected, its time, number, title and
     reason, and links to the talk. It says that its talks are related to the talk on the page, never that they were
     picked for the attendee.
-    *How:* code alone: our improvements' change after a talk's abstract, outlined in gold; it loads in the browser after
-    the page, so a slow API never holds up the talk.
+    *How:* code alone: our improvements' change after a talk's abstract, outlined in gold; it streams in after the rest
+    of the page, so a slow API never holds up the talk.
     *File:* `related-talks.tsx`

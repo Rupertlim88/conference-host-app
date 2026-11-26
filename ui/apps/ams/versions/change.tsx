@@ -5,7 +5,7 @@ import type { SessionSummary, Track } from "@repo/host-contracts";
 import { getTranslations } from "next-intl/server";
 import { cookies } from "next/headers";
 
-import { changes as improvements } from "@/improvements/changes";
+import * as improvements from "@/improvements";
 import { GoldOutline } from "@/versions/gold";
 import { VERSION_COOKIE, versionFrom, type VersionId } from "@/versions/versions";
 
@@ -20,17 +20,30 @@ export interface ChangePoints {
 }
 type Point = keyof ChangePoints;
 
-/** A version's change at one point: its label in the English text, and what it shows there, given the label's words. */
+/** A version's change at one point: the point, its label in the English text, and what it shows there, given the
+ *  label's words. */
 export interface Change<P extends Point> {
+  at: P;
   label: string;
   /** Set when the change edits several parts of the page and outlines each part itself, with the label. */
   outlinesItself?: true;
   render: (props: ChangePoints[P], label: string) => React.ReactNode | Promise<React.ReactNode>;
 }
 export type Changes = { [P in Point]?: Change<P> };
+type AnyChange = { [P in Point]: Change<P> }[Point];
 
-/** Each version's changes; the base changes nothing. */
-const CHANGES: Record<VersionId, Changes> = { base: {}, improvements };
+/** A version's changes by the point each changes; two changes at one point are refused. */
+export function changesFrom(list: AnyChange[]): Changes {
+  const changes: Partial<Record<Point, AnyChange>> = {};
+  for (const change of list) {
+    if (changes[change.at]) throw new Error(`Two improvements change ${change.at}`);
+    changes[change.at] = change;
+  }
+  return changes as Changes;
+}
+
+/** Each version's changes; the base changes nothing, and Our improvements' come from the list in their folder. */
+const CHANGES: Record<VersionId, Changes> = { base: {}, improvements: changesFrom(Object.values(improvements)) };
 
 /** The version this guest chose, read on the server so a page never shows the base first. */
 export async function chosenVersion(): Promise<VersionId> {

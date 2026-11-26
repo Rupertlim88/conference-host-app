@@ -1,19 +1,19 @@
-"use client";
-
 // In our improvements, every talk page shows a related-talks panel with the matching API's matches for that talk, and never breaks the page.
 
-import type { RelatedTalks } from "@repo/host-contracts";
+import type { RelatedTalks as Related } from "@repo/host-contracts";
 import { Sparkles } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
+import { Suspense } from "react";
 
-import { trpc } from "@/shared/connection";
+import { serverApi } from "@/shared/server";
 import { When } from "@/shared/meeting-time";
 import { Badge } from "@/shared/ui/badge";
 import { Skeleton } from "@/shared/ui/skeleton";
+import type { Change } from "@/versions/change";
 
 /** The point of the demo: the conference API's matches for this talk. A failure here never breaks the page. */
-export function RelatedPanel({ related, loading, failed }: { related: RelatedTalks | undefined; loading: boolean; failed: boolean }) {
+export function RelatedPanel({ related, loading, failed }: { related: Related | undefined; loading: boolean; failed: boolean }) {
   const t = useTranslations("related");
   return (
     <section aria-labelledby="related-title" className="my-6 rounded-lg border-2 border-primary/30 bg-primary/5 p-4">
@@ -59,8 +59,22 @@ export function RelatedPanel({ related, loading, failed }: { related: RelatedTal
   );
 }
 
-/** The related-talks panel, wired to the backend, which asks the conference API. */
-export function RelatedTalks({ talkId }: { talkId: string }) {
-  const related = trpc.talks.related.useQuery({ id: talkId });
-  return <RelatedPanel related={related.data} loading={related.isLoading} failed={related.isError} />;
+/** The related-talks panel, filled from the backend, which asks the conference API about the talk on the screen. */
+export async function RelatedTalks({ talkId }: { talkId: string }) {
+  const related = await serverApi()
+    .then((api) => api.talks.related({ id: talkId }))
+    .catch(() => undefined);
+  return <RelatedPanel related={related} loading={false} failed={!related} />;
 }
+
+/** After a talk's abstract, its related talks. They stream in after the rest of the page, which shows placeholders
+ *  until they come, so a slow API never holds up the talk. */
+export const relatedTalks: Change<"talk.afterAbstract"> = {
+  at: "talk.afterAbstract",
+  label: "relatedTalks",
+  render: ({ talkId }) => (
+    <Suspense fallback={<RelatedPanel related={undefined} loading failed={false} />}>
+      <RelatedTalks talkId={talkId} />
+    </Suspense>
+  ),
+};

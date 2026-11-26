@@ -1,11 +1,18 @@
 // @vitest-environment jsdom
+import type { RelatedTalks as Related } from "@repo/host-contracts";
 import { screen, within } from "@testing-library/react";
-import { expect, test } from "vitest";
+import { expect, test, vi } from "vitest";
 
-import { RelatedPanel } from "@/improvements/related-talks/related-talks";
+import { RelatedPanel, RelatedTalks } from "@/improvements/related-talks/related-talks";
 
 import { talkSummary } from "../fixtures";
 import { renderApp } from "../render";
+
+// The backend cannot run outside Next; the panel and its loading are the real ones.
+const backend = vi.hoisted(() => ({ asked: [] as string[], answer: async (): Promise<Related> => ({ status: "none" }) }));
+vi.mock("@/shared/server", () => ({
+  serverApi: async () => ({ talks: { related: (input: { id: string }) => (backend.asked.push(input.id), backend.answer()) } }),
+}));
 
 const region = () => screen.getByRole("region", { name: "Related talks" });
 
@@ -52,5 +59,22 @@ test("when the API is down or the call fails, the panel says so and the page goe
   expect(within(region()).getByText("Related talks are unavailable right now.")).toBeInTheDocument();
   unmount();
   renderApp(<RelatedPanel related={undefined} loading={false} failed />);
+  expect(within(region()).getByText("Related talks are unavailable right now.")).toBeInTheDocument();
+});
+
+test("the panel asks the backend for the talk on the screen and shows its matches", async () => {
+  const talk = talkSummary({ id: "485830", number: "J1.4", title: "Evaluation of Three Ice Accumulation Models" });
+  backend.asked = [];
+  backend.answer = async () => ({ status: "matches", matches: [{ talk, kind: "core", score: 0.9, reason: "Both use satellite retrievals." }] });
+  renderApp(await RelatedTalks({ talkId: "484769" }));
+  expect(backend.asked).toEqual(["484769"]);
+  expect(within(region()).getByRole("link")).toHaveAttribute("href", "/talks/485830");
+});
+
+test("when the backend fails, the panel says related talks are unavailable instead of breaking the page", async () => {
+  backend.answer = async () => {
+    throw new Error("The database is down");
+  };
+  renderApp(await RelatedTalks({ talkId: "484769" }));
   expect(within(region()).getByText("Related talks are unavailable right now.")).toBeInTheDocument();
 });
