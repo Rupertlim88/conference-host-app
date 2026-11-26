@@ -162,25 +162,47 @@ describe("matches:fromText", () => {
 
 describe("matches:search with pools", () => {
   const pooled = { ...searchMatch, pool: { type: "session", id: "G21" } };
-  test("a search can list its results in any of the five kinds of pool", () =>
+  test("a search can ask for any of the five kinds of pool, each with which pools and how many from each", () =>
     expect(
-      MatchesSearchRequestSchema.safeParse({ pools: ["conference", "subConference", "day", "timeBlock", "session"] })
-        .success,
+      MatchesSearchRequestSchema.safeParse({
+        pools: [
+          { type: "conference", count: 5 },
+          { type: "subConference", ids: ["Hydrology", "Radar"], count: 1 },
+          { type: "day", ids: ["2027-01-11"], count: 3 },
+          { type: "timeBlock", ids: ["2027-01-11T08:30:00-06:00", "2027-01-11T10:30:00-06:00"], count: 2 },
+          { type: "session" },
+        ],
+      }).success,
     ).toBe(true));
   test("refuses a pool outside the five kinds", () =>
-    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["building"] })).toContain("pools.0"));
-  test("names each pool at most once", () =>
-    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day", "day"] })).toContain("pools"));
-  test("lists only matches", () =>
-    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], include: "all" })).toContain("include"));
-  test("sets no cap per person", () =>
-    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], topPerPerson: 3 })).toContain("topPerPerson"));
-  test("caps each pool at no more than the largest pool lists, and only with pools", () => {
-    expect(MatchesSearchRequestSchema.safeParse({ pools: ["day"], perPool: 1 }).success).toBe(true);
-    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], perPool: 0 })).toContain("perPool");
-    expect(issuePaths(MatchesSearchRequestSchema, { pools: ["day"], perPool: 11 })).toContain("perPool");
-    expect(issuePaths(MatchesSearchRequestSchema, { perPool: 1 })).toContain("perPool");
+    expect(MatchesSearchRequestSchema.safeParse({ pools: [{ type: "building" }] }).success).toBe(false));
+  test("names each kind of pool at most once", () =>
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: [{ type: "day" }, { type: "day", count: 1 }] })).toContain(
+      "pools",
+    ));
+  test("names each pool of a kind at most once", () =>
+    expect(
+      issuePaths(MatchesSearchRequestSchema, { pools: [{ type: "session", ids: ["S1", "S1"] }] }),
+    ).toContain("pools.0.ids"));
+  test("asks for at least one match from each pool and no more than its kind lists", () => {
+    expect(MatchesSearchRequestSchema.safeParse({ pools: [{ type: "conference", count: 10 }] }).success).toBe(true);
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: [{ type: "conference", count: 11 }] })).toContain("pools.0.count");
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: [{ type: "timeBlock", count: 3 }] })).toContain("pools.0.count");
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: [{ type: "session", count: 0 }] })).toContain("pools.0.count");
   });
+  test("names pools in the form results give them, and the whole conference by no id", () => {
+    expect(MatchesSearchRequestSchema.safeParse({ pools: [{ type: "day", ids: ["2027-01-11T08:30:00-06:00"] }] }).success).toBe(false);
+    expect(MatchesSearchRequestSchema.safeParse({ pools: [{ type: "timeBlock", ids: ["2027-01-11T08:30:00"] }] }).success).toBe(false);
+    expect(MatchesSearchRequestSchema.safeParse({ pools: [{ type: "conference", ids: ["x"] }] }).success).toBe(false);
+  });
+  test("lists only matches", () =>
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: [{ type: "day" }], include: "all" })).toContain("include"));
+  test("sets no cap per person", () =>
+    expect(issuePaths(MatchesSearchRequestSchema, { pools: [{ type: "day" }], topPerPerson: 3 })).toContain(
+      "topPerPerson",
+    ));
+  test("has no separate cap per pool: the count of each kind is that cap", () =>
+    expect(MatchesSearchRequestSchema.safeParse({ pools: [{ type: "day" }], perPool: 1 }).success).toBe(false));
   test("the pools list 10, 2, 5, 2 and 2", () =>
     expect(POOL_SIZES).toEqual({ conference: 10, subConference: 2, day: 5, timeBlock: 2, session: 2 }));
   test("a result says which pool it is listed in", () => {

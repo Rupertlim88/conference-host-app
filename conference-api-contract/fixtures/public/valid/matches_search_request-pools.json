@@ -3,10 +3,21 @@
     "P1"
   ],
   "pools": [
-    "subConference",
-    "session"
+    {
+      "type": "subConference",
+      "count": 1
+    },
+    {
+      "type": "timeBlock",
+      "ids": [
+        "2027-01-11T08:30:00-06:00"
+      ],
+      "count": 2
+    },
+    {
+      "type": "session"
+    }
   ],
-  "perPool": 1,
   "kind": "unexpected",
   "pageSize": 500
 }

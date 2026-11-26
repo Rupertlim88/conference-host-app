@@ -116,8 +116,9 @@ export function conferenceApi(opts: {
   return {
     async pooled(talkId, pools) {
       try {
-        // One time limit covers every page.
-        const matches = await everyPage({ likeTalks: [talkId], pools }, AbortSignal.timeout(opts.timeoutMs ?? 3000));
+        // Every pool of each kind, as many matches as each lists; one time limit covers every page.
+        const asked = pools.map((type) => ({ type }));
+        const matches = await everyPage({ likeTalks: [talkId], pools: asked }, AbortSignal.timeout(opts.timeoutMs ?? 3000));
         return matches ? { status: "ok", matches } : { status: "unavailable" };
       } catch {
         return { status: "unavailable" };
