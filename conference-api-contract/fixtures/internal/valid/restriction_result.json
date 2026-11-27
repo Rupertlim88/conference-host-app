@@ -1,16 +1,25 @@
 {
+  "id": "job_aaaaaaaaaaaaaaaaaaaaaa",
+  "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc",
+  "run": {
+    "engineId": "commonkads_v1",
+    "engineVersion": "1.4.0",
+    "runId": "commonkads_v1-20261116T010000Z-a1b2c3",
+    "models": {
+      "embedding": "voyage-3",
+      "reasons": "claude-sonnet-5-5"
+    }
+  },
   "matches": [
     {
-      "person": "P1",
-      "basedOn": "T17",
-      "talk": "T42",
+      "anchor": 3,
+      "candidate": 7,
+      "score": 0.86,
+      "kind": "unexpected",
       "match": true,
       "shared": [
         "technique"
       ],
-      "kind": "unexpected",
-      "rank": 3,
-      "score": 0.86,
       "description": "This study follows heat flow across an interface with time-resolved X-ray scattering. The other study uses the same scattering technique on thin films, so its procedure carries over directly, though it asks how fast a lattice heats rather than how heat crosses a boundary.",
       "methods": [
         {
@@ -23,12 +32,7 @@
             "technique": "Time-resolved X-ray scattering of a thin film after optical heating."
           }
         }
-      ],
-      "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc",
-      "pool": {
-        "type": "session",
-        "id": "G21"
-      }
+      ]
     }
   ]
 }

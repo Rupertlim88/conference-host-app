@@ -1,18 +1,23 @@
 // A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.
+import type { Match } from "@repo/contracts";
 import { SHOWN_PER_PLACE, type RelatedTalks, type TalkSummary } from "@repo/host-contracts";
 
 import type { ConferenceApi } from "./matching-api";
 
-/** The related-talks panel for one talk: the matches the API lists in the whole conference's pool, joined to this
+type Talks = { talkSummaries(ids: string[]): Promise<TalkSummary[]> };
+
+/** The related-talks panel for one talk: the matches the API lists under the whole conference, joined to this
  *  programme's talks, the first five of them. */
-export async function relatedTalks(
-  store: { talkSummaries(ids: string[]): Promise<TalkSummary[]> },
-  api: ConferenceApi,
-  talkId: string,
-): Promise<RelatedTalks> {
-  const answer = await api.pooled(talkId, ["conference"]);
+export async function relatedTalks(store: Talks, api: ConferenceApi, talkId: string): Promise<RelatedTalks> {
+  const answer = await api.restricted(talkId, ["conference"]);
   if (answer.status === "unavailable") return { status: "unavailable" };
-  const listed = answer.matches.filter((x) => x.pool?.type === "conference");
+  return relatedFrom(store, answer.matches);
+}
+
+/** The panel from a search's results: those listed under the whole conference, in the API's order, joined to this
+ *  programme's talks, the first five of them. The tester's report reads its related talks this way too. */
+export async function relatedFrom(store: Talks, results: Match[]): Promise<RelatedTalks> {
+  const listed = results.filter((x) => x.restriction?.type === "conference");
   const talks = new Map((await store.talkSummaries(listed.map((x) => x.talk))).map((t) => [t.id, t]));
   const matches = listed
     .flatMap((x) => {

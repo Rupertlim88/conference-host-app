@@ -14,9 +14,9 @@ import {
 } from "@repo/host-contracts";
 import type { ProgrammeStore, SyncLog, TestSets } from "@repo/host-store";
 
-import { aroundTalk } from "./around-abstract";
+import { AROUND_KINDS, poolsFrom } from "./around-abstract";
 import type { ConferenceApi } from "./matching-api";
-import { relatedTalks } from "./related";
+import { relatedFrom } from "./related";
 import { toPartnerTalk } from "./send";
 import { plain } from "./tester-token";
 
@@ -86,49 +86,64 @@ function shownIn(place: PlaceToAsk, pools: AroundPools, related: RelatedTalks, l
   }
 }
 
-/** The report on one abstract the demo holds: null when it is not held and shown, "unavailable" when the matching API
- *  cannot answer any of the searches. */
-export async function reportOn(abstractId: string, deps: RecommendationsDeps): Promise<Recommendations | null | "unavailable"> {
+/** The report on one abstract: null when the demo does not hold and show it, "unavailable" when the matching API cannot
+ *  answer one of the searches, and how many restrictions it is still judging for the abstract, when it is judging any. */
+export type Report = { status: "ready"; report: Recommendations } | { status: "judging"; restrictions: number } | { status: "unavailable" } | null;
+
+/** The report on one abstract the demo holds. Every search is made even while some are still being judged, so that a
+ *  single later ask finds every place judged. */
+export async function reportOn(abstractId: string, deps: RecommendationsDeps): Promise<Report> {
   const [abstract] = await deps.store.talkSummaries([abstractId]);
   if (!abstract) return null;
-  const [around, related, forSync, tracks, runs] = await Promise.all([
-    aroundTalk(deps.store, abstract, deps.api),
-    relatedTalks(deps.store, deps.api, abstract.id),
+  const [session, forSync, tracks, runs] = await Promise.all([
+    abstract.sessionId ? deps.store.session(abstract.sessionId) : null,
     deps.store.talksForSync(),
     deps.store.tracks(),
     deps.log.runs(),
   ]);
-  if (!around.pools || related.status === "unavailable") return "unavailable";
   const sent = forSync.map(toPartnerTalk).filter((t): t is TalkInput => t !== null);
   const sessionStart = new Map(sent.map((t) => [t.id, t.session?.start ?? null]));
   const listed = new Set(tracks.map((t) => t.id));
+  const toAsk = placesAround(abstract.id, session?.trackIds ?? [], sent);
+
+  // What each place shows comes from one search of the restrictions the pages ask for.
+  const shown = await deps.api.restricted(abstract.id, ["conference", ...AROUND_KINDS]);
+  if (shown.status === "unavailable") return { status: "unavailable" };
+  const [related, pools] = await Promise.all([relatedFrom(deps.store, shown.matches), poolsFrom(deps.store, shown.matches)]);
+  let judging = shown.judging.length;
 
   const places: Place[] = [];
   // One search at a time, so a large test set never floods the matching API.
-  for (const place of placesAround(abstract.id, around.abstractTrackIds, sent)) {
+  for (const place of toAsk) {
     const answer = await deps.api.verdicts(abstract.id, place.pool);
-    if (answer.status === "unavailable") return "unavailable";
+    if (answer.status === "unavailable") return { status: "unavailable" };
+    judging += answer.judging.length;
     const judged = new Set(answer.matches.map((m) => m.talk));
     places.push({
       layout: place.layout,
       key: place.key,
       pool: place.pool,
-      shown: shownIn(place, around.pools, related, listed, sessionStart),
+      shown: shownIn(place, pools, related, listed, sessionStart),
       verdicts: answer.matches,
       notJudged: place.pool.filter((id) => !judged.has(id)),
     });
   }
+  if (judging > 0) return { status: "judging", restrictions: judging };
   const versioned = places.flatMap((p) => p.verdicts).find((v) => typeof v.programmeVersion === "string");
   return {
-    abstract: abstract.id,
-    sentProgrammeVersion: runs.find((r) => r.state === "sent")?.programmeVersion ?? null,
-    matchesProgrammeVersion: versioned ? String(versioned.programmeVersion) : null,
-    places,
+    status: "ready",
+    report: {
+      abstract: abstract.id,
+      sentProgrammeVersion: runs.find((r) => r.state === "sent")?.programmeVersion ?? null,
+      matchesProgrammeVersion: versioned ? String(versioned.programmeVersion) : null,
+      places,
+    },
   };
 }
 
 /** The report on an abstract the stored test set tests: 400 without an abstract named, 404 for one it does not test or
- *  the demo does not show, 502 when the matching API cannot answer. */
+ *  the demo does not show, 202 while the matching API is still judging anything for it, 502 when the matching API
+ *  cannot answer. */
 export async function answerRecommendations(req: Request, deps: RecommendationsDeps): Promise<Response> {
   const input = RecommendationsInputSchema.safeParse({ abstract: new URL(req.url).searchParams.get("abstract") });
   if (!input.success) return plain(400, "Name the abstract to report on, as ?abstract=<AMS id>.");
@@ -137,6 +152,14 @@ export async function answerRecommendations(req: Request, deps: RecommendationsD
   if (!testSet?.askers.includes(id)) return plain(404, `The stored test set does not test abstract ${id}.`);
   const report = await reportOn(id, deps);
   if (report === null) return plain(404, `Abstract ${id} is not among the talks the demo shows.`);
-  if (report === "unavailable") return plain(502, "The matching API could not answer, so there is no report.");
-  return Response.json(RecommendationsSchema.parse(report));
+  switch (report.status) {
+    case "unavailable":
+      return plain(502, "The matching API could not answer, so there is no report.");
+    case "judging": {
+      const count = report.restrictions === 1 ? "1 restriction" : `${report.restrictions} restrictions`;
+      return plain(202, `The matching API is still judging ${count} for this abstract; ask again shortly.`);
+    }
+    case "ready":
+      return Response.json(RecommendationsSchema.parse(report.report));
+  }
 }

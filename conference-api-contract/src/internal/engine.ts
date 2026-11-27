@@ -2,7 +2,7 @@
 import { z } from "zod";
 
 import { JobIdSchema, PartnerIdSchema, ProgrammeVersionSchema } from "../public/ids";
-import { MatchKindSchema, PoolSchema, explanationFields, matchAgreesWithShared } from "../public/matches";
+import { MatchKindSchema, RestrictionSchema, explanationFields, matchAgreesWithShared } from "../public/matches";
 import { text } from "../public/text";
 
 /** The data layer's own ID for a talk. */
@@ -61,22 +61,12 @@ export type MatchingJob = z.infer<typeof MatchingJobSchema>;
 
 /** One engine judgment from an anchor talk to a candidate: match or not, what the two share, and the description
  *  written from the anchor's side. The data layer ranks results when it serves them. */
-/** The kinds of edge that join a match's two talks, seen from the anchor: the whole conference, each of the
- *  candidate's sub-conferences (a talk names at most 20), its day, time block and session; each named once. */
-const EdgeKindsSchema = z
-  .array(PoolSchema)
-  .max(4 + 20)
-  .refine((pools) => new Set(pools.map((p) => JSON.stringify([p.type, "id" in p ? p.id : null]))).size === pools.length,
-    "names a pool twice")
-  .meta({ uniqueItems: true });
-
 export const MatchPairSchema = z
   .strictObject({
     anchor: InternalIdSchema,
     candidate: InternalIdSchema,
     score: z.number().min(0).max(1),
     kind: MatchKindSchema,
-    pools: EdgeKindsSchema,
     ...explanationFields,
   })
   .superRefine(matchAgreesWithShared)
@@ -119,6 +109,37 @@ export const CompleteMatchingJobSchema = z.strictObject({
 export type CompleteMatchingJob = z.infer<typeof CompleteMatchingJobSchema>;
 
 /** Match a person's own text against the programme, on the spot. */
+/** A restriction to judge for one talk, the first time a search asks for it: the talks the restriction holds, by the
+ *  data layer's IDs, never the talk itself; and K, the connections each of the talk's methods gets inside it (null: the
+ *  engine works K out from the restriction's size). */
+export const RestrictionJobSchema = z
+  .strictObject({
+    id: JobIdSchema,
+    programmeVersion: ProgrammeVersionSchema,
+    anchor: InternalIdSchema,
+    restriction: RestrictionSchema,
+    among: z
+      .array(InternalIdSchema)
+      .min(1)
+      .max(100_000)
+      .refine((ids) => new Set(ids).size === ids.length, "lists a talk twice")
+      .meta({ uniqueItems: true }),
+    k: z.int().min(1).max(100).nullable(),
+  })
+  .superRefine((job, ctx) => {
+    if (job.among.includes(job.anchor)) ctx.addIssue({ code: "custom", path: ["among"], message: "never the talk itself" });
+  });
+export type RestrictionJob = z.infer<typeof RestrictionJobSchema>;
+
+/** The pairs an engine judged for a restriction job, each in both directions. */
+export const RestrictionResultSchema = z.strictObject({
+  id: JobIdSchema,
+  programmeVersion: ProgrammeVersionSchema,
+  run: RunInfoSchema,
+  matches: z.array(MatchPairSchema).max(1_000_000),
+});
+export type RestrictionResult = z.infer<typeof RestrictionResultSchema>;
+
 export const TextMatchJobSchema = z.strictObject({
   id: JobIdSchema,
   programmeVersion: ProgrammeVersionSchema.nullable(),

@@ -25,15 +25,15 @@
         }
       ],
       "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc",
-      "pool": {
-        "type": "subConference",
-        "id": "Hydrology"
+      "restriction": {
+        "type": "session",
+        "id": "G21"
       }
     },
     {
       "person": "P1",
       "basedOn": "T17",
-      "talk": "T42",
+      "talk": "T9",
       "match": true,
       "shared": [
         "technique"
@@ -55,9 +55,17 @@
         }
       ],
       "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc",
-      "pool": {
-        "type": "session",
-        "id": "G21"
+      "restriction": {
+        "type": "talks"
+      }
+    }
+  ],
+  "judging": [
+    {
+      "basedOn": "T42",
+      "restriction": {
+        "type": "timeBlock",
+        "id": "2027-01-11T08:30:00-06:00"
       }
     }
   ]

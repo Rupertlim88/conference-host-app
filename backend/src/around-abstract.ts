@@ -1,35 +1,32 @@
 // Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.
-import type { Match, Pool, PoolType } from "@repo/contracts";
-import { Id, type AroundAbstract, type AroundPool, type AroundPools, type TalkSummary } from "@repo/host-contracts";
+import type { Match, Restriction } from "@repo/contracts";
+import { Id, type AroundAbstract, type AroundPool, type AroundPools } from "@repo/host-contracts";
 import type { DemoSettings, ProgrammeStore } from "@repo/host-store";
 
-import type { ConferenceApi } from "./matching-api";
+import type { ConferenceApi, StandardKind } from "./matching-api";
 
-/** The kinds of pool our improvements show around the fixed abstract, asked for in one search. */
-export const AROUND_POOLS = ["subConference", "day", "timeBlock", "session"] satisfies PoolType[];
+/** The kinds of restriction our improvements show around the fixed abstract, every one of each kind, asked for in one
+ *  search. The tester's report asks for them the same way. */
+export const AROUND_KINDS: StandardKind[] = ["subConference", "day", "timeBlock", "session"];
 
 /** The fixed abstract, its session's conferences, and the matching API's pools around it; the pools are null when the
  *  API cannot answer. */
 export async function aroundAbstract(store: ProgrammeStore, demo: DemoSettings, api: ConferenceApi): Promise<AroundAbstract> {
   const abstract = await demo.fixedAbstract();
   if (!abstract) return { abstract: null, abstractTrackIds: [], pools: null };
-  return aroundTalk(store, abstract, api);
-}
-
-/** Any talk taken as the attendee's abstract, as our improvements would see it: the tester's report asks this way. */
-export async function aroundTalk(store: ProgrammeStore, abstract: TalkSummary, api: ConferenceApi): Promise<AroundAbstract> {
   const [session, answer] = await Promise.all([
     abstract.sessionId ? store.session(abstract.sessionId) : null,
-    api.pooled(abstract.id, AROUND_POOLS),
+    api.restricted(abstract.id, AROUND_KINDS),
   ]);
   const abstractTrackIds = session?.trackIds ?? [];
   if (answer.status === "unavailable") return { abstract, abstractTrackIds, pools: null };
-  return { abstract, abstractTrackIds, pools: await joinPools(store, answer.matches) };
+  return { abstract, abstractTrackIds, pools: await poolsFrom(store, answer.matches) };
 }
 
-/** The API's results grouped by pool, each pool's matches in the API's order, as this programme's talks with the
- *  conferences each is in. A match to a talk this programme does not show is left out, and so is a pool it cannot name. */
-async function joinPools(store: ProgrammeStore, results: Match[]): Promise<AroundPools> {
+/** The API's results grouped by restriction into pools, each pool's matches in the API's order, as this programme's
+ *  talks with the conferences each is in. A match to a talk this programme does not show is left out, and so is a
+ *  restriction it cannot name. The tester's report reads its pools this way too. */
+export async function poolsFrom(store: ProgrammeStore, results: Match[]): Promise<AroundPools> {
   const ids = [...new Set(results.map((r) => r.talk))];
   const [summaries, tracks] = await Promise.all([store.talkSummaries(ids), store.tracksOfTalks(ids)]);
   const talks = new Map(summaries.map((t) => [t.id, t]));
@@ -37,7 +34,7 @@ async function joinPools(store: ProgrammeStore, results: Match[]): Promise<Aroun
   const found = new Map<string, AroundPool>();
   for (const result of results) {
     const talk = talks.get(result.talk);
-    const place = result.pool ? placeOf(result.pool) : null;
+    const place = result.restriction ? placeOf(result.restriction) : null;
     if (!talk || !place) continue;
     const key = `${place.type} ${place.id}`;
     let pool = found.get(key);
@@ -51,17 +48,19 @@ async function joinPools(store: ProgrammeStore, results: Match[]): Promise<Aroun
   return pools;
 }
 
-/** A result's pool as this programme names it: a time block by its start instant. Null for the whole conference, and
- *  for a conference or session whose id is not one of this programme's ids. */
-function placeOf(pool: Pool): { type: keyof AroundPools; id: string } | null {
-  switch (pool.type) {
+/** A result's restriction as this programme names it: a time block by its start instant. Null for the whole
+ *  conference and the talks a search named, and for a conference or session whose id is not one of this programme's
+ *  ids. */
+function placeOf(restriction: Restriction): { type: keyof AroundPools; id: string } | null {
+  switch (restriction.type) {
     case "conference":
+    case "talks":
       return null;
     case "day":
-      return pool;
+      return restriction;
     case "timeBlock":
-      return { type: "timeBlock", id: new Date(pool.id).toISOString() };
+      return { type: "timeBlock", id: new Date(restriction.id).toISOString() };
     default:
-      return Id.safeParse(pool.id).success ? pool : null;
+      return Id.safeParse(restriction.id).success ? restriction : null;
   }
 }

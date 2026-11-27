@@ -58,58 +58,60 @@ export function matchAgreesWithShared(result: { match: boolean; shared: string[]
   }
 }
 
-/** The five kinds of pool a match can be listed in, and how many each lists at most. */
-export const POOL_SIZES = { conference: 10, subConference: 2, day: 5, timeBlock: 2, session: 2 } as const;
-export const PoolTypeSchema = z.enum(["conference", "subConference", "day", "timeBlock", "session"]);
-export type PoolType = z.infer<typeof PoolTypeSchema>;
+/** The six kinds of restriction a search can ask for (the conference API's rule on restricting). */
+export const RestrictionTypeSchema = z.enum(["conference", "subConference", "day", "timeBlock", "session", "talks"]);
+export type RestrictionType = z.infer<typeof RestrictionTypeSchema>;
 
-/** The pool a result is listed in: the whole conference, or one sub-conference (a track as the talks name it), day
- *  (the conference's local date), time block (when its sessions start, with the offset) or session. */
-export const PoolSchema = z.discriminatedUnion("type", [
+/** The restriction a result is listed under: the whole conference, one sub-conference (a track as the talks name it),
+ *  day (the conference's local date), time block (when its sessions start, with the offset), session, or the set of
+ *  talks the search named. */
+export const RestrictionSchema = z.discriminatedUnion("type", [
   z.strictObject({ type: z.literal("conference") }),
   z.strictObject({ type: z.literal("subConference"), id: text(1, 100) }),
   z.strictObject({ type: z.literal("day"), id: z.iso.date() }),
   z.strictObject({ type: z.literal("timeBlock"), id: z.iso.datetime({ offset: true }) }),
   z.strictObject({ type: z.literal("session"), id: PartnerIdSchema }),
+  z.strictObject({ type: z.literal("talks") }),
 ]);
-export type Pool = z.infer<typeof PoolSchema>;
+export type Restriction = z.infer<typeof RestrictionSchema>;
 
-/** One kind of pool a search asks for: which pools of that kind, named as results name them (leave out = every one),
- *  and how many matches from each of them, one number for all (leave out = as many as the kind lists). The whole
- *  conference is one pool, named by no id. */
-function askedFor<T extends z.ZodType>(type: PoolType, id: T) {
-  return z.strictObject({
-    type: z.literal(type),
-    ids: z
-      .array(id)
-      .min(1)
-      .max(1000)
-      .refine((ids) => new Set(ids).size === ids.length, "names the same pool twice")
-      .meta({ uniqueItems: true })
-      .optional(),
-    count: z.int().min(1).max(POOL_SIZES[type]).optional(),
-  });
+function distinct<T extends z.ZodType>(item: T, what: string) {
+  return z
+    .array(item)
+    .min(1)
+    .max(1000)
+    .refine((items) => new Set(items).size === items.length, `names the same ${what} twice`)
+    .meta({ uniqueItems: true });
 }
-export const PoolRequestSchema = z.discriminatedUnion("type", [
-  z.strictObject({ type: z.literal("conference"), count: z.int().min(1).max(POOL_SIZES.conference).optional() }),
-  askedFor("subConference", text(1, 100)),
-  askedFor("day", z.iso.date()),
-  askedFor("timeBlock", z.iso.datetime({ offset: true })),
-  askedFor("session", PartnerIdSchema),
-]);
-export type PoolRequest = z.infer<typeof PoolRequestSchema>;
 
-/** A pooled result is a match, ranked within as many as its pool lists. */
-function fitsItsPool(result: { match: boolean; rank: number; pool?: Pool }, ctx: z.RefinementCtx): void {
-  if (result.pool === undefined) return;
-  if (!result.match) ctx.addIssue({ code: "custom", path: ["pool"], message: "pools list only matches" });
-  if (result.rank > POOL_SIZES[result.pool.type]) {
-    ctx.addIssue({ code: "custom", path: ["rank"], message: "is beyond the number its pool lists" });
+/** The effective K: how many connections each of the talk's methods gets inside a restriction. Left out, it falls with
+ *  the logarithm of the restriction's size. */
+const EffectiveKSchema = z.int().min(1).max(100);
+
+/** A standard restriction a search asks for: which ones of its kind, named as results name them (leave out = every
+ *  one), and K. A set of talks a search names is restricted to in the same way, with its own K. */
+function standard<T extends z.ZodType>(type: Exclude<RestrictionType, "conference" | "talks">, id: T) {
+  return z.strictObject({ type: z.literal(type), ids: distinct(id, "one").optional(), k: EffectiveKSchema.optional() });
+}
+export const RestrictionRequestSchema = z.discriminatedUnion("type", [
+  z.strictObject({ type: z.literal("conference"), k: EffectiveKSchema.optional() }),
+  standard("subConference", text(1, 100)),
+  standard("day", z.iso.date()),
+  standard("timeBlock", z.iso.datetime({ offset: true })),
+  standard("session", PartnerIdSchema),
+  z.strictObject({ type: z.literal("talks"), ids: distinct(PartnerIdSchema, "talk"), k: EffectiveKSchema.optional() }),
+]);
+export type RestrictionRequest = z.infer<typeof RestrictionRequestSchema>;
+
+/** A result listed under a restriction is a match. */
+function fitsItsRestriction(result: { match: boolean; restriction?: Restriction }, ctx: z.RefinementCtx): void {
+  if (result.restriction !== undefined && !result.match) {
+    ctx.addIssue({ code: "custom", path: ["restriction"], message: "restrictions list only matches" });
   }
 }
 
 /** A result from matches:search, judged from the asker's talk named in "basedOn". "person" is there only when
- *  asking by people, and "pool" only when asking with pools. */
+ *  asking by people, and "restriction" only when asking with restrictions. */
 export const MatchSchema = z
   .strictObject({
     person: PartnerIdSchema.optional(),
@@ -117,13 +119,13 @@ export const MatchSchema = z
     talk: PartnerIdSchema,
     kind: MatchKindSchema,
     rank: z.int().min(1).max(1_000_000),
-    pool: PoolSchema.optional(),
+    restriction: RestrictionSchema.optional(),
     score: ScoreSchema,
     ...explanationFields,
     programmeVersion: ProgrammeVersionSchema,
   })
   .superRefine(matchAgreesWithShared)
-  .superRefine(fitsItsPool);
+  .superRefine(fitsItsRestriction);
 export type Match = z.infer<typeof MatchSchema>;
 
 /** A match from matches:fromText, which never names a person. */
@@ -147,11 +149,11 @@ export const MatchesSearchRequestSchema = z
     kind: MatchKindSchema.optional(),
     minScore: ScoreSchema.optional(),
     topPerPerson: z.int().min(1).max(1000).optional(),
-    pools: z
-      .array(PoolRequestSchema)
+    restrictions: z
+      .array(RestrictionRequestSchema)
       .min(1)
-      .max(PoolTypeSchema.options.length)
-      .refine((pools) => new Set(pools.map((p) => p.type)).size === pools.length, "names the same kind of pool twice")
+      .max(RestrictionTypeSchema.options.length)
+      .refine((all) => new Set(all.map((r) => r.type)).size === all.length, "names the same kind of restriction twice")
       .meta({ uniqueItems: true })
       .optional(),
     pageSize: z.int().min(1).max(1000).default(100),
@@ -161,16 +163,25 @@ export const MatchesSearchRequestSchema = z
     if (request.people !== undefined && request.likeTalks !== undefined) {
       ctx.addIssue({ code: "custom", path: ["likeTalks"], message: "ask by people or by liked talks, not both" });
     }
-    if (request.pools === undefined) return;
-    if (request.include === "all") ctx.addIssue({ code: "custom", path: ["include"], message: "pools list only matches" });
+    if (request.restrictions === undefined) return;
+    if (request.people === undefined && request.likeTalks === undefined) {
+      ctx.addIssue({ code: "custom", path: ["restrictions"], message: "restrict the matches of named people or liked talks" });
+    }
+    if (request.include === "all") {
+      ctx.addIssue({ code: "custom", path: ["include"], message: "restrictions list only matches" });
+    }
     if (request.topPerPerson !== undefined) {
-      ctx.addIssue({ code: "custom", path: ["topPerPerson"], message: "pools set how many each lists" });
+      ctx.addIssue({ code: "custom", path: ["topPerPerson"], message: "restrictions set how many each gives" });
     }
   });
 export type MatchesSearchRequest = z.infer<typeof MatchesSearchRequestSchema>;
 
+/** A restriction still being judged for one of the asker's talks: ask again later for its matches. */
+export const JudgingSchema = z.strictObject({ basedOn: PartnerIdSchema, restriction: RestrictionSchema });
+
 export const MatchesSearchResponseSchema = z.strictObject({
   matches: z.array(MatchSchema).max(1000),
+  judging: z.array(JudgingSchema).max(10_000).optional(),
   nextPageToken: PageTokenSchema.optional(),
 });
 export type MatchesSearchResponse = z.infer<typeof MatchesSearchResponseSchema>;

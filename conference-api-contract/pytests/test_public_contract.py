@@ -37,7 +37,7 @@ EXPRESSIBLE = {
     "matches_search_response-description-too-long.json",
     "matches_search_request-include-unknown.json",
     "matches_from_text_request-blank-text.json",
-    "matches_search_request-pool-twice.json",
+    "matches_search_request-restriction-twice.json",
 }
 
 def validator(kind: str) -> Draft202012Validator:

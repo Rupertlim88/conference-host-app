@@ -1,0 +1,15 @@
+{
+  "id": "job_aaaaaaaaaaaaaaaaaaaaaa",
+  "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc",
+  "anchor": 3,
+  "among": [
+    7,
+    9,
+    11
+  ],
+  "k": 1,
+  "restriction": {
+    "type": "session",
+    "id": "G21"
+  }
+}

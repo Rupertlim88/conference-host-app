@@ -1,0 +1,25 @@
+{
+  "likeTalks": [
+    "T42"
+  ],
+  "restrictions": [
+    {
+      "type": "timeBlock",
+      "ids": [
+        "2027-01-11T08:30:00-06:00"
+      ]
+    },
+    {
+      "type": "session",
+      "k": 1
+    },
+    {
+      "type": "talks",
+      "ids": [
+        "T7",
+        "T9"
+      ]
+    }
+  ],
+  "pageSize": 500
+}
