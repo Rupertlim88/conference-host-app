@@ -99,31 +99,41 @@ Everything else is a lower level, written by Claude to carry out these specifica
     same step makes the demo hold exactly its talks, with their people, taken from the whole published programme, with
     every session and conference kept, and fixes the demo to its first abstract as the developer console does,
     leaving the setting as it was when that abstract cannot be fixed. Holding restarts the demo's programme: organisers'
-    edits go away, and stars and notes stay. Until a test set arrives, the demo holds the sample; loading again keeps
-    the latest test set and holds its talks.
+    edits go away, and stars and notes stay. It keeps the test set's layout, when it has one. Until a test set arrives,
+    the demo holds the sample; loading again keeps the latest test set and holds its talks.
     *How:* code alone: one transaction.
     *File:* `test-set.ts`
 
+13. **Where each held talk sits follows the latest test set's layout when it has one, and AMS's placement otherwise.**
+    With a layout, a talk sits in the layout's session, at that session's start in the layout, and in the layout's
+    conferences, and a talk the layout places nowhere sits in no session and no conference; each session holds its
+    talks in the layout's order. Without one, each talk sits where AMS placed it, and its session's conferences are
+    AMS's. The talks a send carries sit this way, and so do the talks our versions show; the attendee app's base pages
+    always read AMS's placement.
+    *How:* code alone: the layout is read from the test set's row, and its times are turned into instants on the
+    meeting's clock.
+    *File:* `layout.ts`
+
 ### Reading and writing
 
-13. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
+14. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
     zone, tracks, sessions, talks and people; the conferences list leaves out the listings of organisations. It finds a
     programme AMS's menu opens by its code, reads Program Highlights' lists and the pages of names, and gives the
-    conferences each of a set of talks is in and when each of a set of sessions starts. A person is listed only while one of their talks is shown.
+    short forms of a set of sessions and where every held talk sits (the store's rule on where each held talk sits). A person is listed only while one of their talks is shown.
     A person who has no shown talk has no page either. Search covers talks, sessions and people, at most 50, 20 and 20.
-    The talks a send carries are the same shown talks, with their session's title, format and start, the start as the
-    meeting's clock shows it, with its offset. The keep-alive's one
+    The talks a send carries are the same shown talks, each where it sits, with its session's title, format and start,
+    the start as the meeting's clock shows it, with its offset. The keep-alive's one
     trivial read is here, and so are the short forms of a session and a talk that every list shows.
     *How:* code alone: SQL through Drizzle; every read filters out withdrawn talks.
     *File:* `programme.ts`
 
-14. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
+15. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
     stars and unstars talks and sessions, and sees their schedule. A star or note on a talk the demo no longer holds is
     kept but not shown either, and shows again once a test set holds the talk. A note saved blank is deleted.
     *How:* code alone: every read and write is filtered by the guest's id.
     *File:* `guest-data.ts`
 
-15. **Organisers see every talk with how it differs from the published programme, and their edits never cross.**
+16. **Organisers see every talk with how it differs from the published programme, and their edits never cross.**
     - **Reading:** papers in pages of 50, filtered by status (all, scheduled, withdrawn, changed) and search, where a
       page past the end gives the last page; sessions with their count of shown talks and whether they changed,
       leaving out the listings' organisations; the
@@ -136,7 +146,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *How:* code alone: SQL through Drizzle, with `SELECT … FOR UPDATE` on the session a move or a change edits.
     *File:* `organiser.ts`
 
-16. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
+17. **Only one send runs at a time, and a run that never finished is taken over after ten minutes.** A run starts only
     when no other is running; it ends as sent or failed, or as interrupted when it is taken over, and only a running
     one can end. Its error is kept to 500
     characters. The last ten runs are listed.
@@ -145,7 +155,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### The demo's settings
 
-17. **The demo is fixed to one abstract, which the developer console sets.** A shown talk with an abstract, not a
+18. **The demo is fixed to one abstract, which the developer console sets.** A shown talk with an abstract, not a
     break, can be fixed; any other is refused, and the setting stays. With none set, or when the fixed talk is later
     withdrawn, the demo's default abstract stands in: a highly cited AMS 2027 talk, kept in every sample, whose topic
     reaches many fields. If that talk is not shown, the earliest such talk stands in. The setting is kept through

@@ -30,7 +30,7 @@ const pools = aroundPools({
     },
   ],
 });
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, ...over });
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, layout: null, ...over });
 /** What the day's picks show inside the outline the change point draws around them. */
 const shown = (date: string, a: AroundAbstract) => renderApp(<DayPicksView date={date} around={a} />).container;
 
@@ -67,5 +67,5 @@ test("when the matching API cannot answer, one line says so", () => {
 });
 
 test("with no abstract, one line says so", () => {
-  expect(shown("2027-01-12", { abstract: null, abstractTrackIds: [], pools: null }).textContent).toBe("The demo has no abstract to pick talks for yet.");
+  expect(shown("2027-01-12", { abstract: null, abstractTrackIds: [], pools: null, layout: null }).textContent).toBe("The demo has no abstract to pick talks for yet.");
 });

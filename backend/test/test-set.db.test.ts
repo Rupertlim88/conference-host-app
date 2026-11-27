@@ -56,6 +56,13 @@ describe.skipIf(!url)("a test set", { timeout: 60_000 }, () => {
       log,
       api,
     });
+  // T2 moves to Wednesday at 9:00 in session S1, in P1; T1 is held but placed nowhere.
+  const layout = {
+    timeBlocks: [{ start: "2026-01-28T09:00", sessions: ["S1"] }],
+    sessions: [{ id: "S1", start: "2026-01-28T09:00", talks: ["T2"] }],
+    conferences: [{ trackId: "P1", title: "Education", talks: ["T2"] }],
+  };
+  const laidOut = { conference: "ams-2027", askers: ["T2"], talks: ["T1", "T2"], layout };
   const held = async () => (await store.talkSummaries(["T1", "T2", "T3", "BR"])).map((t) => t.id).sort();
 
   beforeEach(async () => {
@@ -83,6 +90,17 @@ describe.skipIf(!url)("a test set", { timeout: 60_000 }, () => {
     expect((await log.runs())[0]).toMatchObject({ state: "sent", programmeVersion: "pv_held" });
   });
 
+  test("with a layout, the send carries each talk where the layout places it, and a talk placed nowhere in no session", async () => {
+    const sent: TalksWriteRequest[] = [];
+    const res = await take(laidOut, taking(sent));
+    expect(res.status).toBe(202);
+    expect(await testSets.latest()).toEqual(laidOut);
+    const talks = sent.flatMap((part) => part.talks);
+    expect(talks.find((t) => t.id === "T2")).toMatchObject({ session: { id: "S1", start: "2026-01-28T09:00:00-06:00" }, tracks: ["P1"] });
+    const t1 = talks.find((t) => t.id === "T1")!;
+    expect([t1.session, t1.tracks]).toEqual([undefined, undefined]);
+  });
+
   describe("is refused with 400 and a plain message, storing and sending nothing,", () => {
     const refusals: [string, unknown, RegExp][] = [
       ["when the body is not JSON", "{not json", /JSON/],
@@ -92,6 +110,21 @@ describe.skipIf(!url)("a test set", { timeout: 60_000 }, () => {
       ["when it names a break, which is not a talk", { conference: "ams-2027", askers: ["T1"], talks: ["T1", "BR"] }, /BR/],
       ["when an abstract to test is not among its talks", { conference: "ams-2027", askers: ["T2"], talks: ["T1"] }, /T2/],
       ["when an abstract to test has no abstract to match", { conference: "ams-2027", askers: ["T3"], talks: ["T3"] }, /T3/],
+      [
+        "when its layout does not agree with itself",
+        { ...laidOut, layout: { ...layout, timeBlocks: [{ start: "2026-01-28T09:00", sessions: ["S1", "S9"] }] } },
+        /layout: a time block names a session the layout does not list: S9/,
+      ],
+      [
+        "when its layout names a session AMS's published programme does not have",
+        { ...laidOut, layout: { ...layout, timeBlocks: [{ start: "2026-01-28T09:00", sessions: ["S404"] }], sessions: [{ id: "S404", start: "2026-01-28T09:00", talks: ["T2"] }] } },
+        /S404/,
+      ],
+      [
+        "when its layout names a conference AMS's published programme does not have",
+        { ...laidOut, layout: { ...layout, conferences: [{ trackId: "P404", title: "Nowhere", talks: ["T2"] }] } },
+        /P404/,
+      ],
     ];
     for (const [when, body, names] of refusals) {
       test(when, async () => {

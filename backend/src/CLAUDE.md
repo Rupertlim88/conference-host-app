@@ -72,11 +72,14 @@ Everything else is a lower level, written by Claude to carry out these specifica
    each with its talk, kind, score and reason, and the conferences its talk is in. A match to a talk this programme
    does not show is left out, and so is a pool this programme cannot name, a pool for the attendee's own conferences or
    for a conference the conferences list does not show, a talk in a time block its session does not start with, and a
-   talk in a session it is not in; no pool is empty. The conferences of the abstract's session are the attendee's own.
+   talk in a session it is not in; no pool is empty. Each talk is where the store says it sits: with a test set's
+   layout, in its session there, at that session's start. The attendee's own conferences are those of the abstract's
+   session, or, with a layout, those the layout puts the abstract in. With a layout, the view also carries the sessions
+   the layout places the talks in, each at its start there, keeping its length, with its talks in order.
    When the API cannot answer, the pools are left out, and the abstract and its conferences still show; a restriction
    the API is still judging has no pool until it is judged.
-   *How:* code alone: one restricted matches search, every page of it, with the abstract's session, each matched talk,
-   its conferences and its session's start, and the conferences list, read from the store; the tester's report makes
+   *How:* code alone: one restricted matches search, every page of it, with where each held talk sits, the matched and
+   laid-out talks' and sessions' short forms, and the conferences list, read from the store; the tester's report makes
    its pools the same way.
    *File:* `around-abstract.ts`
 
@@ -137,7 +140,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `matching-api.ts`
 
 10. **The programme is sent as one run at a time, in parts of a thousand talks, and stops at a five-minute deadline.**
-   - **What is sent:** every talk the store shows, except breaks and talks with no abstract. Text is made plain:
+   - **What is sent:** every talk the store shows, except breaks and talks with no abstract, each where the store
+     says it sits: in the latest test set's layout when it has one, so a talk the layout places nowhere goes without
+     a session or conferences. Text is made plain:
      control characters other than tabs and line breaks become spaces, and each field is cut, never inside a character, to the contract's limits
      (abstract 10,000, title 500, number 64, session title 500, presenter's name 300; at most 20 tracks). An end is
      sent only when it is after the start, or when there is no start. The presenter is sent as an author and a presenter.
@@ -178,7 +183,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 13. **A test set is checked, stored, held and sent to the matching API.** It names the conference, the abstracts to
     test, the first being the demo's fixed abstract, and the talks for the demo to hold. It is refused, with a plain
     message, when it names another conference, lists nothing, names a talk the published programme does not have, or
-    an abstract to test that is not among its talks or has no abstract to match, and before the whole programme is
+    an abstract to test that is not among its talks or has no abstract to match, when its layout disagrees with itself
+    or names a session or conference the published programme does not have, and before the whole programme is
     loaded. Once it is stored and held, the
     programme is sent to the matching API as one run, and the answer gives the programme version that send returned.
     While another send runs, or when the send fails, the test set stays held and the answer says so.

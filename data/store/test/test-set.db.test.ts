@@ -94,6 +94,18 @@ describe.skipIf(!url)("the latest test set", { timeout: 60_000 }, () => {
     expect(await db.$count(amsTables.notes, sql`user_id = ${USER}`)).toBe(1);
   });
 
+  test("a test set's layout is kept with it, and a later test set without one keeps none", async () => {
+    const layout = {
+      timeBlocks: [{ start: "2026-01-27T13:45", sessions: ["73193"] }],
+      sessions: [{ id: "73193", start: "2026-01-27T13:45", talks: [J74, J72] }],
+      conferences: [{ trackId: "1878", title: "35th Conference on Education", talks: [J72] }],
+    };
+    await testSets.hold({ ...testSet([J72], [J72, J74]), layout });
+    expect(await testSets.latest()).toEqual({ ...testSet([J72], [J72, J74]), layout });
+    await testSets.hold(testSet([J74], [J74]));
+    expect((await testSets.latest())?.layout).toBeUndefined();
+  });
+
   test("a later test set replaces the one before", async () => {
     await testSets.hold(testSet([J72], [J72, POSTER]));
     await testSets.hold(testSet([J74], [J74]));

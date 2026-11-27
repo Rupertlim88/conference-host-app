@@ -1,4 +1,5 @@
 // The meeting has its own schema in the database, and sign-in has a schema of its own.
+import type { Layout } from "@repo/host-contracts";
 import { sql } from "drizzle-orm";
 import {
   boolean,
@@ -6,6 +7,7 @@ import {
   date,
   index,
   integer,
+  jsonb,
   pgSchema,
   primaryKey,
   smallint,
@@ -221,12 +223,14 @@ function societyTables(schemaName: string) {
     (t) => [primaryKey({ columns: [t.talkId, t.personId] })],
   );
 
-  /** The latest test set, in one row: the talks the demo holds and the abstracts to test, the first being the demo's. */
+  /** The latest test set, in one row: the talks the demo holds, the abstracts to test, the first being the demo's, and
+   *  the layout our versions place the talks by, when it has one. */
   const testSet = schema.table("test_set", {
     id: smallint("id").primaryKey().default(1),
     conference: text("conference").notNull(),
     askers: textArray("askers"),
     talks: textArray("talks"),
+    layout: jsonb("layout").$type<Layout>(),
     storedAt: instant("stored_at").notNull().defaultNow(),
   });
 

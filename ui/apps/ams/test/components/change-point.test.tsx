@@ -30,12 +30,12 @@ const match = { talk: talkSummary({ id: "490001", sessionId: "76096" }), kind: "
 
 beforeEach(() => {
   state.version = "improvements";
-  state.around = { abstract: talkSummary(), abstractTrackIds: [], pools: aroundPools({ timeBlock: [{ id: "2027-01-12T15:30:00.000Z", matches: [match] }] }) };
+  state.around = { abstract: talkSummary(), abstractTrackIds: [], pools: aroundPools({ timeBlock: [{ id: "2027-01-12T15:30:00.000Z", matches: [match] }] }), layout: null };
 });
 
 test("in the base, a change point shows what the base has there", async () => {
   state.version = undefined;
-  renderApp(await ChangePoint({ at: "calendar.day", props: { sessions: [lightning] }, children: <p>AMS's day</p> }));
+  renderApp(await ChangePoint({ at: "calendar.day", props: { date: "2027-01-12", sessions: [lightning] }, children: <p>AMS's day</p> }));
   expect(screen.getByText("AMS's day")).toBeInTheDocument();
   expect(screen.queryByText(/^Our change/)).not.toBeInTheDocument();
 });
@@ -53,7 +53,7 @@ test("a version's change shows in place of the base, in a gold outline labelled 
 });
 
 test("a change that edits several parts outlines each part with the label, empty where it has nothing to show, and the change point adds no outline", async () => {
-  renderApp(await ChangePoint({ at: "calendar.day", props: { sessions: [lightning, coffee] }, children: <p>AMS's day</p> }));
+  renderApp(await ChangePoint({ at: "calendar.day", props: { date: "2027-01-12", sessions: [lightning, coffee] }, children: <p>AMS's day</p> }));
   const outlines = screen.getAllByText(/^Our change/).map((label) => label.closest("section")!);
   expect(outlines.map((outline) => outline.textContent)).toEqual([
     expect.stringMatching(/^Our change: recommended around your abstract8:30 AM.+/),

@@ -19,9 +19,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
    asked for. The meeting, days, tracks, sessions, talks, people, search results, schedule, notes, the signed-in guest,
    related talks, highlight lists, pages of names and the view around the demo's fixed abstract each have fixed forms:
    a short form for lists and a full one where a page shows more. The view around the abstract carries the conferences
-   of the abstract's session, and the matching API's pools around it by kind: each other conference by its track id,
+   the abstract sits in, and the matching API's pools around it by kind: each other conference by its track id,
    each day by its date, each time block by its start instant and each session by its id, each pool holding at least
-   one match, with the conferences of each match's talk.
+   one match, with the conferences of each match's talk. With a test set's layout, it also carries the sessions the
+   layout places the talks in, each at its start there, with its talks.
    *How:* code alone: zod schemas, with types inferred from them.
    *File:* `programme.ts`
 
@@ -39,8 +40,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 5. **The tester's three requests have fixed forms.** The programme map, the test set and the report on each abstract
    tested have one form each, checked where they enter and leave; AMS ids are strings, times are the meeting's clock
-   to the minute, and the report passes on each verdict exactly as the matching API gave it. How many talks each place
-   shows visitors is fixed in one place, which the pages and the report both read.
+   to the minute, and the report passes on each verdict exactly as the matching API gave it. A test set may carry a
+   layout of where our versions place its talks, in the programme map's shapes, all three together; it must agree
+   with itself and place only the talks the test set holds: no talk in two sessions, no session or conference listed
+   twice, every session in a time block named in the layout, and in exactly the one that starts when it does. How
+   many talks each place shows visitors is fixed in one place, which the pages and the report both read.
    *How:* code alone: one schema for each form.
    *File:* `tester.ts`
 

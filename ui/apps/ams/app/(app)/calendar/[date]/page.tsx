@@ -9,7 +9,7 @@ export default async function CalendarDayPage({ params }: { params: Promise<{ da
   return (
     <CalendarDayView date={date} days={days}>
       <ChangePoint at="calendar.beforeDay" props={{ date }} />
-      <ChangePoint at="calendar.day" props={{ sessions }}>
+      <ChangePoint at="calendar.day" props={{ date, sessions }}>
         <DayList sessions={sessions} />
       </ChangePoint>
     </CalendarDayView>

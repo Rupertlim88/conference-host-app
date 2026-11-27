@@ -6,7 +6,8 @@ A separate program, the tester, measures the matching API's picks. It reads a ma
 
 - `token`: without the right token every request gets 401 with `www-authenticate: Bearer`; with no `TESTER_TOKEN` set, every request gets 503.
 - `map`: every time block, session and conference of the whole programme, with their talks. Breaks are left out. 4,369 talks: Paper.json's 4,531 entries less its 162 breaks.
-- `test-set`: 202 with the programme version the send returned, after holding the talks and fixing the demo to the first asker. 400 with a plain message for another conference, an empty list, an id that is not a published talk (a break, or unknown), an asker not among the talks, or an asker with no abstract. 409 while another send runs.
+- `test-set`: 202 with the programme version the send returned, after holding the talks and fixing the demo to the first asker. 400 with a plain message for another conference, an empty list, an id that is not a published talk (a break, or unknown), an asker not among the talks, an asker with no abstract, or a layout that disagrees with itself or names a session or conference AMS does not publish. 409 while another send runs.
+- `layout`: a test set may carry `layout` (`timeBlocks`, `sessions`, `conferences`, the programme map's shapes). Our improvements then show each calendar day's laid-out sessions at their layout start, and each session's laid-out talks, under one gold note "Our change: sessions and talks sit where the test set lays them out"; AMS's meeting app keeps AMS's placement, and the matching API and the report follow the layout.
 - `report`: one place per layout and key (`related`, `conference_outside`, `conference_inside`, `day`, `time_block`, `session`), each with `pool`, `shown`, `verdicts` and `notJudged`. 404 for an abstract the stored test set does not test.
 
 ## How to get to it (user POV)

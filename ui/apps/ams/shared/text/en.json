@@ -334,7 +334,8 @@
       "conferencePicks": "Our change: other conferences, ranked for your abstract",
       "calendarPicks": "Our change: recommended around your abstract",
       "sessionPicks": "Our change: come for this talk",
-      "dayPicks": "Our change: your best talks today"
+      "dayPicks": "Our change: your best talks today",
+      "laidOut": "Our change: sessions and talks sit where the test set lays them out"
     }
   },
   "improvements": {

@@ -38,7 +38,7 @@ const pools = aroundPools({
     },
   ],
 });
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, ...over });
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, layout: null, ...over });
 
 const sessionLinks = (root: HTMLElement = document.body) =>
   within(root)
@@ -62,7 +62,7 @@ function amsList(sessions = day) {
 }
 
 test("every time block opens with its gold box, the block's time as a heading, then its recommendations", () => {
-  renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
+  renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={around()} label={LABEL} />);
   expect(outlines()).toHaveLength(3);
   const picked = outlines()[1]!;
   expect(within(picked).getByRole("heading", { level: 2 })).toHaveTextContent(/^8:30 AM$/);
@@ -70,20 +70,20 @@ test("every time block opens with its gold box, the block's time as a heading, t
 });
 
 test("a block with no recommendation opens with its box empty, and the rest of the block stays as AMS has it", () => {
-  renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
+  renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={around()} label={LABEL} />);
   const [early, , late] = outlines();
   expect(early!.textContent).toBe(`${LABEL}7:00 AM`);
   expect(late!.textContent).toBe(`${LABEL}10:00 AM`);
 });
 
 test("the rest of each block follows its box in AMS's order, without the recommended sessions", () => {
-  renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
+  renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={around()} label={LABEL} />);
   expect(sessionLinks()).toEqual(["/sessions/77355", "/sessions/76096", "/sessions/77136", "/sessions/76879", "/sessions/75349"]);
   expect(headings()).toEqual(["7:00 AM", "7:00 AM - 8:30 AM", "8:30 AM", "8:30 AM - 10:00 AM", "10:00 AM", "10:00 AM - 10:45 AM"]);
 });
 
 test("each recommendation says whether it is a close or unexpected match, the reason and when its related talk is", () => {
-  renderApp(<CalendarPicksView sessions={day} around={around()} label={LABEL} />);
+  renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={around()} label={LABEL} />);
   const [first, second] = within(outlines()[1]!).getAllByRole("listitem");
   expect(first).toHaveTextContent("Unexpected match");
   expect(first).toHaveTextContent("Lightning climatology uses the same records.");
@@ -97,14 +97,14 @@ test("each recommendation says whether it is a close or unexpected match, the re
 test("a day whose blocks hold no match opens every block with its box empty, and otherwise stays exactly as AMS has it", () => {
   const base = amsList();
   const elsewhere = aroundPools({ timeBlock: [{ id: "2027-01-11T15:30:00.000Z", matches: [match("493803", "77102", "15:45", 0.9, "core", "On another day.")] }] });
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ pools: elsewhere })} label={LABEL} />);
+  const { container } = renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={around({ pools: elsewhere })} label={LABEL} />);
   expect(outlines().map((o) => o.textContent)).toEqual([`${LABEL}7:00 AM`, `${LABEL}8:30 AM`, `${LABEL}10:00 AM`]);
   expect(outsideOutlines(container)).toBe(base);
 });
 
 test("when the matching API cannot answer, every block's box is empty, the day stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={around({ pools: null })} label={LABEL} />);
+  const { container } = renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={around({ pools: null })} label={LABEL} />);
   expect(outlines().map((o) => o.textContent)).toEqual([
     `${LABEL}The matching API cannot answer right now, so no sessions are recommended around your abstract and the calendar stays as AMS has it.`,
     `${LABEL}7:00 AM`,
@@ -116,12 +116,27 @@ test("when the matching API cannot answer, every block's box is empty, the day s
 
 test("with no abstract to recommend around, every block's box is empty, the day stays as AMS has it, and one gold note says so", () => {
   const base = amsList();
-  const { container } = renderApp(<CalendarPicksView sessions={day} around={{ abstract: null, abstractTrackIds: [], pools: null }} label={LABEL} />);
+  const { container } = renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={{ abstract: null, abstractTrackIds: [], pools: null, layout: null }} label={LABEL} />);
   expect(outlines().map((o) => o.textContent)).toEqual([`${LABEL}The demo has no abstract to recommend sessions around yet.`, `${LABEL}7:00 AM`, `${LABEL}8:30 AM`, `${LABEL}10:00 AM`]);
   expect(outsideOutlines(container)).toBe(base);
 });
 
 test("a day with no sessions says so", () => {
-  renderApp(<CalendarPicksView sessions={[]} around={around()} label={LABEL} />);
+  renderApp(<CalendarPicksView date="2027-01-12" sessions={[]} around={around()} label={LABEL} />);
   expect(screen.getByText("No sessions on this day.")).toBeInTheDocument();
+});
+
+test("with a test set's layout, the day shows the sessions the layout places on it, at their start there, under one gold note", () => {
+  // The layout moves the lightning session to 2:00 PM and leaves the others off the day.
+  const moved = { ...lightning, startsAt: "2027-01-12T21:00:00.000Z", endsAt: "2027-01-12T22:30:00.000Z" };
+  const laidOut = around({ pools: aroundPools({}), layout: [{ session: moved, talks: [] }] });
+  renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={laidOut} label={LABEL} />);
+  expect(screen.getByText("Our change: sessions and talks sit where the test set lays them out")).toBeInTheDocument();
+  expect(screen.getAllByRole("heading", { level: 2 }).map((h) => h.textContent)).toEqual(["2:00 PM", "2:00 PM - 3:30 PM"]);
+  expect(sessionLinks()).toEqual(["/sessions/76096"]);
+});
+
+test("without a layout, there is no note about one", () => {
+  renderApp(<CalendarPicksView date="2027-01-12" sessions={day} around={around()} label={LABEL} />);
+  expect(screen.queryByText("Our change: sessions and talks sit where the test set lays them out")).not.toBeInTheDocument();
 });

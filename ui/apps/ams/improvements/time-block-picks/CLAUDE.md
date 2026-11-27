@@ -23,7 +23,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    that opens with the block's time as a heading, like AMS's own, so that it reads as the start of that block; the rest of the block follows in AMS's order, without them. A
    block with no recommendation opens with its box empty, and the rest of the block stays as AMS has it. When the
    matching API cannot answer, every block's box is empty, the rest of the calendar stays as AMS has it, and one gold
-   note says so.
+   note says so. With a test set's layout, the day holds the sessions the layout places on it, at their start there,
+   under one gold note saying the sessions and talks sit where the test set lays them out.
    *How:* code alone: our improvements' change to the calendar's day, from the backend's time-block pool for the fixed
    abstract, the one that starts when the block does, which holds the first two talks the matching API lists whose
    session starts with the block; the matching API lists at most one talk from each session in a time block.

@@ -1,25 +1,36 @@
 // In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.
-import type { AroundAbstract, AroundPool, RelatedMatch, SessionSummary } from "@repo/host-contracts";
+import type { AroundAbstract, AroundPool, LaidOutSession, RelatedMatch, SessionSummary } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
 import { DayList, TimeBlockSessions, timeBlocks, type TimeBlock } from "@/base/calendar";
 import { SessionCard } from "@/base/cards";
 import { aroundAbstract } from "@/improvements/matches/matches";
+import { MEETING_ZONE } from "@/shared/app";
 import { When } from "@/shared/meeting-time";
 import { Badge } from "@/shared/ui/badge";
 import type { Change } from "@/versions/change";
 import { GoldOutline } from "@/versions/gold";
 
+/** The sessions a test set's layout places on a day, at their start there. */
+function laidOutOn(date: string, layout: LaidOutSession[]): SessionSummary[] {
+  const dayOf = new Intl.DateTimeFormat("en-CA", { timeZone: MEETING_ZONE, year: "numeric", month: "2-digit", day: "2-digit" });
+  return layout.map((laid) => laid.session).filter((s) => s.startsAt && dayOf.format(new Date(s.startsAt)) === date);
+}
+
 /** The Meeting Calendar's day with each time block opening with its gold outline: the block's start time as a heading,
- *  like AMS's own, then its recommendations, or nothing. Without the matching API's pools, every outline is empty and
+ *  like AMS's own, then its recommendations, or nothing. With a test set's layout, the day holds the sessions the
+ *  layout places on it, under one gold note saying so. Without the matching API's pools, every outline is empty and
  *  one gold note above the day says why. */
-export function CalendarPicksView({ sessions, around, label }: { sessions: SessionSummary[]; around: AroundAbstract; label: string }) {
+export function CalendarPicksView({ date, sessions: amsSessions, around, label }: { date: string; sessions: SessionSummary[]; around: AroundAbstract; label: string }) {
   const t = useTranslations("improvements.calendarPicks");
+  const changes = useTranslations("versions.change");
+  const sessions = around.layout ? laidOutOn(date, around.layout) : amsSessions;
   const pools = around.abstract ? around.pools : null;
   const blocks = calendarBlocks(sessions, pools?.timeBlock ?? []);
   return (
     <>
+      {around.layout && <GoldOutline label={changes("laidOut")} />}
       {!pools && (
         <GoldOutline label={label}>
           <p className="text-sm">{t(around.abstract ? "unavailable" : "noAbstract")}</p>
@@ -57,8 +68,8 @@ export const timeBlockPicks: Change<"calendar.day"> = {
   at: "calendar.day",
   label: "calendarPicks",
   outlinesItself: true,
-  render: async ({ sessions }, label) => (
-    <CalendarPicksView sessions={sessions} around={await aroundAbstract()} label={label} />
+  render: async ({ date, sessions }, label) => (
+    <CalendarPicksView date={date} sessions={sessions} around={await aroundAbstract()} label={label} />
   ),
 };
 

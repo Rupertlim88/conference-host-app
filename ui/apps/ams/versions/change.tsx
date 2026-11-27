@@ -18,7 +18,7 @@ export interface ChangePoints {
   /** Above the Meeting Calendar's list of one day's sessions; the base shows nothing there. */
   "calendar.beforeDay": { date: string };
   /** The Meeting Calendar's list of one day's sessions, below the day's heading and the strip of days. */
-  "calendar.day": { sessions: SessionSummary[] };
+  "calendar.day": { date: string; sessions: SessionSummary[] };
   /** On a session's page, its list of talks, under Presentations. */
   "session.talks": { session: SessionDetail };
 }

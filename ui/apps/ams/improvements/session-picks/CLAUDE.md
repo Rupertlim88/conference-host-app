@@ -20,7 +20,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    that the API lists in its pool for that session, is outlined in gold where it sits, so the session keeps its time
    order, with a label saying to come for that talk, whether it is a close or an unexpected match, and the reason. In a poster session the label says to visit that board first. A session with no
    match, and every session when the matching API cannot answer, shows an empty box with that label at the top of its
-   talks, which otherwise stay as AMS has them.
+   talks, which otherwise stay as AMS has them. With a test set's layout, the session holds the talks the layout places
+   in it, in its order, under one gold note saying the sessions and talks sit where the test set lays them out.
    *How:* code alone: the improvement's change to a session's list of talks, from the backend's session pool for the
    fixed abstract, which holds the first talk the matching API lists that the session holds.
    *File:* `session-picks.tsx`

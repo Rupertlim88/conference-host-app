@@ -20,7 +20,7 @@ const pools = aroundPools({
     { id: "77102", matches: [match(secondTalk(), 0.85, { kind: "unexpected", reason: "Your squall warnings set when freezing rain matters." })] },
   ],
 });
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, ...over });
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, layout: null, ...over });
 const session = sessionDetail();
 
 const talkLinks = () =>
@@ -95,7 +95,19 @@ test("when the matching API cannot answer, the session shows the same empty box,
 
 test("with no abstract, the session shows the same empty box", () => {
   const base = amsList();
-  const { container } = renderApp(<SessionPicksView session={session} around={{ abstract: null, abstractTrackIds: [], pools: null }} label={LABEL} />);
+  const { container } = renderApp(<SessionPicksView session={session} around={{ abstract: null, abstractTrackIds: [], pools: null, layout: null }} label={LABEL} />);
   expect(outlineOf(LABEL).textContent).toBe(LABEL);
   expect(outsideOutline(container)).toBe(base);
+});
+
+test("with a test set's layout, the session shows the talks the layout places in it, under one gold note", () => {
+  const laidOut = around({ layout: [{ session, talks: [secondTalk()] }] });
+  renderApp(<SessionPicksView session={session} around={laidOut} label={LABEL} />);
+  expect(screen.getByText("Our change: sessions and talks sit where the test set lays them out")).toBeInTheDocument();
+  expect(talkLinks()).toEqual(["/talks/490460"]);
+});
+
+test("with a layout that places no talk in the session, it shows none", () => {
+  renderApp(<SessionPicksView session={session} around={around({ layout: [] })} label={LABEL} />);
+  expect(screen.queryAllByRole("link").filter((a) => a.getAttribute("href")?.startsWith("/talks/"))).toEqual([]);
 });
