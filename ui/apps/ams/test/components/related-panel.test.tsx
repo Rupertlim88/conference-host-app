@@ -63,6 +63,14 @@ test("when the API is down or the call fails, the panel says so and the page goe
   expect(within(region()).getByText("Related talks are unavailable right now.")).toBeInTheDocument();
 });
 
+test("while the talks are still being matched, the panel says so and to look again in a moment", () => {
+  renderApp(<RelatedPanel related={{ status: "judging" }} loading={false} failed={false} />);
+  expect(region()).toHaveTextContent(
+    /^Related talksTalks related to this one, found by the conference APIRelated talks are still being matched\. Look again in a moment\.$/,
+  );
+  expect(within(region()).queryByText("Related talks are unavailable right now.")).not.toBeInTheDocument();
+});
+
 test("the panel asks the backend for the talk on the screen and shows its matches", async () => {
   const talk = talkSummary({ id: "485830", number: "J1.4", title: "Evaluation of Three Ice Accumulation Models" });
   backend.asked = [];

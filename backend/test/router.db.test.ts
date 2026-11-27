@@ -81,6 +81,8 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
     expect(got.status).toBe("matches");
     expect(got.status === "matches" && got.matches[0]!.talk.id).toBe("T2");
     expect(await caller({}).talks.related({ id: "T1" })).toEqual({ status: "unavailable" });
+    const judging = caller({ api: api({ status: "ok", matches: [], judging: [{ basedOn: "T1", restriction: { type: "conference" } }] }) });
+    expect(await judging.talks.related({ id: "T1" })).toEqual({ status: "judging" });
   });
 
   test("stars and the schedule", async () => {

@@ -5,11 +5,12 @@ import type { ConferenceApi, Match } from "./matching-api";
 
 type Talks = { talkSummaries(ids: string[]): Promise<TalkSummary[]> };
 
-/** The related-talks panel for one talk: the matches the API lists under the whole conference, joined to this
- *  programme's talks, the first five of them. */
+/** The related-talks panel for one talk: still being matched while the API is judging the talk; otherwise the matches
+ *  the API lists under the whole conference, joined to this programme's talks, the first five of them. */
 export async function relatedTalks(store: Talks, api: ConferenceApi, talkId: string): Promise<RelatedTalks> {
   const answer = await searchRelated(api, talkId);
   if (answer.status === "unavailable") return { status: "unavailable" };
+  if (answer.judging.some((j) => j.basedOn === talkId)) return { status: "judging" };
   return relatedFrom(store, answer.matches);
 }
 

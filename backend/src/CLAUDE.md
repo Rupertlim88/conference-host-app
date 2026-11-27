@@ -58,7 +58,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    shows, and the panel shows the first five.
    Each is shown with its kind, score and reason, as the talk this programme holds; a match to a talk this programme
    does not show is left out, and so is anything listed outside the whole conference. When the API cannot answer, the
-   panel says so; when nothing is left, it says there are none.
+   panel says so; while the API is still judging the talk, it says its talks are still being matched; when nothing is
+   left, it says there are none.
    *How:* code alone: one matches search restricted to the whole conference per talk, joined to the store's talk
    summaries by talk id.
    *File:* `related.ts`

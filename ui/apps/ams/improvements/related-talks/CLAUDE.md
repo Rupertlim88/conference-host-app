@@ -16,7 +16,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### On a talk's page
 
 2. **In our improvements, every talk page shows a related-talks panel with the matching API's matches for that talk, and never breaks the page.** While loading it shows placeholders. When the API cannot answer, it says the related talks are unavailable
-    right now; with none, the panel shows empty. Each match shows whether it is close or unexpected, its time, number,
+    right now; while the API is still matching them, it says, in one line inside its gold outline, that they are still
+    being matched and to look again in a moment; with none, the panel shows empty. Each match shows whether it is close or unexpected, its time, number,
     title and reason, and links to the talk. It says that its talks are related to the talk on the page, never that they were
     picked for the attendee.
     *How:* code alone: our improvements' change after a talk's abstract, outlined in gold; it streams in after the rest

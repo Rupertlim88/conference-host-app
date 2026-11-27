@@ -76,9 +76,9 @@ describe("relatedTalks", () => {
     );
   });
 
-  test("while the whole conference is still being judged, there are none yet", async () => {
+  test("while the matching API is still judging the talk, its related talks are still being matched", async () => {
     const api = apiAnswering({ status: "ok", matches: [], judging: [{ basedOn: "T1", restriction: { type: "conference" } }] });
-    expect(await relatedTalks({ talkSummaries }, api, "T1")).toEqual({ status: "none" });
+    expect(await relatedTalks({ talkSummaries }, api, "T1")).toEqual({ status: "judging" });
   });
 
   test("an unavailable API stays unavailable", async () => {
