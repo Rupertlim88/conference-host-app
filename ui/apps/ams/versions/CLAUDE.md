@@ -27,10 +27,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
 3. **A change point shows the base, or the chosen version's change outlined in gold.** It names every place in the
    base a version may change, and holds each version's changes: the base changes nothing, and each other version's
    list of changes comes from its own folder. A change replaces what the base shows there, or adds to it. The chosen
-   version is read on the server from the guest's choice, so a page never shows the base first. A change is outlined in
-   gold, with a short label saying what was changed, by the change point; a change that edits only parts of what the
-   base shows there, such as each time block of a calendar day or one talk of a session, outlines each part itself, and
-   draws an empty outline where it has nothing to show. Where the version changes nothing, the base shows as it is.
+   version is read on the server from the guest's choice, so a page never shows the base first. The change point draws the change's gold outline and label (the AMS UI's rule on gold
+   outlines); a change that edits only parts of what the base shows there, such as each time block of a calendar day
+   or one talk of a session, outlines each part itself. Where the version changes nothing, the base shows as it is.
    *How:* code alone: a server component reading the guest's cookie; the pages place the change points.
    *File:* `change.tsx`
 
@@ -41,7 +40,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *How:* code alone: a client component that writes the choice to a cookie and refreshes the page.
    *File:* `switch.tsx`
 
-5. **Every change is outlined in gold, with a label saying what changed.** The outline and its label look the same
-   wherever a change shows, so anyone can tell at a glance what AMS has and what we changed.
+5. **One gold outline, with its label, is drawn the same way for every change.** Change points and changes all draw
+   this one outline, so that an outline, its label and an empty outline look alike everywhere (the AMS UI's rule on gold
+   outlines).
    *How:* code alone: one component that change points and changes use.
    *File:* `gold.tsx`

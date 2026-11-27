@@ -14,10 +14,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ## Components of the UI
 
 2. **The UI has an attendee-facing app.**
-   - **Security:** OWASP ASVS Level 1 if it is a web app, or OWASP MASVS Level 1 if it is a mobile app.
 
 3. **The UI has an organiser console, for each conference's staff.**
-   - **Security:** OWASP ASVS Level 1 if it is a web app, or OWASP MASVS Level 1 if it is a mobile app.
 
 4. **The UI has a developer console, for the user's own team.**
-   - **Security:** OWASP ASVS Level 1 if it is a web app, or OWASP MASVS Level 1 if it is a mobile app.

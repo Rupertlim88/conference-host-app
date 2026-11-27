@@ -19,17 +19,17 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 3. **It carries a sample of the programme of the AMS 107th Annual Meeting (Denver, 10–14 January 2027) as published so far**, refreshed as AMS adds to it: every conference, symposium and event, with all of their sessions, and five abstracts from each, so that the matching API's results can be checked quickly; once a tester sends a test set, it carries exactly the talks the test set names instead (the host app's rule on taking a test set). It shows each talk and poster it carries with its title, presenters, affiliations, session, day, time, room and abstract. Withdrawn entries are left out.
 
-4. **In our improvements, every talk page shows a related-talks panel with the conference API's matches for that talk.** This panel is the point of the demo. The base, which shows only what AMS's own page shows, has no such panel.
-
 ### What it takes from AMS, and what it never takes
 
-5. **Every button, conference, event and talk of the AMS meeting app is in the demo, organised as AMS organises them; only the design and the words differ.** Home and the menu offer every button on the AMS meeting app's main screen, with the same sub-items. Every conference, symposium and event in the meeting calendar is there, and opening one shows all of its talks, organised as AMS organises them. The lists of committees, officers, exhibitors, the career fair and sponsors come from AMS's public pages; Program Highlights, General Information, Attendee Resources and Technical Support open short pages in the demo's own words.
+4. **Every button, conference, event and talk of the AMS meeting app is in the demo, organised as AMS organises them; only the design and the words differ.** Home and the menu offer every button on the AMS meeting app's main screen, with the same sub-items. Every conference, symposium and event in the meeting calendar is there, and opening one shows all of its talks, organised as AMS organises them. The lists of committees, officers, exhibitors, the career fair and sponsors come from AMS's public pages; Program Highlights, General Information, Attendee Resources and Technical Support open short pages in the demo's own words.
 
-6. **The demo never copies AMS's own content.** It never shows the society's logo, its welcome and descriptions, its instructions for joining online, such as by Zoom, its location section, or its thanks to sponsors. Its words differ from AMS's, and that is expected.
+5. **The demo never copies AMS's own content.** It never shows the society's logo, its welcome and descriptions, its instructions for joining online, such as by Zoom, its location section, or its thanks to sponsors. Its words differ from AMS's, and that is expected.
 
 ### Our versions
 
-7. **The demo shows the base AMS meeting app or one of our versions of it, and a button switches between them.** The base is the meeting app as AMS has it, as the rules above describe. Each of our versions is the base with changes of any size: a list reordered, things moved to other places in the site, pages reorganised, or larger changes. Every change from the base is outlined in gold, so anyone can see what AMS has and what we changed. Several versions are kept side by side, so different options can be shown in a meeting, and a version is added, changed or removed without changing the base or the other versions. Our versions live inside this UI: a button on the screen, and a key, switch from the base to a version and between versions, with no change of UI.
+6. **The demo shows the base AMS meeting app or one of our versions of it, and a button switches between them.** The base is the meeting app as AMS has it, as the rules above describe. Each of our versions is the base with changes of any size: a list reordered, things moved to other places in the site, pages reorganised, or larger changes. Several versions are kept side by side, so different options can be shown in a meeting, and a version is added, changed or removed without changing the base or the other versions. Our versions live inside this UI: a button on the screen, and a key, switch from the base to a version and between versions, with no change of UI.
+
+7. **Every change from the base is outlined in gold, with a label saying what changed, so anyone can see what AMS has and what we changed.** The outline and its label look the same wherever a change shows. Every place a version adds to or changes AMS is outlined, whether or not it has anything to show there: with nothing to show, the outline is empty, and when the matching API cannot answer, at most one line in it says so.
 
 8. **The demo is fixed to one abstract, set in the developer console.** The demo opens as if the person using it were the author of one AMS 2027 abstract, the same for everyone, so that its results can be controlled. Until one is set, it is a paper that is cited a lot in AMS, so that everything is matched with respect to that. Our versions make their changes around that abstract, using the matching API's results for it. A tester's test set also fixes it, to the first abstract the test set names (the host app's rule on taking a test set).
 
@@ -39,8 +39,6 @@ Everything else is a lower level, written by Claude to carry out these specifica
    - **Per day:** the best talks for the attendee on each day of the meeting, across all its conferences.
    - **Per time block:** the Meeting Calendar, with up to two recommended sessions at the top of each time block.
    - **Per session:** a session page's talk to come for, and in a poster session the board to visit first.
-
-   Any of the five can be limited to talks outside the asker's own conferences, to posters or to talks, to the same field or to other fields, or to a minimum score.
 
 ### Organisers
 

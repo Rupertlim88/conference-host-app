@@ -1,4 +1,4 @@
-// Every change is outlined in gold, with a label saying what changed.
+// One gold outline, with its label, is drawn the same way for every change.
 
 /** What a version changed, in a gold outline, with a label on its top edge saying what changed; empty with nothing to show. */
 export function GoldOutline({ label, children }: { label: React.ReactNode; children?: React.ReactNode }) {
