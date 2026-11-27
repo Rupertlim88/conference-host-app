@@ -110,17 +110,18 @@ describe("a test set", () => {
 });
 
 describe("the report on an abstract tested", () => {
+  // One connection, in the conference API's form, passed on as the API gave it.
   const verdict = {
-    basedOn: "498388",
-    talk: "484295",
-    kind: "core",
+    talks: ["498388", "484295"],
+    titles: ["Emerging Satellite Constraints on Fire Combustion", "Smoke heights from satellites"],
+    restriction: { type: "talks" },
     rank: 1,
     score: 0.5,
-    match: true,
+    kind: "core",
     shared: ["technique"],
-    description: "Both retrieve smoke heights from satellites.",
+    descriptions: ["Both retrieve smoke heights from satellites.", "Both retrieve smoke heights from satellites."],
     methods: [],
-    programmeVersion: "pv_1",
+    programmeVersion: "pv_BNjggT1ZSKHfDg9SImJWFA",
   };
   const report = {
     abstract: "498388",
@@ -133,6 +134,13 @@ describe("the report on an abstract tested", () => {
 
   test("passes on each verdict exactly as the matching API gave it", () => {
     expect(RecommendationsSchema.parse(report)).toEqual(report);
+  });
+
+  test("each verdict is a connection in the conference API's form, and nothing else", () => {
+    const withVerdict = (v: object) => RecommendationsSchema.safeParse({ ...report, places: [{ ...report.places[0], verdicts: [v] }] }).success;
+    expect(withVerdict({ basedOn: "498388", talk: "484295", kind: "core" })).toBe(false);
+    expect(withVerdict({ ...verdict, talks: ["498388"] })).toBe(false);
+    expect(withVerdict({ ...verdict, extra: true })).toBe(false);
   });
 
   test("names each place by one of its six layouts", () => {

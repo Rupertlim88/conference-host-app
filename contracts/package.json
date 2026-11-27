@@ -10,7 +10,7 @@
     "lint": "eslint . --max-warnings 0",
     "json-schema": "tsx src/cli/json-schema.ts"
   },
-  "dependencies": { "zod": "^4.4.3" },
+  "dependencies": { "@repo/contracts": "*", "zod": "^4.4.3" },
   "devDependencies": {
     "@repo/eslint-config": "*",
     "@repo/typescript-config": "*",

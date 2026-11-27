@@ -40,12 +40,15 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 5. **The tester's three requests have fixed forms.** The programme map, the test set and the report on each abstract
    tested have one form each, checked where they enter and leave; AMS ids are strings, times are the meeting's clock
-   to the minute, and the report passes on each verdict exactly as the matching API gave it. A test set may carry a
+   to the minute, and the report passes on each verdict exactly as the matching API gave it, each a connection in the
+   conference API's form, which the report's form names field by field. Each form is the one the tester decides (the
+   host app's rule that the true form of what the tester and the host app exchange is what the tester decides). A test set may carry a
    layout of where our versions place its talks, in the programme map's shapes, all three together; it must agree
    with itself and place only the talks the test set holds: no talk in two sessions, no session or conference listed
    twice, every session in a time block named in the layout, and in exactly the one that starts when it does. How
    many talks each place shows visitors is fixed in one place, which the pages and the report both read.
-   *How:* code alone: one schema for each form.
+   *How:* code alone: one schema for each form, the verdict's taken from the host app's copy of the conference API's
+   contract.
    *File:* `tester.ts`
 
 6. **The tester's forms are published as JSON Schema too, made from the same forms and never edited by hand.** The
