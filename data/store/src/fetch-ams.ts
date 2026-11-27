@@ -1,6 +1,8 @@
 // AMS's public programme is fetched in nine requests, two seconds apart, and only what the programme shows is kept.
 import { createHash } from "node:crypto";
 
+import { LISTINGS } from "./ams-rows";
+
 /** The four record types the loader reads from the Confex Meeting App's public API for a meeting. */
 export const AMS_TYPES = ["Paper", "Session", "SlotData", "Program"] as const;
 export type AmsType = (typeof AMS_TYPES)[number];
@@ -22,9 +24,6 @@ const PUBLIC_FIELDS: Record<AmsType, readonly string[]> = {
   Program: ["ChildList_Paper", "ChildList_Session", "Code", "GoodType", "HighlightColor", "NavBarTitle", "ProgramCode", "Title", "Type", "_url", "id", "label"],
 };
 
-/** Programmes that list organisations, not talks. AMS's menu links each one, so they are shown even where the web
- *  programme leaves them out. */
-export const LISTINGS = new Set(["EXHIBITHALL", "CAREERFAIR", "SPONSORS"]);
 
 /**
  * Shown on the public programme: not withdrawn (AMS marks a withdrawn paper "w"; it marks two live sessions "i",

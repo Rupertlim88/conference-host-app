@@ -54,7 +54,7 @@ const personColumns = () => ({
   affiliation: text("affiliation").notNull().default(""),
 });
 
-/** The same tables in one Postgres schema per society, so each society's data stays apart. */
+/** The meeting's tables, in the Postgres schema named for its society. */
 function societyTables(schemaName: string) {
   const schema = pgSchema(schemaName);
 

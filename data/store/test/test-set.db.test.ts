@@ -6,7 +6,7 @@ import { afterAll, beforeEach, describe, expect, test } from "vitest";
 import { AmsFilesSchema, amsRows } from "../src/ams-rows";
 import { connect, type Db } from "../src/connect";
 import { createDemoSettings } from "../src/demo-settings";
-import { loadRows, type SocietyRows } from "../src/load";
+import { loadRows } from "../src/load";
 import { migrateStore } from "../src/migrate";
 import { amsTables } from "../src/tables";
 import { createTestSets } from "../src/test-set";
@@ -31,7 +31,6 @@ describe.skipIf(!url)("the latest test set", { timeout: 60_000 }, () => {
   const attendee = createStore(db, "ams");
   const demo = createDemoSettings(db, "ams");
   const rows = amsRows(AmsFilesSchema.parse(fixture("ams-slice.json")));
-  const sampleOf = (ids: string[]): SocietyRows => ({ ...rows, talks: rows.talks.filter((t) => ids.includes(t.id)) });
   const held = async () => (await attendee.talkSummaries(ALL)).map((t) => t.id).sort();
   const testSet = (askers: string[], talks: string[]) => ({ conference: "ams-2027", askers, talks });
 
@@ -39,7 +38,7 @@ describe.skipIf(!url)("the latest test set", { timeout: 60_000 }, () => {
     await migrateStore(db);
     await db.execute(sql`delete from ams2027.test_set`);
     await db.execute(sql`delete from ams2027.demo_settings`);
-    await loadRows(db, amsTables, rows, sampleOf([J71]));
+    await loadRows(db, amsTables, rows, [J71]);
   });
   afterAll(async () => {
     await db?.execute(sql`delete from ams2027.test_set`);
@@ -71,6 +70,14 @@ describe.skipIf(!url)("the latest test set", { timeout: 60_000 }, () => {
     expect((await demo.fixedAbstract())?.id).toBe(J74);
   });
 
+  test("a test set whose first abstract cannot be fixed, such as a break, leaves the demo's abstract as it was", async () => {
+    await demo.setFixedAbstract(J71);
+    await testSets.hold(testSet(["463533"], ["463533", J71]));
+    const [setting] = await db.execute<{ fixed_talk_id: string }>(sql`select fixed_talk_id from ams2027.demo_settings`);
+    expect(setting?.fixed_talk_id).toBe(J71);
+    expect((await demo.fixedAbstract())?.id).toBe(J71);
+  });
+
   test("holding restarts the demo's programme: organisers' edits go away, and stars and notes stay", async () => {
     await db.execute(sql`update ams2027.talks set withdrawn = true, room = 'Moved' where id = ${J71}`);
     await db.execute(sql`update ams2027.sessions set starts_at = starts_at + interval '1 hour', room = 'Moved' where id = '73193'`);
@@ -97,7 +104,7 @@ describe.skipIf(!url)("the latest test set", { timeout: 60_000 }, () => {
   test("loading again keeps the latest test set and holds its talks, and keeps the abstract the developer set", async () => {
     await testSets.hold(testSet([J72], [J72, J74]));
     await demo.setFixedAbstract(J74);
-    await loadRows(db, amsTables, rows, sampleOf([J71]));
+    await loadRows(db, amsTables, rows, [J71]);
     expect(await held()).toEqual([J72, J74]);
     expect((await demo.fixedAbstract())?.id).toBe(J74);
   });

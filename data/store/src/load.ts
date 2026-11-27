@@ -3,7 +3,9 @@ import { getTableColumns, notInArray, sql, type SQL } from "drizzle-orm";
 import type { PgColumn, PgTable } from "drizzle-orm/pg-core";
 
 import type { Db } from "./connect";
+import { amsRows } from "./ams-rows";
 import type { SocietyTables } from "./tables";
+import { sampleTalkIds } from "./sample";
 import { holdTalks } from "./test-set";
 import { writeWholeProgramme } from "./whole-programme";
 
@@ -68,11 +70,18 @@ export interface LoadCounts {
   people: number;
 }
 
+/** Loads AMS's files as published: maps them to the host app's programme and writes it, the demo holding their sample
+ *  until a test set arrives. Gives what the demo holds, and how many talks AMS publishes. */
+export async function loadAms(db: Db, t: SocietyTables, files: unknown): Promise<LoadCounts & { published: number }> {
+  const rows = amsRows(files);
+  return { ...(await loadRows(db, t, rows, sampleTalkIds(rows))), published: rows.talks.length };
+}
+
 /** Writes one society's whole programme in a single transaction: the meeting, every track and session as both live
  *  and published, and every talk with its people as AMS's whole programme. The demo then holds the latest test set's
- *  talks, or, until one arrives, `sample`'s, as published and none withdrawn. Rows not in `rows` are deleted, so a
+ *  talks, or, until one arrives, the sample's, as published and none withdrawn. Rows not in `rows` are deleted, so a
  *  rerun leaves the same store and undoes organiser edits. The loader is the only writer of the published columns. */
-export async function loadRows(db: Db, t: SocietyTables, rows: SocietyRows, sample: Pick<SocietyRows, "talks"> = rows): Promise<LoadCounts> {
+export async function loadRows(db: Db, t: SocietyTables, rows: SocietyRows, sample: string[] = rows.talks.map((r) => r.id)): Promise<LoadCounts> {
   await db.transaction(async (tx) => {
     await tx
       .insert(t.meeting)
@@ -86,7 +95,7 @@ export async function loadRows(db: Db, t: SocietyTables, rows: SocietyRows, samp
     if (rows.infoLists.length) await tx.insert(t.infoLists).values(rows.infoLists);
 
     const [latest] = await tx.select({ talks: t.testSet.talks }).from(t.testSet);
-    await holdTalks(tx, t, latest?.talks ?? sample.talks.map((r) => r.id));
+    await holdTalks(tx, t, latest?.talks ?? sample);
 
     const keep = (ids: string[]) => (ids.length ? ids : ["\u0000"]);
     await tx.delete(t.sessions).where(notInArray(t.sessions.id, keep(rows.sessions.map((r) => r.id))));
