@@ -42,8 +42,8 @@ const MethodSideSchema = z.strictObject({ intent: text(1, 2000), technique: text
 /** A pair of linked methods: the one in the talk the result is judged from, and the one in the other talk. */
 export const LinkedMethodsSchema = z.strictObject({ this: MethodSideSchema, other: MethodSideSchema });
 
-/** How a result explains itself: match or not, what the two talks share, and a description written from the side
- *  of the talk the result is judged from. Shared by the public result and the engines' internal one. */
+/** How an engine's result explains itself: match or not, what the two talks share, and a description written from
+ *  the side of the talk the result is judged from. */
 export const explanationFields = {
   match: z.boolean(),
   shared: SharedSchema,
@@ -103,30 +103,48 @@ export const RestrictionRequestSchema = z.discriminatedUnion("type", [
 ]);
 export type RestrictionRequest = z.infer<typeof RestrictionRequestSchema>;
 
-/** A result listed under a restriction is a match. */
-function fitsItsRestriction(result: { match: boolean; restriction?: Restriction }, ctx: z.RefinementCtx): void {
-  if (result.restriction !== undefined && !result.match) {
-    ctx.addIssue({ code: "custom", path: ["restriction"], message: "restrictions list only matches" });
-  }
-}
+const TitleSchema = text(1, 500);
 
-/** A result from matches:search, judged from the asker's talk named in "basedOn". "person" is there only when
- *  asking by people, and "restriction" only when asking with restrictions. */
-export const MatchSchema = z
+/** One match of a main talk, a connection: both talks, by their IDs and titles, the main talk first; the restriction it
+ *  is listed under and its rank there; what the two share, so a connection is always a real match; the methods that
+ *  link them; and two descriptions, each written from one talk's research, of why the other is relevant to it. Every
+ *  pair follows the order of "talks". */
+export const ConnectionSchema = z
   .strictObject({
-    person: PartnerIdSchema.optional(),
-    basedOn: PartnerIdSchema,
-    talk: PartnerIdSchema,
-    kind: MatchKindSchema,
+    talks: z.tuple([PartnerIdSchema, PartnerIdSchema]),
+    titles: z.tuple([TitleSchema, TitleSchema]),
+    restriction: RestrictionSchema,
     rank: z.int().min(1).max(1_000_000),
-    restriction: RestrictionSchema.optional(),
     score: ScoreSchema,
-    ...explanationFields,
+    kind: MatchKindSchema,
+    shared: SharedSchema.min(1),
+    descriptions: z.tuple([text(1, 800), text(1, 800)]),
+    methods: z.array(z.tuple([MethodSideSchema, MethodSideSchema])).max(20),
     programmeVersion: ProgrammeVersionSchema,
   })
-  .superRefine(matchAgreesWithShared)
-  .superRefine(fitsItsRestriction);
-export type Match = z.infer<typeof MatchSchema>;
+  .refine((connection) => connection.talks[0] !== connection.talks[1], {
+    path: ["talks"],
+    message: "joins two different talks",
+  });
+export type Connection = z.infer<typeof ConnectionSchema>;
+
+/** One main talk's entry in matches:search: the person's own talk or the liked talk, with its title and its
+ *  connections, restriction by restriction. "person" is there only when asking by people. */
+export const AbstractMatchesSchema = z
+  .strictObject({
+    person: PartnerIdSchema.optional(),
+    talk: PartnerIdSchema,
+    title: TitleSchema,
+    connections: z.array(ConnectionSchema).min(1).max(1000),
+  })
+  .superRefine((entry, ctx) => {
+    entry.connections.forEach((connection, i) => {
+      if (connection.talks[0] !== entry.talk) {
+        ctx.addIssue({ code: "custom", path: ["connections", i, "talks"], message: "names the main talk first" });
+      }
+    });
+  });
+export type AbstractMatches = z.infer<typeof AbstractMatchesSchema>;
 
 /** A match from matches:fromText, which never names a person. */
 export const TextMatchSchema = z.strictObject({
@@ -145,10 +163,9 @@ export const MatchesSearchRequestSchema = z
     people: distinctIds(1000).optional(),
     likeTalks: distinctIds(100).optional(),
     talks: distinctIds(1000).optional(),
-    include: z.enum(["matches", "all"]).optional(),
     kind: MatchKindSchema.optional(),
     minScore: ScoreSchema.optional(),
-    topPerPerson: z.int().min(1).max(1000).optional(),
+    top: z.int().min(1).max(1000).optional(),
     restrictions: z
       .array(RestrictionRequestSchema)
       .min(1)
@@ -163,15 +180,8 @@ export const MatchesSearchRequestSchema = z
     if (request.people !== undefined && request.likeTalks !== undefined) {
       ctx.addIssue({ code: "custom", path: ["likeTalks"], message: "ask by people or by liked talks, not both" });
     }
-    if (request.restrictions === undefined) return;
     if (request.people === undefined && request.likeTalks === undefined) {
-      ctx.addIssue({ code: "custom", path: ["restrictions"], message: "restrict the matches of named people or liked talks" });
-    }
-    if (request.include === "all") {
-      ctx.addIssue({ code: "custom", path: ["include"], message: "restrictions list only matches" });
-    }
-    if (request.topPerPerson !== undefined) {
-      ctx.addIssue({ code: "custom", path: ["topPerPerson"], message: "restrictions set how many each gives" });
+      ctx.addIssue({ code: "custom", path: ["people"], message: "name the people or the liked talks to match" });
     }
   });
 export type MatchesSearchRequest = z.infer<typeof MatchesSearchRequestSchema>;
@@ -179,11 +189,18 @@ export type MatchesSearchRequest = z.infer<typeof MatchesSearchRequestSchema>;
 /** A restriction still being judged for one of the asker's talks: ask again later for its matches. */
 export const JudgingSchema = z.strictObject({ basedOn: PartnerIdSchema, restriction: RestrictionSchema });
 
-export const MatchesSearchResponseSchema = z.strictObject({
-  matches: z.array(MatchSchema).max(1000),
-  judging: z.array(JudgingSchema).max(10_000).optional(),
-  nextPageToken: PageTokenSchema.optional(),
-});
+/** matches:search's answer: one entry per main talk, at most 1,000 connections a page; an entry may continue on the
+ *  next page. */
+export const MatchesSearchResponseSchema = z
+  .strictObject({
+    abstracts: z.array(AbstractMatchesSchema).max(1000),
+    judging: z.array(JudgingSchema).max(10_000).optional(),
+    nextPageToken: PageTokenSchema.optional(),
+  })
+  .refine((answer) => answer.abstracts.reduce((n, entry) => n + entry.connections.length, 0) <= 1000, {
+    path: ["abstracts"],
+    message: "holds at most 1,000 connections a page",
+  });
 export type MatchesSearchResponse = z.infer<typeof MatchesSearchResponseSchema>;
 
 export const MatchesFromTextRequestSchema = z.strictObject({
@@ -195,10 +212,14 @@ export const MatchesFromTextRequestSchema = z.strictObject({
 });
 export type MatchesFromTextRequest = z.infer<typeof MatchesFromTextRequestSchema>;
 
+/** The text is still being judged, which can take minutes: ask again with the same request later. */
+const StillJudgingSchema = z.strictObject({ judging: z.literal(true) });
+
 /** Either the text held enough to match, with no word on what is missing, or it did not, with no matches and a
  *  reason. */
-export const MatchesFromTextResponseSchema = z
+const TextAnswerSchema = z
   .strictObject({
+    judging: z.literal(false),
     enoughInformation: z.boolean(),
     whatIsMissing: text(1, 500).nullable(),
     matches: z.array(TextMatchSchema).max(1000),
@@ -214,4 +235,7 @@ export const MatchesFromTextResponseSchema = z
       ctx.addIssue({ code: "custom", path: ["whatIsMissing"], message: "must be null when there is enough information" });
     }
   });
+
+/** A text is still being judged, and nothing else; or it is answered (the rule on the second request). */
+export const MatchesFromTextResponseSchema = z.discriminatedUnion("judging", [StillJudgingSchema, TextAnswerSchema]);
 export type MatchesFromTextResponse = z.infer<typeof MatchesFromTextResponseSchema>;

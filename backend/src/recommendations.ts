@@ -14,9 +14,9 @@ import {
 } from "@repo/host-contracts";
 import type { ProgrammeStore, SyncLog, TestSets } from "@repo/host-store";
 
-import { AROUND_KINDS, poolsFrom } from "./around-abstract";
+import { poolsFrom, searchAround } from "./around-abstract";
 import type { ConferenceApi } from "./matching-api";
-import { relatedFrom } from "./related";
+import { relatedFrom, searchRelated } from "./related";
 import { toPartnerTalk } from "./send";
 import { plain } from "./tester-token";
 
@@ -106,11 +106,12 @@ export async function reportOn(abstractId: string, deps: RecommendationsDeps): P
   const listed = new Set(tracks.map((t) => t.id));
   const toAsk = placesAround(abstract.id, session?.trackIds ?? [], sent);
 
-  // What each place shows comes from one search of the restrictions the pages ask for.
-  const shown = await deps.api.restricted(abstract.id, ["conference", ...AROUND_KINDS]);
-  if (shown.status === "unavailable") return { status: "unavailable" };
-  const [related, pools] = await Promise.all([relatedFrom(deps.store, shown.matches), poolsFrom(deps.store, shown.matches)]);
-  let judging = shown.judging.length;
+  // What each place shows comes from the same two searches the pages make, each asking for as many as its page does.
+  const aroundRelated = await searchRelated(deps.api, abstract.id);
+  const aroundBoxes = await searchAround(deps.api, abstract.id);
+  if (aroundRelated.status === "unavailable" || aroundBoxes.status === "unavailable") return { status: "unavailable" };
+  const [related, pools] = await Promise.all([relatedFrom(deps.store, aroundRelated.matches), poolsFrom(deps.store, aroundBoxes.matches)]);
+  let judging = aroundRelated.judging.length + aroundBoxes.judging.length;
 
   const places: Place[] = [];
   // One search at a time, so a large test set never floods the matching API.
@@ -118,13 +119,13 @@ export async function reportOn(abstractId: string, deps: RecommendationsDeps): P
     const answer = await deps.api.verdicts(abstract.id, place.pool);
     if (answer.status === "unavailable") return { status: "unavailable" };
     judging += answer.judging.length;
-    const judged = new Set(answer.matches.map((m) => m.talk));
+    const judged = new Set(answer.connections.map((c) => c.talks[1]));
     places.push({
       layout: place.layout,
       key: place.key,
       pool: place.pool,
       shown: shownIn(place, pools, related, listed, sessionStart),
-      verdicts: answer.matches,
+      verdicts: answer.connections,
       notJudged: place.pool.filter((id) => !judged.has(id)),
     });
   }

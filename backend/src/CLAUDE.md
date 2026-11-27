@@ -54,22 +54,25 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `attendee-router.ts`
 
 5. **A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.** The
-   matching API is asked for its matches for the whole conference around the talk, and the panel shows the first five.
+   matching API is asked for six of its matches for the whole conference around the talk, one more than the panel
+   shows, and the panel shows the first five.
    Each is shown with its kind, score and reason, as the talk this programme holds; a match to a talk this programme
    does not show is left out, and so is anything listed outside the whole conference. When the API cannot answer, the
-   panel says so; when nothing is left, it says there are none.
+   panel says so; while the API is still judging the talk, it says its talks are still being matched; when nothing is
+   left, it says there are none.
    *How:* code alone: one matches search restricted to the whole conference per talk, joined to the store's talk
    summaries by talk id.
    *File:* `related.ts`
 
 6. **Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.**
    One request asks the matching API for the fixed abstract's matches in four kinds of restriction: each other
-   conference, each day, each time block and each session. Its pools are grouped by kind: a conference by its track, a
-   day by its date, a time block by its start instant and a session by its id. Each pool keeps the API's order, and
-   each match carries its talk, kind, score and reason, and the conferences its talk is in; a match to a talk this
-   programme does not show is left out, and so is a pool this programme cannot name. The conferences of the abstract's
-   session are the attendee's own. When the API cannot answer, the pools are left out, and the abstract and its
-   conferences still show; a restriction the API is still judging has no pool until it is judged.
+   conference, each day, each time block and each session, four in each, one more than the largest box shows. Its
+   pools are grouped by kind: a conference by its track, a day by its date, a time block by its start instant and a
+   session by its id. Each pool keeps the API's order, and each match carries its talk, kind, score and reason, and the
+   conferences its talk is in; a match to a talk this programme does not show is left out, and so is a pool this
+   programme cannot name. The conferences of the abstract's session are the attendee's own. When the API cannot answer,
+   the pools are left out, and the abstract and its conferences still show; a restriction the API is still judging has
+   no pool until it is judged.
    *How:* code alone: one restricted matches search, every page of it, with the abstract's session and each matched
    talk and its conferences read from the store.
    *File:* `around-abstract.ts`
@@ -105,20 +108,24 @@ Everything else is a lower level, written by Claude to carry out these specifica
    - **Requests.** Every request is checked against the conference API's contract before it is sent, and one that
      fails is never sent.
    - **Matches by restriction.** A matches search names the kinds of restriction to list the matches under, asking
-     for every one of each kind and as many matches as each lists, asks for pages of a thousand, reads every page,
-     keeps the API's order, and keeps each restriction the API is still judging; when one page fails, the whole search
-     is unavailable.
+     for every one of each kind and how many matches to list in each, best first, asks for pages of a thousand, reads
+     every page, joins the talk's connections where its entry continues on the next page, keeps the API's order, and
+     keeps each restriction the API is still judging; when one page fails, the whole search is unavailable. Each match
+     is the other talk of a connection, with the main talk's description of it, since every pair in a connection
+     follows the order of its talks, the main talk first.
    - **Verdicts on named talks.** A search for the verdicts on a talk names the talks to judge it against as the talks
      restriction, which, like every restriction, lists only matches, at most a thousand to a search, as the contract
-     allows; it reads every page, and keeps whether those talks are still being judged; when one fails, the verdicts
-     are unavailable.
+     allows, and asks for as many matches as it names, so that every match among them is listed; it reads every page,
+     keeps each connection as the API gave it, and keeps whether those talks are still being judged; when one fails,
+     the verdicts are unavailable.
    - **Time limits.** A matches search waits 3 seconds in all, across its pages, a search of named talks 10 seconds
      for each thousand talks, a connection test 5 seconds, a talks write a minute, and a write also stops when its
      send's deadline passes.
    - **Answers.** Every answer is checked against the contract. A refused write reports its status, its problem title
      and its first five errors.
-   - **The connection test** sends one matches search for a talk, writes nothing, keeps no body, and reports one of:
-     ok, key refused, no programme at the API, an unexpected answer, unreachable, or not set.
+   - **The connection test** sends one matches search for one match of a talk, writes nothing, keeps no body, and
+     reports one of: ok, key refused, no programme at the API, an unexpected answer, unreachable, or not set; an
+     answer that the talk is still being judged is ok.
    - **With no address set,** every matches search is unavailable, a send is refused with what to set, and the test
      says "not set".
    *How:* code alone: `fetch` with an abort signal; zod schemas from the host app's copy of the conference API's
@@ -175,16 +182,17 @@ Everything else is a lower level, written by Claude to carry out these specifica
     The places are the abstract's related talks; each other conference; each of the abstract's own conferences, for
     the tester only, which shows nothing; each day; each time block; and each session. For each place it gives the
     held talks the place chose from, the talks it shows visitors, in order and exactly as the pages show them, every
-    verdict the matching API lists for the abstract under those talks, which are only matches, passed on as the API
-    gave it, and each of those talks the matching API listed no verdict for, marked as not judged, which covers both
+    verdict the matching API lists for the abstract under those talks, each a connection, which are only matches,
+    passed on as the API gave it, and each of those talks the matching API listed no verdict for, marked as not judged, which covers both
     talks it judged not to match and talks it never reached. It also gives the programme version of the last send and of the
     matches. The held talks a place chooses from are those the send carries, placed as the matching API places them,
     the abstract itself left out, and a place that holds none is left out. It reports only on an abstract the stored
     test set tests; when the matching API cannot answer, there is no report. While the matching API is still judging
     anything for the abstract, there is no partial report: the answer is 202, saying how many restrictions are still
     being judged, to ask again shortly.
-    *How:* code alone: the same restricted search and picks the pages use for what is shown, in one search, and one
-    search of the talks restriction for each place, all made even while some are still being judged.
+    *How:* code alone: the same two restricted searches and picks the pages use for what is shown, each asking for as
+    many matches as its page does, and one search of the talks restriction for each place, all made even while some
+    are still being judged.
     *File:* `recommendations.ts`
 
 ### Staying on

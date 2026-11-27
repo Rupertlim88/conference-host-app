@@ -33,7 +33,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 8. **The demo is fixed to one abstract, set in the developer console.** The demo opens as if the person using it were the author of one AMS 2027 abstract, the same for everyone, so that its results can be controlled. Until one is set, it is a paper that is cited a lot in AMS, so that everything is matched with respect to that. Our versions make their changes around that abstract, using the matching API's results for it.
 
-9. **Our improvements make five edits of AMS, one for each kind of match the matching API works out ahead of time.** The first is matched around the talk on the screen; the other four are matched around the attendee's own abstract, which in the demo is the fixed abstract. Each edit says which of the two it is matched around, so that related talks are never mistaken for picks made for the attendee.
+9. **Our improvements make five edits of AMS, one for each kind of match the matching API works out.** The first is matched around the talk on the screen; the other four are matched around the attendee's own abstract, which in the demo is the fixed abstract. Each edit says which of the two it is matched around, so that related talks are never mistaken for picks made for the attendee.
    - **Across the whole meeting:** on each talk's page, the talks related to that talk.
    - **Per conference:** Conferences and Symposia ranked by the best talk for the attendee in each conference, each with its reason. The attendee's own conferences are left out, so it always points them to other conferences.
    - **Per day:** the best talks for the attendee on each day of the meeting, across all its conferences.

@@ -1,13 +1,23 @@
 // Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.
-import type { Match, Restriction } from "@repo/contracts";
-import { Id, type AroundAbstract, type AroundPool, type AroundPools } from "@repo/host-contracts";
+import type { Restriction } from "@repo/contracts";
+import { Id, SHOWN_PER_PLACE, type AroundAbstract, type AroundPool, type AroundPools } from "@repo/host-contracts";
 import type { DemoSettings, ProgrammeStore } from "@repo/host-store";
 
-import type { ConferenceApi, StandardKind } from "./matching-api";
+import type { ConferenceApi, Match, StandardKind } from "./matching-api";
 
 /** The kinds of restriction our improvements show around the fixed abstract, every one of each kind, asked for in one
- *  search. The tester's report asks for them the same way. */
-export const AROUND_KINDS: StandardKind[] = ["subConference", "day", "timeBlock", "session"];
+ *  search. */
+const AROUND_KINDS: StandardKind[] = ["subConference", "day", "timeBlock", "session"];
+
+/** How many matches each restriction lists: one more than the largest box shows, so that a match a box cannot show
+ *  still leaves it full. */
+const AROUND_TOP = Math.max(SHOWN_PER_PLACE.conference_outside, SHOWN_PER_PLACE.day, SHOWN_PER_PLACE.time_block, SHOWN_PER_PLACE.session) + 1;
+
+/** The search behind our improvements: the abstract's matches in every restriction of the four kinds. The tester's
+ *  report asks the same way. */
+export function searchAround(api: ConferenceApi, abstractId: string) {
+  return api.restricted(abstractId, AROUND_KINDS, AROUND_TOP);
+}
 
 /** The fixed abstract, its session's conferences, and the matching API's pools around it; the pools are null when the
  *  API cannot answer. */
@@ -16,7 +26,7 @@ export async function aroundAbstract(store: ProgrammeStore, demo: DemoSettings, 
   if (!abstract) return { abstract: null, abstractTrackIds: [], pools: null };
   const [session, answer] = await Promise.all([
     abstract.sessionId ? store.session(abstract.sessionId) : null,
-    api.restricted(abstract.id, AROUND_KINDS),
+    searchAround(api, abstract.id),
   ]);
   const abstractTrackIds = session?.trackIds ?? [];
   if (answer.status === "unavailable") return { abstract, abstractTrackIds, pools: null };
@@ -34,7 +44,7 @@ export async function poolsFrom(store: ProgrammeStore, results: Match[]): Promis
   const found = new Map<string, AroundPool>();
   for (const result of results) {
     const talk = talks.get(result.talk);
-    const place = result.restriction ? placeOf(result.restriction) : null;
+    const place = placeOf(result.restriction);
     if (!talk || !place) continue;
     const key = `${place.type} ${place.id}`;
     let pool = found.get(key);

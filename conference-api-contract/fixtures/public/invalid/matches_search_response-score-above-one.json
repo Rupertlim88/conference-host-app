@@ -1,30 +1,47 @@
 {
-  "matches": [
+  "abstracts": [
     {
       "person": "P1",
-      "basedOn": "T17",
-      "talk": "T42",
-      "match": true,
-      "shared": [
-        "technique"
-      ],
-      "kind": "unexpected",
-      "rank": 1,
-      "score": 1.5,
-      "description": "This study follows heat flow across an interface with time-resolved X-ray scattering. The other study uses the same scattering technique on thin films, so its procedure carries over directly, though it asks how fast a lattice heats rather than how heat crosses a boundary.",
-      "methods": [
+      "talk": "T17",
+      "title": "Heat flow across a metal–semiconductor interface",
+      "connections": [
         {
-          "this": {
-            "intent": "A material's heat flow shows in how its atoms scatter X-rays over time.",
-            "technique": "Time-resolved X-ray scattering after a laser pulse heats one side of an interface."
+          "talks": [
+            "T17",
+            "T42"
+          ],
+          "titles": [
+            "Heat flow across a metal–semiconductor interface",
+            "Lattice heating in thin films after optical excitation"
+          ],
+          "restriction": {
+            "type": "conference"
           },
-          "other": {
-            "intent": "How fast a crystal lattice heats shows in how its X-ray scattering changes after a pulse.",
-            "technique": "Time-resolved X-ray scattering of a thin film after optical heating."
-          }
+          "rank": 1,
+          "score": 1.5,
+          "kind": "unexpected",
+          "shared": [
+            "technique"
+          ],
+          "descriptions": [
+            "This study follows heat flow across an interface with time-resolved X-ray scattering. The other study uses the same scattering technique on thin films, so its procedure carries over directly, though it asks how fast a lattice heats rather than how heat crosses a boundary.",
+            "This study measures how fast a thin film's lattice heats after a laser pulse with time-resolved X-ray scattering. The other study uses the same scattering technique to follow heat across an interface, so its procedure and analysis carry over, though it asks how heat crosses a boundary rather than how fast a lattice heats."
+          ],
+          "methods": [
+            [
+              {
+                "intent": "A material's heat flow shows in how its atoms scatter X-rays over time.",
+                "technique": "Time-resolved X-ray scattering after a laser pulse heats one side of an interface."
+              },
+              {
+                "intent": "How fast a crystal lattice heats shows in how its X-ray scattering changes after a pulse.",
+                "technique": "Time-resolved X-ray scattering of a thin film after optical heating."
+              }
+            ]
+          ],
+          "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc"
         }
-      ],
-      "programmeVersion": "pv_8f3k2Qw9xLm0ZpT4vN7aBc"
+      ]
     }
   ]
 }

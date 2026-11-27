@@ -55,8 +55,9 @@ describe("talk detail", () => {
 });
 
 describe("related talks", () => {
-  test("is matches, none, or unavailable", () => {
+  test("is matches, none, still being matched, or unavailable", () => {
     expect(RelatedTalksSchema.safeParse({ status: "none" }).success).toBe(true);
+    expect(RelatedTalksSchema.safeParse({ status: "judging" }).success).toBe(true);
     expect(RelatedTalksSchema.safeParse({ status: "unavailable" }).success).toBe(true);
     const match = { talk: summary, kind: "unexpected", score: 0.9, reason: "Shared method." };
     expect(RelatedTalksSchema.safeParse({ status: "matches", matches: [match] }).success).toBe(true);

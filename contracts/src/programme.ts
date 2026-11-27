@@ -130,6 +130,7 @@ export type RelatedMatch = z.infer<typeof RelatedMatchSchema>;
 export const RelatedTalksSchema = z.discriminatedUnion("status", [
   z.strictObject({ status: z.literal("matches"), matches: z.array(RelatedMatchSchema).min(1) }),
   z.strictObject({ status: z.literal("none") }),
+  z.strictObject({ status: z.literal("judging") }),
   z.strictObject({ status: z.literal("unavailable") }),
 ]);
 export type RelatedTalks = z.infer<typeof RelatedTalksSchema>;

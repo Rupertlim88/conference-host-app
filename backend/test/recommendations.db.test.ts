@@ -1,4 +1,4 @@
-import type { Match, Restriction } from "@repo/contracts";
+import type { Connection, Restriction } from "@repo/contracts/public";
 import {
   amsTables,
   connect,
@@ -14,7 +14,7 @@ import { migrateStore } from "@repo/host-store/migrate";
 import { sql } from "drizzle-orm";
 import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
-import type { ConferenceApi, Judging } from "../src/matching-api";
+import type { ConferenceApi, Judging, Match } from "../src/matching-api";
 import { answerRecommendations } from "../src/recommendations";
 import { rows } from "./programme";
 
@@ -56,17 +56,11 @@ const programme: SocietyRows = {
 
 const VERSION = "pv_8f3k2Qw9xLm0ZpT4vN7aBc";
 const result = (basedOn: string, talkId: string, rank: number, restriction: Restriction): Match => ({
-  basedOn,
   talk: talkId,
   kind: "core",
-  rank,
   restriction,
   score: 0.9 - rank / 10,
-  match: true,
-  shared: ["technique"],
   description: `Why ${talkId} suits ${basedOn}.`,
-  methods: [],
-  programmeVersion: VERSION,
 });
 
 /** The matching API's matches around T1 under each standard restriction, as it lists them. */
@@ -90,21 +84,39 @@ const conferenceT1 = ["T3", "T5", "T2", "T4"].map((id, i) => result("T1", id, i 
 const MATCHED_FROM_T1 = new Set(["T3", "T4"]);
 
 const TALKS: Restriction = { type: "talks" };
-const verdict = (basedOn: string, talkId: string, rank: number): Match => ({ ...result(basedOn, talkId, rank, TALKS), shared: ["intent"] });
+/** A connection the matching API lists from the main talk to another under the talks restriction, as it gives it. */
+const verdict = (main: string, other: string, rank: number): Connection => ({
+  talks: [main, other],
+  titles: [`Talk ${main}`, `Talk ${other}`],
+  restriction: TALKS,
+  rank,
+  score: 0.9 - rank / 10,
+  kind: "core",
+  shared: ["intent"],
+  descriptions: [`Why ${other} suits ${main}.`, `Why ${main} suits ${other}.`],
+  methods: [[{ intent: "find storms", technique: "radar" }, { intent: "find floods", technique: "radar" }]],
+  programmeVersion: VERSION,
+});
 
-/** The matching API, which runs elsewhere, as a script: it lists only the kinds a search asks for, and records every
- *  search for verdicts and every restricted search. */
-function scripted(asked: { talkId: string; talks: string[] }[], over: Partial<ConferenceApi> = {}, searched: string[][] = []): ConferenceApi {
+/** The matching API, which runs elsewhere, as a script: it lists only the kinds a search asks for, judges only what it
+ *  is given to judge among them, and records every search for verdicts and every restricted search. */
+function scripted(
+  asked: { talkId: string; talks: string[] }[],
+  over: Partial<ConferenceApi> = {},
+  searched: [string[], number][] = [],
+  judging: Judging[] = [],
+): ConferenceApi {
   return {
-    restricted: async (talkId, kinds) => {
-      searched.push(kinds);
+    restricted: async (talkId, kinds, top) => {
+      searched.push([kinds, top]);
       const listed = talkId === "T1" ? [...conferenceT1, ...aroundT1] : [];
-      return { status: "ok", matches: listed.filter((m) => (kinds as string[]).includes(m.restriction!.type)), judging: [] };
+      const asks = (r: Restriction) => (kinds as string[]).includes(r.type);
+      return { status: "ok", matches: listed.filter((m) => asks(m.restriction)), judging: judging.filter((j) => asks(j.restriction)) };
     },
     verdicts: async (talkId, talks) => {
       asked.push({ talkId, talks });
       const matched = talkId === "T1" ? talks.filter((id) => MATCHED_FROM_T1.has(id)) : [];
-      return { status: "ok", matches: matched.map((id, i) => verdict(talkId, id, i + 1)), judging: [] };
+      return { status: "ok", connections: matched.map((id, i) => verdict(talkId, id, i + 1)), judging: [] };
     },
     writeTalks: async () => {
       throw new Error("the report never writes");
@@ -157,10 +169,13 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
     ]);
   });
 
-  test("asks in one search for what every place shows: the whole conference, and every one of each other kind", async () => {
-    const searched: string[][] = [];
+  test("asks for what every place shows with the pages' own searches: six in the whole conference, and four in every one of each other kind", async () => {
+    const searched: [string[], number][] = [];
     await ask("?abstract=T1", scripted([], {}, searched));
-    expect(searched).toEqual([["conference", "subConference", "day", "timeBlock", "session"]]);
+    expect(searched).toEqual([
+      [["conference"], 6],
+      [["subConference", "day", "timeBlock", "session"], 4],
+    ]);
   });
 
   test("asks for the verdicts on each place's pool, passes each on as the API gave it, and marks every talk it listed no verdict for", async () => {
@@ -211,7 +226,7 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
       verdicts: async (talkId, talks) => {
         asked.push({ talkId, talks });
         const judging: Judging[] = talks.includes("T5") ? [{ basedOn: talkId, restriction: TALKS }] : [];
-        return { status: "ok", matches: [], judging };
+        return { status: "ok", connections: [], judging };
       },
     });
     const res = await ask("?abstract=T1", judgingT5);
@@ -226,14 +241,20 @@ describe.skipIf(!url)("the report on an abstract tested", { timeout: 60_000 }, (
       { basedOn: "T1", restriction: { type: "day", id: "2026-01-27" } },
       { basedOn: "T1", restriction: { type: "timeBlock", id: "2026-01-27T13:45:00-06:00" } },
     ];
-    const res = await ask("?abstract=T1", scripted([], { restricted: async () => ({ status: "ok", matches: [], judging }) }));
+    const res = await ask("?abstract=T1", scripted([], {}, [], judging));
     expect(res.status).toBe(202);
     expect(await res.text()).toBe("The matching API is still judging 2 restrictions for this abstract; ask again shortly.");
   });
 
+  test("while the matching API is still judging the whole conference for the abstract, there is no report yet", async () => {
+    const res = await ask("?abstract=T1", scripted([], {}, [], [{ basedOn: "T1", restriction: { type: "conference" } }]));
+    expect(res.status).toBe(202);
+    expect(await res.text()).toBe("The matching API is still judging 1 restriction for this abstract; ask again shortly.");
+  });
+
   test("while the matching API is still judging anything for the abstract, even what no place shows, there is no report yet", async () => {
     const judging: Judging[] = [{ basedOn: "T1", restriction: { type: "session", id: "S9" } }];
-    const res = await ask("?abstract=T1", scripted([], { restricted: async () => ({ status: "ok", matches: [], judging }) }));
+    const res = await ask("?abstract=T1", scripted([], {}, [], judging));
     expect(res.status).toBe(202);
     expect(await res.text()).toBe("The matching API is still judging 1 restriction for this abstract; ask again shortly.");
   });

@@ -75,12 +75,14 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   });
 
   test("related talks come from the API, joined to this programme", async () => {
-    const match = { basedOn: "T1", talk: "T2", match: true, shared: ["technique" as const], kind: "unexpected" as const, rank: 1, restriction: { type: "conference" as const }, score: 0.9, description: "r", methods: [], programmeVersion: "pv" };
+    const match = { talk: "T2", kind: "unexpected" as const, restriction: { type: "conference" as const }, score: 0.9, description: "r" };
     const c = caller({ api: api({ status: "ok", matches: [match], judging: [] }) });
     const got = await c.talks.related({ id: "T1" });
     expect(got.status).toBe("matches");
     expect(got.status === "matches" && got.matches[0]!.talk.id).toBe("T2");
     expect(await caller({}).talks.related({ id: "T1" })).toEqual({ status: "unavailable" });
+    const judging = caller({ api: api({ status: "ok", matches: [], judging: [{ basedOn: "T1", restriction: { type: "conference" } }] }) });
+    expect(await judging.talks.related({ id: "T1" })).toEqual({ status: "judging" });
   });
 
   test("stars and the schedule", async () => {
@@ -112,12 +114,12 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
   });
 
   test("our improvements see the fixed abstract, its session's conferences, and the matching API's pools around it, by kind", async () => {
-    const result = (talk: string, restriction: Restriction, rank = 1) => ({ basedOn: "T1", talk, match: true, shared: ["technique" as const], kind: "unexpected" as const, rank, restriction, score: 0.9, description: `Why ${talk}`, methods: [], programmeVersion: "pv" });
+    const result = (talk: string, restriction: Restriction) => ({ talk, kind: "unexpected" as const, restriction, score: 0.9, description: `Why ${talk}` });
     const asked: unknown[] = [];
     const answering: ConferenceApi = {
       ...api({ status: "unavailable" }),
-      restricted: async (talkId, restrictions) => (
-        asked.push([talkId, restrictions]),
+      restricted: async (talkId, restrictions, top) => (
+        asked.push([talkId, restrictions, top]),
         {
           status: "ok",
           matches: [
@@ -126,16 +128,17 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
             result("T2", { type: "subConference", id: "Hydrology and Water" }),
             result("T2", { type: "day", id: "2026-01-27" }),
             result("T2", { type: "timeBlock", id: "2026-01-27T13:45:00-06:00" }),
-            result("T2", { type: "session", id: "S1" }, 1),
-            result("T9", { type: "session", id: "S1" }, 2),
-            result("T1", { type: "session", id: "S1" }, 3),
+            result("T2", { type: "session", id: "S1" }),
+            result("T9", { type: "session", id: "S1" }),
+            result("T1", { type: "session", id: "S1" }),
           ],
           judging: [{ basedOn: "T1", restriction: { type: "session", id: "S9" } }],
         }
       ),
     };
     const around = await caller({ api: answering }).improvements.aroundAbstract();
-    expect(asked).toEqual([["T1", ["subConference", "day", "timeBlock", "session"]]]);
+    // Four in each: one more than the largest box, a day's three, shows.
+    expect(asked).toEqual([["T1", ["subConference", "day", "timeBlock", "session"], 4]]);
     const education = { id: "P1", code: "EDU", title: "Education" };
     const t2 = { talk: expect.objectContaining({ id: "T2", sessionId: "S1" }), kind: "unexpected", score: 0.9, reason: "Why T2", tracks: [education] };
     const t1 = { talk: expect.objectContaining({ id: "T1" }), kind: "unexpected", score: 0.9, reason: "Why T1", tracks: [education] };
