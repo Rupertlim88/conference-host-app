@@ -8,10 +8,10 @@ You need these:
 
 - the repository on GitHub, with `main` holding the version to host
 - a Supabase account, a Google Cloud account, and a Vercel account on the Hobby plan
-- the conference API's HTTPS address, and a key that can write talks and read matches for `ams-2027`
+- a Vercel access token, saved once as the conference API repository's `VERCEL_TOKEN` secret, so its key workflow can hand this project its key (section 5)
 - this repository on your machine, with `npm install` done, for the one-off load
 
-The conference API's `issue-key` command makes keys that last the number of days it is given, at most a year. When the key expires, the related-talks panels and the programme sends stop until someone sets a new key. The hosted apps need a key that lasts longer, and that change belongs to the conference API.
+A key lasts the number of days it is issued for, at most a year. When it expires, the related-talks panels and the programme sends stop until the key workflow hands over a new one (section 5).
 
 ## 1. Create the database
 
@@ -66,10 +66,12 @@ In the project, open **Settings**, then **Environment Variables**, and add these
 | `BETTER_AUTH_SECRET` | the output of `openssl rand -base64 32` | yes |
 | `BETTER_AUTH_URL` | the app's production address, such as `https://<AMS address>` | no |
 | `GOOGLE_CLIENT_ID`, `GOOGLE_CLIENT_SECRET` | from step 3 | yes |
-| `CONFERENCE_API_URL` | the conference API's address | no |
-| `CONFERENCE_API_KEY` | the conference API key | yes |
+| `CONFERENCE_API_URL` | set by the conference API's key workflow, below | no |
+| `CONFERENCE_API_KEY` | set by the conference API's key workflow, below | yes |
 | `CRON_SECRET` | the output of `openssl rand -hex 24` | yes |
 | `TESTER_TOKEN` | optional: the output of `openssl rand -hex 24`, at least 32 characters. Without it, the tester's requests answer 503 | yes |
+
+Nobody types in the conference API key, and nobody sees it. In the conference API's repository on GitHub, run the `conference-api-issue-key` workflow with conference `ams-2027`, the partner and the days it should last, and `vercel_project` set to this project's name. Add `vercel_team` too if the project belongs to a Vercel team. The workflow issues the key into the conference API's vault, sets `CONFERENCE_API_KEY` (Sensitive) and `CONFERENCE_API_URL` on this project's Production, redeploys, and deletes the vault's copy. Run it the same way whenever the app needs a new key. It reads the Vercel access token from that repository's `VERCEL_TOKEN` secret.
 
 The app checks every setting when it starts and names each one that is wrong. Settings that go in pairs must be set together: `CONFERENCE_API_URL` with `CONFERENCE_API_KEY`, and `GOOGLE_CLIENT_ID` with `GOOGLE_CLIENT_SECRET`. A key or secret set alone stops the app at start-up, so check an existing project's settings before deploying this version.
 
@@ -89,7 +91,7 @@ The app checks every setting when it starts and names each one that is wrong. Se
 The tester is a separate program, run on a person's own computer, that measures the matching API's picks. It calls the three requests below, and the app never calls it.
 
 1. Run `load` with this version (section 2), so the store holds AMS's whole published programme.
-2. Add `TESTER_TOKEN` (section 5) and redeploy. Give the token to the person running the tester privately, as you would the API key.
+2. Add `TESTER_TOKEN` (section 5) and redeploy. Give the token to the person running the tester privately.
 
 Each request carries `Authorization: Bearer <TESTER_TOKEN>`. Without the right token it gets 401, and while no token is set every request gets 503. Ids are AMS's, as strings, and times are the meeting's clock in Denver, written `YYYY-MM-DDTHH:MM`.
 
