@@ -25,10 +25,12 @@ This repo began as a copy of the host app from ConferenceApp. These were added s
 
 ## Connecting to a conference API
 
-Set these in the app's `.env.local` (see the app's README for the full list):
+To run against a conference API on your own computer, set these in the app's `.env.local` (see the app's README for the full list):
 
 - `CONFERENCE_API_URL`: the API's address.
-- `CONFERENCE_API_KEY`: a key for the conference `ams-2027` from the conference API's `issue-key` command.
+- `CONFERENCE_API_KEY`: a key for the conference `ams-2027` from that local API's `issue-key` command.
+
+The hosted app gets its key only from the conference API's key workflow, which hands it straight to Vercel ([HOSTING.md](HOSTING.md), section 5).
 
 Then send the programme to the API:
 

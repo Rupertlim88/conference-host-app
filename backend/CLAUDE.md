@@ -18,3 +18,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ## Security level
 
 3. **The host app's backend meets OWASP ASVS 5.0 at Level 1.** Every Level 1 requirement of OWASP ASVS 5.0 applies to it.
+
+## The key to the conference API
+
+4. **Whenever the host app online needs a new conference API key, the conference API's own key workflow issues it and hands it straight to the host app's hosting.** Nobody pastes, copies or sees the key. The workflow runs from the conference API's repository on GitHub: it issues the key into the conference API's secrets vault, sets it, with the API's address, as the host app's secret settings on its hosting, redeploys the host app, and then deletes the vault's copy. This holds for every new key, whether it is the first, replaces one that expires or may have leaked, or reaches a new copy of the conference API. Claude starts the workflow itself; the user is asked only for what no workflow can do, such as saving once the access the workflow needs to reach the hosting. A key is never asked for or given in a chat, typed in by hand, committed, or put in a pull request.
