@@ -67,6 +67,7 @@
       "host-contract": {
         "dependencies": {
           "allow": [
+            "contract",
             "tooling"
           ]
         }
@@ -96,6 +97,7 @@
         "dependencies": {
           "allow": [
             "host-contract",
+            "contract",
             "tooling"
           ]
         }

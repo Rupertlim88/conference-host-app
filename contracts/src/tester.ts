@@ -1,4 +1,5 @@
 // The tester's three requests have fixed forms.
+import { ConnectionSchema } from "@repo/contracts/public";
 import { z } from "zod";
 
 import { Id } from "./programme";
@@ -93,13 +94,14 @@ export const SHOWN_PER_PLACE = {
 } as const satisfies Record<PlaceLayout, number>;
 
 /** One place: the held talks it chose from, the talks it shows, every verdict the matching API listed on those talks,
- *  passed on as the API gave it, and the talks it listed no verdict for. */
+ *  each a connection in the conference API's form, passed on as the API gave it, and the talks it listed no verdict
+ *  for. */
 export const PlaceSchema = z.strictObject({
   layout: PlaceLayoutSchema,
   key: z.string(),
   pool: Ids,
   shown: Ids,
-  verdicts: z.array(z.record(z.string(), z.unknown())),
+  verdicts: z.array(ConnectionSchema),
   notJudged: Ids,
 });
 export type Place = z.infer<typeof PlaceSchema>;
