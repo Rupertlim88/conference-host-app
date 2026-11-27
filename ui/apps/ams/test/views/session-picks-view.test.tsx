@@ -11,13 +11,13 @@ import { renderApp } from "../render";
 
 const LABEL = "Our change: come for this talk";
 const match = (talk: TalkSummary, score: number, over: Partial<AroundMatch> = {}): AroundMatch => ({ talk, kind: "core", score, reason: `Why ${talk.id} matches.`, tracks: [], ...over });
-// Joint session J1 (77102) holds J1.2 (493803) and J1.3 (490460). The matching API's pool for J1 lists J1.3 first; a
-// talk in another session's pool scores higher, but is not in this session.
+// Joint session J1 (77102) holds J1.2 (493803) and J1.3 (490460). The backend's pool for J1 holds J1.3, the one talk a
+// session shows; a talk in another session's pool scores higher, but is not in this session.
 const elsewhere = talkSummary({ id: "487641", sessionId: "76096", number: "5.1" });
 const pools = aroundPools({
   session: [
     { id: "76096", matches: [match(elsewhere, 0.99)] },
-    { id: "77102", matches: [match(secondTalk(), 0.85, { kind: "unexpected", reason: "Your squall warnings set when freezing rain matters." }), match(talkSummary(), 0.7)] },
+    { id: "77102", matches: [match(secondTalk(), 0.85, { kind: "unexpected", reason: "Your squall warnings set when freezing rain matters." })] },
   ],
 });
 const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: [], pools, ...over });
@@ -49,10 +49,12 @@ test("the first talk the matching API lists in the session's pool is outlined in
   expect(screen.getAllByText(/^Our change/)).toHaveLength(1);
 });
 
-test("a talk the pool lists that the session no longer shows is passed over for the next it lists", () => {
-  const moved = aroundPools({ session: [{ id: "77102", matches: [match(elsewhere, 0.99), match(secondTalk(), 0.85)] }] });
-  renderApp(<SessionPicksView session={session} around={around({ pools: moved })} label={LABEL} />);
-  expect(within(outlineOf(LABEL)).getByRole("link")).toHaveAttribute("href", "/talks/490460");
+test("a talk the pool holds that the page no longer shows leaves the box empty at the top of AMS's list", () => {
+  const base = amsList();
+  const moved = aroundPools({ session: [{ id: "77102", matches: [match(elsewhere, 0.99)] }] });
+  const { container } = renderApp(<SessionPicksView session={session} around={around({ pools: moved })} label={LABEL} />);
+  expect(outlineOf(LABEL).textContent).toBe(LABEL);
+  expect(outsideOutline(container)).toBe(base);
 });
 
 test("the marked talk says whether it is a close or an unexpected match, and why, for your abstract", () => {

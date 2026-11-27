@@ -1,5 +1,5 @@
 // In our improvements, each time block of the Meeting Calendar starts with up to two sessions recommended around the demo's abstract.
-import { SHOWN_PER_PLACE, type AroundAbstract, type AroundPool, type RelatedMatch, type SessionSummary } from "@repo/host-contracts";
+import type { AroundAbstract, AroundPool, RelatedMatch, SessionSummary } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import { Fragment } from "react";
 
@@ -101,8 +101,8 @@ export interface CalendarBlock {
   groups: TimeBlock[];
 }
 
-/** A day's time blocks, earliest first, each with up to two sessions from the matching API's pool for that block, in
- *  the API's order. A listed talk whose session is not in the block is left out. */
+/** A day's time blocks, earliest first, each with the sessions of the talks the backend's pool for that block holds, as
+ *  many as a block shows, in the API's order. A talk whose session the calendar does not show in the block is left out. */
 export function calendarBlocks(sessions: SessionSummary[], pools: AroundPool[]): CalendarBlock[] {
   const byStart: TimeBlock[][] = [];
   for (const group of timeBlocks(sessions)) {
@@ -122,8 +122,7 @@ function recommendIn(groups: TimeBlock[], pools: AroundPool[]): CalendarBlock {
     .flatMap((m) => {
       const session = sessions.find((s) => s.id === m.talk.sessionId);
       return session ? [{ session, kind: m.kind, reason: m.reason, talkAt: m.talk.startsAt }] : [];
-    })
-    .slice(0, SHOWN_PER_PLACE.time_block);
+    });
   const picked = new Set(picks.map((p) => p.session.id));
   const rest = groups
     .map((g) => ({ ...g, sessions: g.sessions.filter((s) => !picked.has(s.id)) }))

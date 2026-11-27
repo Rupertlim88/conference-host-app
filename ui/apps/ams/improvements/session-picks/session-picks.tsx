@@ -1,5 +1,5 @@
 // In our improvements, a session's page marks the talk to come for.
-import { SHOWN_PER_PLACE, type AroundAbstract, type AroundMatch, type AroundPools, type SessionDetail } from "@repo/host-contracts";
+import type { AroundAbstract, AroundMatch, AroundPools, SessionDetail } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 
 import { TalkCard } from "@/base/cards";
@@ -17,11 +17,10 @@ export const sessionPicks: Change<"session.talks"> = {
   render: async ({ session }, label) => <SessionPicksView session={session} around={await aroundAbstract()} label={label} />,
 };
 
-/** The first talks the matching API lists in this session's pool that the session shows, as many as a session shows. */
+/** The talks the backend's pool for this session holds, as many as a session shows, that this page shows. */
 export function bestMatchesIn(session: SessionDetail, pools: AroundPools | null): AroundMatch[] {
   const ids = new Set(session.talks.map((talk) => talk.id));
-  const listed = pools?.session.find((pool) => pool.id === session.id)?.matches ?? [];
-  return listed.filter((m) => ids.has(m.talk.id)).slice(0, SHOWN_PER_PLACE.session);
+  return (pools?.session.find((pool) => pool.id === session.id)?.matches ?? []).filter((m) => ids.has(m.talk.id));
 }
 
 /** The session's talks in AMS's order, the first its pool lists outlined in gold where it sits; with no such talk, or

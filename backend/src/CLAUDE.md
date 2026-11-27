@@ -50,7 +50,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    contract. Looking up a talk, session, track or person that does not exist, or a talk that is withdrawn, answers "not
    found", naming what kind of item was missing. Related talks are asked for only for a talk the attendee can see.
    *How:* code alone: tRPC procedures calling the store, with zod schemas from the host app's contract; related talks
-   are handed to the related-talks file.
+   are handed to the related-talks file, and the view around the fixed abstract to the file for our improvements.
    *File:* `attendee-router.ts`
 
 5. **A talk's related talks are the matching API's matches shown as this programme's talks, in the API's order.** The
@@ -65,16 +65,19 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `related.ts`
 
 6. **Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.**
-   One request asks the matching API for the fixed abstract's matches in four kinds of restriction: each other
-   conference, each day, each time block and each session, four in each, one more than the largest box shows. Its
-   pools are grouped by kind: a conference by its track, a day by its date, a time block by its start instant and a
-   session by its id. Each pool keeps the API's order, and each match carries its talk, kind, score and reason, and the
-   conferences its talk is in; a match to a talk this programme does not show is left out, and so is a pool this
-   programme cannot name. The conferences of the abstract's session are the attendee's own. When the API cannot answer,
-   the pools are left out, and the abstract and its conferences still show; a restriction the API is still judging has
-   no pool until it is judged.
-   *How:* code alone: one restricted matches search, every page of it, with the abstract's session and each matched
-   talk and its conferences read from the store.
+   One request asks the matching API for the fixed abstract's matches in four kinds of restriction: each conference,
+   each day, each time block and each session, four in each, one more than the largest box shows. Its pools are grouped
+   by kind: a conference by its track, a day by its date, a time block by its start instant and a session by its id.
+   Each pool holds exactly what its box shows: the first matches the API lists, in its order, as many as the box shows,
+   each with its talk, kind, score and reason, and the conferences its talk is in. A match to a talk this programme
+   does not show is left out, and so is a pool this programme cannot name, a pool for the attendee's own conferences or
+   for a conference the conferences list does not show, a talk in a time block its session does not start with, and a
+   talk in a session it is not in; no pool is empty. The conferences of the abstract's session are the attendee's own.
+   When the API cannot answer, the pools are left out, and the abstract and its conferences still show; a restriction
+   the API is still judging has no pool until it is judged.
+   *How:* code alone: one restricted matches search, every page of it, with the abstract's session, each matched talk,
+   its conferences and its session's start, and the conferences list, read from the store; the tester's report makes
+   its pools the same way.
    *File:* `around-abstract.ts`
 
 ### The consoles
@@ -88,7 +91,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    (or is told there is no programme to test with), resets the programme to the published one, and fixes the demo to
    one abstract, refusing by name a talk that cannot be. Every input and answer is checked against the host app's
    contract.
-   *How:* code alone: tRPC procedures calling the organiser store, the send and the matching API.
+   *How:* code alone: tRPC procedures, with zod schemas from the host app's contract, calling the organiser store, the
+   organiser's rules, the run log, the demo's settings, the send and the matching API.
    *File:* `console-router.ts`
 
 8. **An organiser's edit keeps a talk's length and keeps a session's times close to the meeting's days.** A talk moved
@@ -148,8 +152,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    - **Failures:** a failed send is recorded with a short reason (the deadline, nothing to send, no API address set, a
      request that does not fit the contract, the API's status and title, a timeout, unreachable, or an unexpected error), never the API's body or the key.
    - The `sync` command does the same from the command line.
-   *How:* code alone; the store's run log lets only one run start. The rule "two sends never write at once" is
-   model-checked with TLA+ (the verify-send-runs skill).
+   *How:* code alone; the store's run log lets only one run start. That two sends never write at once is model-checked
+   with TLA+ (the verify-send-runs skill).
    *File:* `send.ts`
 
 ### The tester
@@ -164,18 +168,23 @@ Everything else is a lower level, written by Claude to carry out these specifica
 12. **The programme map lists every time block, session and conference of AMS's whole published programme, with its talks.**
     A time block is every session that starts at the same time on one day, on the meeting's clock, and a lone session
     is a block of its own. Every session lists its talks, and every conference lists its own talks, so that a joint
-    session's talk is listed only under its own conferences, as the report's places count it. Times are the meeting's clock, to the minute, and ids are AMS's. Before the
-    whole programme is loaded, the map answers that it is not loaded yet.
-    *How:* code alone, from the store's whole published programme.
+    session's talk is listed only under its own conferences, as the report's places count it; a session or conference
+    with no talk is left out, since a tester can choose nothing from it. Times are the meeting's clock, to the minute,
+    and ids are AMS's. Before the whole programme is loaded, the map answers that it is not loaded yet.
+    *How:* code alone, from the store's whole published programme; the map is checked against the host app's contract
+    before it is sent.
     *File:* `programme-map.ts`
 
 13. **A test set is checked, stored, held and sent to the matching API.** It names the conference, the abstracts to
     test, the first being the demo's fixed abstract, and the talks for the demo to hold. It is refused, with a plain
     message, when it names another conference, lists nothing, names a talk the published programme does not have, or
-    an abstract to test that is not among its talks or has no abstract to match. Once it is stored and held, the
+    an abstract to test that is not among its talks or has no abstract to match, and before the whole programme is
+    loaded. Once it is stored and held, the
     programme is sent to the matching API as one run, and the answer gives the programme version that send returned.
     While another send runs, or when the send fails, the test set stays held and the answer says so.
-    *How:* code alone: the store holds the test set, then the send runs as the organiser console's does.
+    *How:* code alone: the test set is parsed against the host app's contract and checked against the store's whole
+    published programme; the store holds it, then the send runs as the organiser console's does, and the answer is
+    checked against the contract before it is sent.
     *File:* `test-set.ts`
 
 14. **For each abstract tested, the host app reports what each place chose from, what it shows, and every verdict the matching API gave.**
@@ -190,9 +199,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
     test set tests; when the matching API cannot answer, there is no report. While the matching API is still judging
     anything for the abstract, there is no partial report: the answer is 202, saying how many restrictions are still
     being judged, to ask again shortly.
-    *How:* code alone: the same two restricted searches and picks the pages use for what is shown, each asking for as
-    many matches as its page does, and one search of the talks restriction for each place, all made even while some
-    are still being judged.
+    *How:* code alone: what a place shows comes from the same two restricted searches the pages make, each asking for
+    as many matches as its page does, read into the same related talks and pools, which hold what each box shows; the
+    verdicts come from the talks restriction searched for each place, one search for each thousand of its talks; every
+    search is made even while some are still being judged; the question and the answer are checked against the host
+    app's contract.
     *File:* `recommendations.ts`
 
 ### Staying on

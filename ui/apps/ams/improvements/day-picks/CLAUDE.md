@@ -21,6 +21,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    padded with weak ones. Each shows its time, number and title, whether it is a close or an unexpected match, its
    conference and the reason, and links to the talk. They sit in a gold outline saying they were picked for the attendee's abstract. A day with none
    shows the box empty; when the matching API cannot answer, one line there says so.
-   *How:* code alone: the improvement's addition above the calendar's day, from the matching API's day pool for the
-   fixed abstract.
+   *How:* code alone: the improvement's addition above the calendar's day, from the backend's day pool for the fixed
+   abstract, which holds the first three the matching API lists; the matching API lists at most one talk from each
+   session in a day. The change point draws the gold outline around it.
    *File:* `day-picks.tsx`

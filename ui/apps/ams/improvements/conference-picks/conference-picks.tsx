@@ -1,5 +1,5 @@
 // In our improvements, Conferences and Symposia puts first the other conferences that hold a talk for the attendee's abstract, each with that talk and its reason.
-import { SHOWN_PER_PLACE, type AroundAbstract, type AroundMatch, type Track } from "@repo/host-contracts";
+import type { AroundAbstract, AroundMatch, Track } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
@@ -24,14 +24,13 @@ export interface ConferencePick {
   talks: AroundMatch[];
 }
 
-/** The conferences ranked for the abstract: each other conference the matching API lists a pool for, with the first
- *  talks its pool lists, as many as a conference shows, the one whose best talk scores higher first, ties in AMS's
- *  order; then every other conference in AMS's order, the attendee's own marked. */
+/** The conferences ranked for the abstract: each conference the backend gives a pool for, which is never the
+ *  attendee's own, with the talks its pool holds, the one whose best talk scores higher first, ties in AMS's order;
+ *  then every other conference in AMS's order, the attendee's own marked. */
 export function rankConferences(tracks: Track[], around: AroundAbstract): { picks: ConferencePick[]; rest: { track: Track; own: boolean }[] } {
   const own = new Set(around.abstractTrackIds);
-  const pools = new Map((around.pools?.subConference ?? []).map((pool) => [pool.id, pool.matches.slice(0, SHOWN_PER_PLACE.conference_outside)]));
+  const pools = new Map((around.pools?.subConference ?? []).map((pool) => [pool.id, pool.matches]));
   const picks = tracks
-    .filter((track) => !own.has(track.id))
     .flatMap((track) => {
       const talks = pools.get(track.id) ?? [];
       return talks.length ? [{ track, talks }] : [];

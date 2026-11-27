@@ -141,15 +141,15 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
     expect(asked).toEqual([["T1", ["subConference", "day", "timeBlock", "session"], 4]]);
     const education = { id: "P1", code: "EDU", title: "Education" };
     const t2 = { talk: expect.objectContaining({ id: "T2", sessionId: "S1" }), kind: "unexpected", score: 0.9, reason: "Why T2", tracks: [education] };
-    const t1 = { talk: expect.objectContaining({ id: "T1" }), kind: "unexpected", score: 0.9, reason: "Why T1", tracks: [education] };
+    // P1 is the attendee's own conference, so it has no pool, and a session's pool holds the one talk its page shows.
     expect(around).toEqual({
       abstract: expect.objectContaining({ id: "T1" }),
       abstractTrackIds: ["P1"],
       pools: {
-        subConference: [{ id: "P1", matches: [t2] }],
+        subConference: [],
         day: [{ id: "2026-01-27", matches: [t2] }],
         timeBlock: [{ id: "2026-01-27T19:45:00.000Z", matches: [t2] }],
-        session: [{ id: "S1", matches: [t2, t1] }],
+        session: [{ id: "S1", matches: [t2] }],
       },
     });
     const down = await caller({}).improvements.aroundAbstract();

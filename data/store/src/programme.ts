@@ -17,7 +17,7 @@ import type {
   Track,
   TrackDetail,
 } from "@repo/host-contracts";
-import { and, arrayContains, asc, eq, exists, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
+import { and, arrayContains, asc, eq, exists, ilike, inArray, isNotNull, or, sql, type SQL } from "drizzle-orm";
 
 import type { Db } from "./connect";
 import { SOCIETY_TABLES, type Society, type SocietyTables } from "./tables";
@@ -233,6 +233,16 @@ export function createProgramme(db: Db, society: Society) {
         trackIds: row.trackIds,
         session: session ? toSessionSummary(session) : null,
       };
+    },
+
+    /** Each session's start, by its id; an unknown or untimed session has none. */
+    async sessionStarts(ids: string[]): Promise<Map<string, string>> {
+      if (ids.length === 0) return new Map();
+      const rows = await db
+        .select({ id: t.sessions.id, startsAt: t.sessions.startsAt })
+        .from(t.sessions)
+        .where(and(inArray(t.sessions.id, ids), isNotNull(t.sessions.startsAt)));
+      return new Map(rows.map((r) => [r.id, iso(r.startsAt)!]));
     },
 
     /** Summaries in the order of `ids`; unknown ids are skipped. */

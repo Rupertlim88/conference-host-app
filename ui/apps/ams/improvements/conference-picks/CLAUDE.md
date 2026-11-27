@@ -17,13 +17,14 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 2. **In our improvements, Conferences and Symposia puts first the other conferences that hold a talk for the attendee's abstract, each with that talk and its reason.**
    The attendee's own conferences, those of the fixed abstract's session, are left out: they stay where AMS lists them,
-   marked as the attendee's own. Every other conference that the matching API lists a pool for, around the fixed
-   abstract, moves to the top, its best talk being the first its pool lists, the conference whose best talk scores
+   marked as the attendee's own. Every other conference that the backend gives a pool for, around the fixed
+   abstract, moves to the top, its best talk being the one its pool holds, the conference whose best talk scores
    higher first, and shows that talk's number and title, whether it is a close or an unexpected match, its day and
    time and the reason, linking to the talk. These
    picks sit in a gold box of their own at the top, naming the abstract; with none, the box at the top shows empty. The
    rest follow below it in AMS's order. When the matching API cannot answer, or the demo has no abstract, AMS's order
    stays below the box, and one line in the box says so.
-   *How:* code alone: the improvement's change to the conferences list, from the matching API's sub-conference pools
-   for the fixed abstract.
+   *How:* code alone: the improvement's change to the conferences list, from the backend's sub-conference pools for the
+   fixed abstract, which leave out the attendee's own conferences and hold the first talk the matching API lists in
+   each.
    *File:* `conference-picks.tsx`

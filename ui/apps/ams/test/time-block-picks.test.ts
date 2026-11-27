@@ -39,12 +39,8 @@ describe("calendarBlocks", () => {
     ]);
   });
 
-  test("a block recommends the sessions of the talks the matching API lists in its pool for that block, in the API's order", () => {
+  test("a block recommends the sessions of the talks the backend's pool for that block holds, in the API's order", () => {
     expect(picksAt(halfPastEight(match("c1", "C"), match("b1", "B")), at("15:30"))).toEqual(["C", "B"]);
-  });
-
-  test("at most two sessions are recommended", () => {
-    expect(picksAt(halfPastEight(match("a1", "A"), match("b1", "B"), match("c1", "C")), at("15:30"))).toEqual(["A", "B"]);
   });
 
   test("the block's pool is the one that starts at the same instant, however its time is written", () => {

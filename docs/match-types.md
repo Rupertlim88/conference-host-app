@@ -48,8 +48,10 @@ unavailable. Every request is checked against the host app's copy of the confere
 
 The "Shown" column is `SHOWN_PER_PLACE` in the host contract, and the "Asked for" numbers are worked out from it. A
 restriction lists only matches, best first, at most `top` of them, and at most one talk per session in a `day` or a
-`timeBlock`. The host app shows the first ones from each list, as many as the box shows. It leaves out a match to a
-talk the demo does not hold.
+`timeBlock`. The backend keeps the first ones from each list, as many as the box shows. It leaves out a match to a talk
+the demo does not show, a pool for the attendee's own conferences or for a conference the list does not show, a talk in
+a time block its session no longer starts with, and a talk in a session it is no longer in. Each box shows what its pool
+holds, and the tester's report reads the same pools, so the two always agree.
 
 ## What comes back
 
@@ -78,7 +80,8 @@ For the pages, the backend turns each connection into a match: the other talk is
 `descriptions[0]`, which the main talk's side wrote about the other talk. It then groups the matches by restriction
 into pools for the improvements. It names a conference by its track id, a day by its date, a time block by its start
 instant in UTC, and a session by its id. Each pool keeps the API's order, and each match carries its talk as this
-programme shows it. Each improvement reads only its own pool, and never sorts matches into pools itself.
+programme shows it. Each improvement reads only its own pool, and never sorts matches into pools or chooses among them
+itself.
 
 When the API cannot answer, related talks say they are unavailable. The other improvements draw their gold outlines
 empty, with at most one line saying so.

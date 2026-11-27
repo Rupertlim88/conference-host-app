@@ -21,6 +21,6 @@ Everything else is a lower level, written by Claude to carry out these specifica
    order, with a label saying to come for that talk, whether it is a close or an unexpected match, and the reason. In a poster session the label says to visit that board first. A session with no
    match, and every session when the matching API cannot answer, shows an empty box with that label at the top of its
    talks, which otherwise stay as AMS has them.
-   *How:* code alone: the improvement's change to a session's list of talks, from the matching API's session pool for
-   the fixed abstract.
+   *How:* code alone: the improvement's change to a session's list of talks, from the backend's session pool for the
+   fixed abstract, which holds the first talk the matching API lists that the session holds.
    *File:* `session-picks.tsx`
