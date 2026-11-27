@@ -144,6 +144,11 @@ describe("developer controls", () => {
     expect(calls).toEqual(["test"]);
   });
 
+  test("a test that did not finish says so, never that something did not save", () => {
+    renderApp(<DeveloperControls {...props} test={{ busy: false, failed: true, result: null }} />);
+    expect(screen.getByRole("alert")).toHaveTextContent("The test did not finish. Please try again.");
+  });
+
   test("sends again after a confirm", () => {
     reset();
     renderApp(<DeveloperControls {...props} />);

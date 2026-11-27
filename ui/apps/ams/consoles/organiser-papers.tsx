@@ -10,10 +10,9 @@ import { useState } from "react";
 
 import { trpc } from "@/shared/connection";
 import { Cell, ConsoleTime, Pager, PaperStatus, Table } from "@/consoles/console-frame";
-import { PageTitle } from "@/base/frame";
+import { PageTitle, placeOf } from "@/shared/marks";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { placeOf } from "@/base/cards";
 
 /** The organiser's papers: a search box and status filter (a plain GET form), then one line a paper, 50 a page. */
 export function OrganiserPapersView({ list, q, status }: { list: TalkList; q: string; status: TalkStatusFilter }) {

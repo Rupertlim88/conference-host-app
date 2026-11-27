@@ -4,6 +4,7 @@ import { CalendarDays, Clock, MapPin } from "lucide-react";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
+import { placeOf } from "@/shared/marks";
 import { When } from "@/shared/meeting-time";
 import { cn } from "@/shared/ui/utils";
 
@@ -133,10 +134,4 @@ export function InfoBox({ start, end, room, building }: { start: string | null; 
       )}
     </dl>
   );
-}
-
-/** Where something happens, as the programme prints it: "403 (Colorado Convention Center)". No room means no place. */
-export function placeOf(room: string, building: string): string {
-  if (!room) return "";
-  return building ? `${room} (${building})` : room;
 }

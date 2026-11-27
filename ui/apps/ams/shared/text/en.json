@@ -227,6 +227,7 @@
     "lastRun": "{state}, {at}",
     "test": "Test connection",
     "testing": "Testing the connection…",
+    "testFailed": "The test did not finish. Please try again.",
     "result": {
       "ok": "Connection works ({status}, {ms} ms).",
       "notSet": "No API address or key is set.",

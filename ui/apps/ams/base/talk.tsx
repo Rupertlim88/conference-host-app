@@ -3,7 +3,7 @@ import type { TalkDetail } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Link from "next/link";
 
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 import { InfoBox } from "@/base/cards";
 
 /** A talk as the meeting app shows it: title, star, when and where, authors, abstract, session and citation. What our

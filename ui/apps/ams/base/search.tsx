@@ -1,13 +1,16 @@
 // Search finds talks, sessions and people from two to a hundred characters.
-import type { SearchResults } from "@repo/host-contracts";
+import { SearchInputSchema, type SearchResults } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 import Form from "next/form";
 import Link from "next/link";
 
 import { SessionCard, TalkCard } from "@/base/cards";
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
+
+/** The longest query the backend searches. */
+const LONGEST = SearchInputSchema.shape.q.maxLength!;
 
 /** Search: the box, then people, sessions and presentations that match. results is null when the query was too short or too long to run. */
 export function SearchView({ q, results }: { q: string; results: SearchResults | null }) {
@@ -17,7 +20,7 @@ export function SearchView({ q, results }: { q: string; results: SearchResults |
     <>
       <PageTitle>{t("title")}</PageTitle>
       <SearchBox initial={q} />
-      {q && results === null && <p className="text-sm text-muted-foreground">{t(q.trim().length > 100 ? "tooLong" : "hint")}</p>}
+      {q && results === null && <p className="text-sm text-muted-foreground">{t(q.trim().length > LONGEST ? "tooLong" : "hint")}</p>}
       {nothing && <p className="text-sm">{t("nothing", { q })}</p>}
       {results && results.people.length > 0 && (
         <section className="mb-5">

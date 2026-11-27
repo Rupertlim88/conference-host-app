@@ -30,23 +30,33 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *File:* `connection.tsx`
 
 4. **Every page reads the backend on the server as the signed-in guest, and an item that is not there shows "not found".** A visitor who is not signed in is sent to sign in before a page reads anything; only the sign-in page itself, which needs no guest, asks the backend directly whether someone is signed in. An item the backend does not know, or an input that is not well formed, shows the not-found page; any other failure is an error.
-   *How:* code alone: every other page reads through this server-only file, which asks Better Auth for the guest.
+   *How:* code alone: every other page reads through this server-only file, which asks the backend who is signed in,
+   and the backend asks Better Auth.
    *File:* `server.ts`
+
+### The look
 
 5. **The look is the demo's own, never AMS's: its own colours and type, with a colour for each kind of session.**
    The theme sets the demo's colours: one of their own for events, posters, joint sessions and panels, a main colour,
    which oral sessions take, and a muted one, which breaks take. Its type is the device's own sans-serif.
-   *How:* Tailwind v4 theme tokens.
+   *How:* code alone: Tailwind v4 theme tokens, which the cards read to colour each kind of session.
    *File:* `theme.css`
+
+6. **Every screen shows the demo's own mark, page titles and places in one way.** The mark is the demo's own logo
+   and name, isobars over Denver's mountains, so the demo is never taken for the society's app. Every page has one top
+   heading, with an optional line above it naming what the page belongs to. A place reads as the programme prints it,
+   the room with its building in brackets, and no room means no place.
+   *How:* code alone: the attendee app, the consoles and the sign-in page all use these.
+   *File:* `marks.tsx`
 
 ### Signing in and errors
 
-6. **Guests sign in with Google, and signing out cannot be undone with Back.** A signed-in guest sent to sign-in goes
+7. **Guests sign in with Google, and signing out cannot be undone with Back.** A signed-in guest sent to sign-in goes
    home. A failed sign-in says so. Where Google is not set up, the page says so instead of showing the button.
    *How:* code alone: Better Auth's client; the sign-in page and the sign-in route count with this file.
    *File:* `sign-in.tsx`
 
-7. **A page that is missing says so, and a page that fails offers to try again.** "We could not find that page", with
+8. **A page that is missing says so, and a page that fails offers to try again.** "We could not find that page", with
    a link home, in exactly one main region; "Something went wrong" with "Try again", which asks the server for the page
    afresh. A failure inside the attendee app or a console shows in its frame; any other, such as in a layout or on the
    sign-in page, shows on a page of its own.
@@ -55,20 +65,21 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### Times, building blocks and words
 
-8. **Times show in meeting time or the guest's own zone, and the guest's choice is remembered.** The choice is
+9. **Times show in meeting time or the guest's own zone, and the guest's choice is remembered.** The choice is
    remembered on their device, and lasts for the page if the device refuses to store it. The page shows the same time
    on the server and in the browser. A time shows as a day, a date, a time or a range.
    *How:* code alone: `Intl` formatting; the choice in local storage.
    *File:* `meeting-time.tsx`
 
-9. **The UI's building blocks are shadcn/ui components, kept as shadcn makes them.** Badge, button, input, sheet and
+10. **The UI's building blocks are shadcn/ui components, kept as shadcn makes them.** Badge, button, input, sheet and
     skeleton, and the one helper through which they and the rest of the app merge class names with shadcn's own `cn`.
-    *How:* added with the shadcn command; changed only where the look needs it, or where a word they show must come
-    from the English text.
+    *How:* Claude adds them with the shadcn command, and changes them only where the look needs it, or where a word they
+    show must come from the English text.
     *File:* `ui/`
 
-10. **Every word the UI shows is in one English text file.** The words the UI writes come from it; what the meeting's
+11. **Every word the UI shows is in one English text file.** The words the UI writes come from it; what the meeting's
     own data says, such as a session's kind, and the reasons the backend records, such as why a send failed, are shown
     as they come.
-    *How:* next-intl reads it, and the app's title and install manifest read their words from it; every key is used.
+    *How:* Claude writes the words; next-intl reads them, and the app's title and install manifest read their words
+    from it; Claude removes a key with the last words that use it.
     *File:* `text/`

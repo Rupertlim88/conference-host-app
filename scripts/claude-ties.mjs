@@ -9,8 +9,9 @@
 // its first comment line (after any "use client" line), a SQL file's first comment, or a Markdown file's title.
 //
 // Not counted: a file's own tests, an entry point that hands over to one file (Next.js's page, layout, error,
-// not-found, route and manifest files, its icon files, and command-line scripts), files that only set up the tools, overviews, the
-// docs, the tools themselves and the copy of the conference API's contract.
+// not-found, route and manifest files, its icon files, next-intl's request settings, and command-line scripts), files
+// that only set up the tools, overviews, the docs (the hosting guide among them), the tools themselves and the copy of
+// the conference API's contract.
 //
 //     node scripts/claude-ties.mjs            the broken ties, and how many rules and files are not yet tied or marked
 //     node scripts/claude-ties.mjs --list     the same, with every rule and file not yet tied, and every rule not marked

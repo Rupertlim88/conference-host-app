@@ -9,7 +9,7 @@ import { useState } from "react";
 
 import { trpc } from "@/shared/connection";
 import { Cell, ChangesSummary, ConsoleTime, Table } from "@/consoles/console-frame";
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 import { Button } from "@/shared/ui/button";
 
 /** The send page: what changed since the published programme, the send control, and the last ten sends. */

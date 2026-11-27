@@ -4,7 +4,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { TalkCard } from "@/base/cards";
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 import { cn } from "@/shared/ui/utils";
 
 /** People A to Z by surname: a letter bar, then the chosen letter's people (the first letter until one is chosen). */

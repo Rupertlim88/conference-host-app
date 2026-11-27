@@ -5,7 +5,7 @@ import Link from "next/link";
 
 import { MEETING_ZONE } from "@/shared/app";
 import { SessionCard } from "@/base/cards";
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 
 /** Conferences and Symposia: its title, then its list, which our versions may change. */
 export function ProgramsView({ children }: { children: React.ReactNode }) {

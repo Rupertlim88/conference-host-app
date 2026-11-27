@@ -18,7 +18,7 @@ import { attendeeRoutes } from "./attendee-router";
 import { developerRouter, organiserRouter } from "./console-router";
 import { authOptions, createCallerFactory, router, viewerFrom } from "./gate";
 import { keepAlive } from "./keep-alive";
-import { CONFERENCE_IDS, conferenceApi, unconfiguredApi } from "./matching-api";
+import { CONFERENCE_IDS, conferenceApi, unconfiguredApi, type ConferenceApi } from "./matching-api";
 import { answerProgrammeMap } from "./programme-map";
 import { answerRecommendations } from "./recommendations";
 import { takeTestSet } from "./test-set";
@@ -116,14 +116,17 @@ export const createHostCaller = createCallerFactory(appRouter);
 /** The router called directly, as server components use it. */
 export type HostCaller = ReturnType<typeof createHostCaller>;
 
+/** The matching API for the meeting's conference, or none when no address is set. The `sync` command uses it too. */
+export function matchingApiFor(config: HostConfig): ConferenceApi {
+  return config.api ? conferenceApi({ url: config.api.url, key: config.api.key, conference: CONFERENCE_IDS[config.society] }) : unconfiguredApi;
+}
+
 function build(env: Record<string, string | undefined>) {
   const config = readConfig(env);
   const { db } = connect(config.databaseUrl);
   const store = { ...createProgramme(db, config.society), ...createGuestData(db, config.society) };
   const conference = CONFERENCE_IDS[config.society];
-  const api = config.api
-    ? conferenceApi({ url: config.api.url, key: config.api.key, conference })
-    : unconfiguredApi;
+  const api = matchingApiFor(config);
   const organiser = createOrganiserStore(db, config.society);
   const log = createSyncLog(db, config.society);
   const demo = createDemoSettings(db, config.society);

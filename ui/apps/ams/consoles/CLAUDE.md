@@ -16,9 +16,11 @@ Everything else is a lower level, written by Claude to carry out these specifica
 ### The organiser console
 
 2. **The consoles have their own frame, with tables, pages of fifty and Mountain time.** A dark header with the
-    console's name ("Program Builder" or "Developer Console"), its sections, a link to the attendee app and sign-out.
+    console's name ("Program Builder" or "Developer Console"), its sections (the developer console's include the
+    organiser console), a link to the attendee app and sign-out.
     Tables are dense; a pager shows "Page x of y" and hides when one page holds everything. Times are always Mountain
-    time, and a stored time fills a console's time fields as the meeting's own clock shows it. Chips show a paper's status (scheduled,
+    time, written one way in every console, and a stored time fills a console's time fields, such as a session's
+    form, as the meeting's own clock shows it. Chips show a paper's status (scheduled,
     withdrawn, moved, rescheduled) and a session's (published, changed); a summary counts the changes. Searches are cut
     to 100 characters and an unknown filter means all; a page past the end shows the last page, and any other page
     that is not a page number shows the first.
@@ -51,6 +53,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
     test reports one of: ok (with its HTTP status and time), not set, key refused, no programme or no talks, unreachable,
     or an unexpected answer. It can send the programme again, and put the published programme back after confirming,
     saying how many papers and sessions changed. It shows the abstract the demo is fixed to, and fixes it to another by
-    the talk's id, saying why a talk is refused.
+    the talk's id, saying why a talk is refused; a save or a test that fails for any other reason says it did not
+    finish.
     *How:* code alone; the developer page counts with this file.
     *File:* `developer.tsx`
