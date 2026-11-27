@@ -4,6 +4,7 @@ export { SOCIETY_TABLES, amsTables, type Society, type SocietyTables } from "./t
 export type { MeetingRow, PersonRow, SessionRow, SocietyRows, TalkKind, TalkRow, TrackRow } from "./load";
 export { authTables } from "./tables";
 export { createProgramme, type ProgrammeStore } from "./programme";
+export type { Seating, SeatedTalk } from "./layout";
 export { createGuestData, type GuestData } from "./guest-data";
 export { createDemoSettings, type DemoSettings } from "./demo-settings";
 export { createOrganiserStore, type OrganiserStore, type Placement, type PlacementFacts } from "./organiser";

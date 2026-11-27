@@ -12,7 +12,7 @@ import {
 } from "@repo/host-contracts";
 import type { ProgrammeStore, SyncLog, TestSets } from "@repo/host-store";
 
-import { poolsFrom, searchAround } from "./around-abstract";
+import { ownConferences, poolsFrom, searchAround } from "./around-abstract";
 import type { ConferenceApi } from "./matching-api";
 import { relatedFrom, searchRelated } from "./related";
 import { toPartnerTalk } from "./send";
@@ -87,20 +87,16 @@ export type Report = { status: "ready"; report: Recommendations } | { status: "j
 export async function reportOn(abstractId: string, deps: RecommendationsDeps): Promise<Report> {
   const [abstract] = await deps.store.talkSummaries([abstractId]);
   if (!abstract) return null;
-  const [session, forSync, runs] = await Promise.all([
-    abstract.sessionId ? deps.store.session(abstract.sessionId) : null,
-    deps.store.talksForSync(),
-    deps.log.runs(),
-  ]);
+  const [placed, forSync, runs] = await Promise.all([deps.store.seating(), deps.store.talksForSync(), deps.log.runs()]);
   const sent = forSync.map(toPartnerTalk).filter((t): t is TalkInput => t !== null);
-  const ownTrackIds = session?.trackIds ?? [];
+  const ownTrackIds = ownConferences(abstract.id, placed);
   const toAsk = placesAround(abstract.id, ownTrackIds, sent);
 
   // What each place shows comes from the same two searches the pages make, each asking for as many as its page does.
   const aroundRelated = await searchRelated(deps.api, abstract.id);
   const aroundBoxes = await searchAround(deps.api, abstract.id);
   if (aroundRelated.status === "unavailable" || aroundBoxes.status === "unavailable") return { status: "unavailable" };
-  const [related, pools] = await Promise.all([relatedFrom(deps.store, aroundRelated.matches), poolsFrom(deps.store, aroundBoxes.matches, ownTrackIds)]);
+  const [related, pools] = await Promise.all([relatedFrom(deps.store, aroundRelated.matches), poolsFrom(deps.store, aroundBoxes.matches, placed, ownTrackIds)]);
   let judging = aroundRelated.judging.length + aroundBoxes.judging.length;
 
   const places: Place[] = [];

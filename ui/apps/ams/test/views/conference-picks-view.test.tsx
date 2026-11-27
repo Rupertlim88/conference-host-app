@@ -32,7 +32,7 @@ const pools = aroundPools({
     { id: "C", matches: [match("Z", "11.2", 0.8)] },
   ],
 });
-const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: ["D"], pools, ...over });
+const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: ["D"], pools, layout: null, ...over });
 
 const LABEL = "Our change: other conferences, ranked for your abstract";
 const box = () => screen.getByText(LABEL).closest("section")!;
@@ -110,7 +110,7 @@ test("when the matching API cannot answer, the box holds one line saying so, and
 });
 
 test("with no abstract to rank around, the box holds one line saying so, and AMS's order stays below it", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={{ abstract: null, abstractTrackIds: [], pools: null }} label={LABEL} />);
+  renderApp(<ConferencePicksView tracks={tracks} around={{ abstract: null, abstractTrackIds: [], pools: null, layout: null }} label={LABEL} />);
   expect(box().textContent).toBe(`${LABEL}The demo has no abstract to order around yet.`);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta", "Epsilon"]);
   expectRestBelowBox();

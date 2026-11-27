@@ -1,5 +1,5 @@
 import { migrateStore } from "@repo/host-store/migrate";
-import { amsTables, connect, createDemoSettings, createOrganiserStore, createGuestData, createProgramme, createSyncLog, loadRows, type Db } from "@repo/host-store";
+import { amsTables, connect, createDemoSettings, createOrganiserStore, createGuestData, createProgramme, createSyncLog, createTestSets, loadRows, type Db } from "@repo/host-store";
 import type { Restriction } from "@repo/contracts";
 import { TRPCError } from "@trpc/server";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
@@ -151,9 +151,55 @@ describe.skipIf(!url)("appRouter", { timeout: 60_000 }, () => {
         timeBlock: [{ id: "2026-01-27T19:45:00.000Z", matches: [t2] }],
         session: [{ id: "S1", matches: [t2] }],
       },
+      layout: null,
     });
     const down = await caller({}).improvements.aroundAbstract();
-    expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), abstractTrackIds: ["P1"], pools: null });
+    expect(down).toEqual({ abstract: expect.objectContaining({ id: "T1" }), abstractTrackIds: ["P1"], pools: null, layout: null });
+  });
+
+  test("with a test set's layout, our improvements see the talks where it places them, and the abstract's own conferences there", async () => {
+    const result = (restriction: Restriction) => ({ talk: "T2", kind: "unexpected" as const, restriction, score: 0.9, description: "Why T2" });
+    const answering: ConferenceApi = {
+      ...api({ status: "unavailable" }),
+      restricted: async () => ({
+        status: "ok",
+        matches: [
+          result({ type: "subConference", id: "P1" }),
+          result({ type: "timeBlock", id: "2026-01-28T09:00:00-06:00" }),
+          result({ type: "session", id: "S1" }),
+          result({ type: "session", id: "B1" }),
+        ],
+        judging: [],
+      }),
+    };
+    // T2 moves into B1, which AMS leaves untimed, on Wednesday at 9:00, in Education; the abstract T1 is placed nowhere.
+    await createTestSets(db, "ams").hold({
+      conference: "ams-2027",
+      askers: ["T1"],
+      talks: ["T1", "T2"],
+      layout: {
+        timeBlocks: [{ start: "2026-01-28T09:00", sessions: ["B1"] }],
+        sessions: [{ id: "B1", start: "2026-01-28T09:00", talks: ["T2"] }],
+        conferences: [{ trackId: "P1", title: "Education", talks: ["T2"] }],
+      },
+    });
+    try {
+      const around = await caller({ api: answering }).improvements.aroundAbstract();
+      const seated = expect.objectContaining({ id: "T2", sessionId: "B1", startsAt: "2026-01-28T15:00:00.000Z", endsAt: null });
+      const t2 = { talk: seated, kind: "unexpected", score: 0.9, reason: "Why T2", tracks: [{ id: "P1", code: "EDU", title: "Education" }] };
+      expect(around.abstractTrackIds).toEqual([]);
+      expect(around.pools).toEqual({
+        subConference: [{ id: "P1", matches: [t2] }],
+        day: [],
+        timeBlock: [{ id: "2026-01-28T15:00:00.000Z", matches: [t2] }],
+        session: [{ id: "B1", matches: [t2] }],
+      });
+      expect(around.layout).toEqual([{ session: expect.objectContaining({ id: "B1", startsAt: "2026-01-28T15:00:00.000Z" }), talks: [seated] }]);
+    } finally {
+      await db.delete(amsTables.testSet);
+      await loadRows(db, amsTables, rows);
+      await db.delete(amsTables.demoSettings);
+    }
   });
 
   test("the developer console fixes the demo to a talk, and names why a talk is refused", async () => {

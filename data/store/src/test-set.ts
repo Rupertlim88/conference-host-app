@@ -38,10 +38,14 @@ export async function holdTalks(tx: Tx, t: SocietyTables, ids: string[]): Promis
 export function createTestSets(db: Db, society: Society) {
   const t = SOCIETY_TABLES[society];
   return {
-    /** The latest test set, or null until one arrives. */
+    /** The latest test set, with its layout when it has one, or null until one arrives. */
     async latest(): Promise<TestSet | null> {
-      const [row] = await db.select({ conference: t.testSet.conference, askers: t.testSet.askers, talks: t.testSet.talks }).from(t.testSet);
-      return row ?? null;
+      const [row] = await db
+        .select({ conference: t.testSet.conference, askers: t.testSet.askers, talks: t.testSet.talks, layout: t.testSet.layout })
+        .from(t.testSet);
+      if (!row) return null;
+      const { layout, ...rest } = row;
+      return layout ? { ...rest, layout } : rest;
     },
 
     /** Stores the test set in place of the one before, and in the same step restarts the demo's programme: every
@@ -58,7 +62,7 @@ export function createTestSets(db: Db, society: Society) {
         });
         await holdTalks(tx, t, testSet.talks);
         await fixAbstract(tx, t, testSet.askers[0]!);
-        const row = { conference: testSet.conference, askers: testSet.askers, talks: testSet.talks, storedAt: new Date() };
+        const row = { conference: testSet.conference, askers: testSet.askers, talks: testSet.talks, layout: testSet.layout ?? null, storedAt: new Date() };
         await tx.insert(t.testSet).values({ id: 1, ...row }).onConflictDoUpdate({ target: t.testSet.id, set: row });
       });
     },

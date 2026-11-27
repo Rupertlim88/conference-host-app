@@ -1,6 +1,6 @@
 // A test set is checked, stored, held and sent to the matching API.
 import { TestSetReplySchema, TestSetSchema, type TestSet } from "@repo/host-contracts";
-import type { SyncLog, TestSets, WholeProgrammeStore } from "@repo/host-store";
+import type { SyncLog, TestSets, WholeProgramme, WholeProgrammeStore } from "@repo/host-store";
 
 import type { ConferenceApi } from "./matching-api";
 import { SendFailed, SendRunning, sendProgramme, type SyncTalk } from "./send";
@@ -21,7 +21,7 @@ const NAMED = 10;
 const listed = (ids: string[]) => ids.slice(0, NAMED).join(", ") + (ids.length > NAMED ? ` and ${ids.length - NAMED} more` : "");
 
 /** Why the test set cannot be taken, checked against AMS's whole published programme, or null when it can. */
-function refusal(testSet: TestSet, talks: Map<string, { hasAbstract: boolean }>, conference: string): string | null {
+function refusal(testSet: TestSet, talks: Map<string, { hasAbstract: boolean }>, whole: WholeProgramme, conference: string): string | null {
   if (testSet.conference !== conference) return `This host app holds ${conference}, not ${testSet.conference}.`;
   const unknown = testSet.talks.filter((id) => !talks.has(id));
   if (unknown.length) return `Not talks of AMS's published programme: ${listed(unknown)}.`;
@@ -30,6 +30,13 @@ function refusal(testSet: TestSet, talks: Map<string, { hasAbstract: boolean }>,
   if (outside.length) return `Every abstract to test must be among the talks; these are not: ${listed(outside)}.`;
   const blank = testSet.askers.filter((id) => !talks.get(id)!.hasAbstract);
   if (blank.length) return `These abstracts to test have no abstract, so the matching API cannot match them: ${listed(blank)}.`;
+  if (!testSet.layout) return null;
+  const sessions = new Set(whole.sessions.map((s) => s.id));
+  const unknownSessions = testSet.layout.sessions.map((s) => s.id).filter((id) => !sessions.has(id));
+  if (unknownSessions.length) return `The layout names sessions AMS's published programme does not have: ${listed(unknownSessions)}.`;
+  const tracks = new Set(whole.tracks.map((t) => t.id));
+  const unknownTracks = testSet.layout.conferences.map((c) => c.trackId).filter((id) => !tracks.has(id));
+  if (unknownTracks.length) return `The layout names conferences AMS's published programme does not have: ${listed(unknownTracks)}.`;
   return null;
 }
 
@@ -51,10 +58,11 @@ export async function takeTestSet(req: Request, deps: TestSetDeps): Promise<Resp
   }
   const testSet = parsed.data;
 
-  const { talks } = await deps.whole.contents();
+  const whole = await deps.whole.contents();
+  const { talks } = whole;
   if (talks.length === 0) return plain(503, "AMS's whole published programme is not loaded yet: run the load command.");
   const published = new Map(talks.filter((t) => t.kind !== "break").map((t) => [t.id, t]));
-  const refused = refusal(testSet, published, deps.conference);
+  const refused = refusal(testSet, published, whole, deps.conference);
   if (refused) return plain(400, refused);
 
   await deps.testSets.hold(testSet);

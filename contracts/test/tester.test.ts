@@ -50,6 +50,59 @@ describe("a test set", () => {
     expect(TestSetSchema.safeParse({ ...testSet, talks: [498388] }).success).toBe(false);
   });
 
+  describe("with a layout of where our versions place the talks", () => {
+    const layout = {
+      timeBlocks: [{ start: "2027-01-11T08:30", sessions: ["75841", "75842"] }],
+      sessions: [
+        { id: "75841", start: "2027-01-11T08:30", talks: ["498388"] },
+        { id: "75842", start: "2027-01-11T08:30", talks: ["484295"] },
+      ],
+      conferences: [{ trackId: "1959", title: "29th Conference on Atmospheric Chemistry", talks: ["498388", "484295"] }],
+    };
+    const laidOut = { ...testSet, talks: ["498388", "484295", "490001"], layout };
+    const refused = (change: object) => TestSetSchema.safeParse({ ...laidOut, layout: { ...layout, ...change } });
+    const reason = (change: object) => refused(change).error?.issues.map((i) => i.message).join("; ");
+
+    test("takes the programme map's shapes, all three together, and a talk placed nowhere", () => {
+      expect(TestSetSchema.parse(laidOut)).toEqual(laidOut);
+      expect(TestSetSchema.safeParse({ ...laidOut, layout: { sessions: layout.sessions } }).success).toBe(false);
+    });
+
+    test("is refused when it places a talk the test set does not hold, or a talk in two sessions", () => {
+      expect(reason({ sessions: [layout.sessions[0], { id: "75842", start: "2027-01-11T08:30", talks: ["999"] }] })).toBe(
+        "places talks the test set does not hold: 999",
+      );
+      expect(reason({ conferences: [{ trackId: "1959", title: "", talks: ["999"] }] })).toBe("places talks the test set does not hold: 999");
+      expect(reason({ sessions: [layout.sessions[0], { id: "75842", start: "2027-01-11T08:30", talks: ["498388"] }] })).toBe(
+        "places a talk in two sessions: 498388",
+      );
+    });
+
+    test("is refused when it lists a session or a conference twice", () => {
+      expect(reason({ sessions: [layout.sessions[0], layout.sessions[0]] })).toContain("lists a session twice: 75841");
+      expect(reason({ conferences: [layout.conferences[0], layout.conferences[0]] })).toBe("lists a conference twice: 1959");
+    });
+
+    test("is refused when its time blocks and sessions disagree", () => {
+      expect(reason({ timeBlocks: [{ start: "2027-01-11T08:30", sessions: ["75841", "75842", "77777"] }] })).toBe(
+        "a time block names a session the layout does not list: 77777",
+      );
+      expect(reason({ timeBlocks: [{ start: "2027-01-11T10:30", sessions: ["75841", "75842"] }] })).toBe(
+        "a time block names a session that starts at another time: 75841, 75842",
+      );
+      expect(reason({ timeBlocks: [{ start: "2027-01-11T08:30", sessions: ["75841"] }] })).toBe("a session is in no time block: 75842");
+      expect(
+        reason({
+          timeBlocks: [
+            { start: "2027-01-11T08:30", sessions: ["75841", "75842"] },
+            { start: "2027-01-11T08:30", sessions: ["75842"] },
+          ],
+        }),
+      ).toBe("a session is in two time blocks: 75842");
+      expect(refused({ sessions: [{ id: "75841", start: null, talks: [] }] }).success).toBe(false);
+    });
+  });
+
   test("its answer gives the programme version the send returned", () => {
     expect(TestSetReplySchema.parse({ sentProgrammeVersion: "pv_1" })).toEqual({ sentProgrammeVersion: "pv_1" });
     expect(TestSetReplySchema.safeParse({}).success).toBe(false);

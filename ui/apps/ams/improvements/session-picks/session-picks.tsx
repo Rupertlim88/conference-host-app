@@ -1,5 +1,5 @@
 // In our improvements, a session's page marks the talk to come for.
-import type { AroundAbstract, AroundMatch, AroundPools, SessionDetail } from "@repo/host-contracts";
+import type { AroundAbstract, AroundMatch, AroundPools, SessionDetail, TalkSummary } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 
 import { TalkCard } from "@/base/cards";
@@ -18,9 +18,9 @@ export const sessionPicks: Change<"session.talks"> = {
 };
 
 /** The talks the backend's pool for this session holds, as many as a session shows, that this page shows. */
-export function bestMatchesIn(session: SessionDetail, pools: AroundPools | null): AroundMatch[] {
-  const ids = new Set(session.talks.map((talk) => talk.id));
-  return (pools?.session.find((pool) => pool.id === session.id)?.matches ?? []).filter((m) => ids.has(m.talk.id));
+export function bestMatchesIn(sessionId: string, talks: TalkSummary[], pools: AroundPools | null): AroundMatch[] {
+  const ids = new Set(talks.map((talk) => talk.id));
+  return (pools?.session.find((pool) => pool.id === sessionId)?.matches ?? []).filter((m) => ids.has(m.talk.id));
 }
 
 /** The session's talks in AMS's order, the first its pool lists outlined in gold where it sits; with no such talk, or
@@ -28,17 +28,21 @@ export function bestMatchesIn(session: SessionDetail, pools: AroundPools | null)
 export function SessionPicksView({ session, around, label }: { session: SessionDetail; around: AroundAbstract; label: string }) {
   const t = useTranslations();
   const boxLabel = session.format === "Poster" ? t("improvements.sessionPicks.board") : label;
-  const best = new Map(bestMatchesIn(session, around.pools).map((m) => [m.talk.id, m]));
+  const talks = around.layout ? (around.layout.find((laid) => laid.session.id === session.id)?.talks ?? []) : session.talks;
+  const laidOutNote = around.layout && <GoldOutline label={t("versions.change.laidOut")} />;
+  const best = new Map(bestMatchesIn(session.id, talks, around.pools).map((m) => [m.talk.id, m]));
   if (best.size === 0)
     return (
       <>
+        {laidOutNote}
         <GoldOutline label={boxLabel} />
-        <SessionTalks talks={session.talks} />
+        <SessionTalks talks={talks} />
       </>
     );
   return (
     <div className="space-y-2">
-      {session.talks.map((talk) => {
+      {laidOutNote}
+      {talks.map((talk) => {
         const match = best.get(talk.id);
         return match ? (
           <GoldOutline key={talk.id} label={boxLabel}>

@@ -24,6 +24,98 @@
         "type": "string",
         "pattern": "^[A-Za-z0-9._-]{1,64}$"
       }
+    },
+    "layout": {
+      "type": "object",
+      "properties": {
+        "timeBlocks": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "start": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+              },
+              "sessions": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._-]{1,64}$"
+                }
+              }
+            },
+            "required": [
+              "start",
+              "sessions"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "sessions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "id": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9._-]{1,64}$"
+              },
+              "start": {
+                "type": "string",
+                "pattern": "^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}$"
+              },
+              "talks": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._-]{1,64}$"
+                }
+              }
+            },
+            "required": [
+              "id",
+              "start",
+              "talks"
+            ],
+            "additionalProperties": false
+          }
+        },
+        "conferences": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "properties": {
+              "trackId": {
+                "type": "string",
+                "pattern": "^[A-Za-z0-9._-]{1,64}$"
+              },
+              "title": {
+                "type": "string"
+              },
+              "talks": {
+                "type": "array",
+                "items": {
+                  "type": "string",
+                  "pattern": "^[A-Za-z0-9._-]{1,64}$"
+                }
+              }
+            },
+            "required": [
+              "trackId",
+              "title",
+              "talks"
+            ],
+            "additionalProperties": false
+          }
+        }
+      },
+      "required": [
+        "timeBlocks",
+        "sessions",
+        "conferences"
+      ],
+      "additionalProperties": false
     }
   },
   "required": [

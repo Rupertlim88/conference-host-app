@@ -22,7 +22,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    higher first, and shows that talk's number and title, whether it is a close or an unexpected match, its day and
    time and the reason, linking to the talk. These
    picks sit in a gold box of their own at the top, naming the abstract; with none, the box at the top shows empty. The
-   rest follow below it in AMS's order. When the matching API cannot answer, or the demo has no abstract, AMS's order
+   rest follow below it in AMS's order, under a heading saying so, with the attendee's own marked; that heading and
+   those marks sit outside the gold box. When the matching API cannot answer, or the demo has no abstract, AMS's order
    stays below the box, and one line in the box says so.
    *How:* code alone: the improvement's change to the conferences list, from the backend's sub-conference pools for the
    fixed abstract, which leave out the attendee's own conferences and hold the first talk the matching API lists in

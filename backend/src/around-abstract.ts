@@ -1,7 +1,7 @@
 // Our improvements see the demo's fixed abstract, the conferences of its session, and the matching API's pools around it, by kind.
 import type { Restriction } from "@repo/contracts";
-import { Id, SHOWN_PER_PLACE, type AroundAbstract, type AroundPool, type AroundPools, type TalkSummary, type Track } from "@repo/host-contracts";
-import type { DemoSettings, ProgrammeStore } from "@repo/host-store";
+import { Id, SHOWN_PER_PLACE, type AroundAbstract, type AroundPool, type AroundPools, type LaidOutSession, type TalkSummary, type Track } from "@repo/host-contracts";
+import type { DemoSettings, Seating, ProgrammeStore } from "@repo/host-store";
 
 import type { ConferenceApi, Match, StandardKind } from "./matching-api";
 
@@ -19,22 +19,55 @@ export function searchAround(api: ConferenceApi, abstractId: string) {
   return api.restricted(abstractId, AROUND_KINDS, AROUND_TOP);
 }
 
-/** The fixed abstract, its session's conferences, and the matching API's pools around it; the pools are null when the
- *  API cannot answer. */
+/** The fixed abstract, the conferences it sits in, the matching API's pools around it, and the sessions a test set's
+ *  layout places the talks in; the pools are null when the API cannot answer. */
 export async function aroundAbstract(store: ProgrammeStore, demo: DemoSettings, api: ConferenceApi): Promise<AroundAbstract> {
   const abstract = await demo.fixedAbstract();
-  if (!abstract) return { abstract: null, abstractTrackIds: [], pools: null };
-  const [session, answer] = await Promise.all([
-    abstract.sessionId ? store.session(abstract.sessionId) : null,
-    searchAround(api, abstract.id),
-  ]);
-  const abstractTrackIds = session?.trackIds ?? [];
-  if (answer.status === "unavailable") return { abstract, abstractTrackIds, pools: null };
-  return { abstract, abstractTrackIds, pools: await poolsFrom(store, answer.matches, abstractTrackIds) };
+  if (!abstract) return { abstract: null, abstractTrackIds: [], pools: null, layout: null };
+  const [placed, answer] = await Promise.all([store.seating(), searchAround(api, abstract.id)]);
+  const abstractTrackIds = ownConferences(abstract.id, placed);
+  const layout = placed.laidOut ? await laidOutSessions(store, placed) : null;
+  if (answer.status === "unavailable") return { abstract, abstractTrackIds, pools: null, layout };
+  return { abstract, abstractTrackIds, pools: await poolsFrom(store, answer.matches, placed, abstractTrackIds), layout };
 }
 
-/** What the programme says about the matched talks, to place each match: the talks it shows, their conferences, their
- *  sessions' starts, and the conferences the list shows other than the attendee's own. */
+/** The attendee's own conferences, around their abstract: those of its session where AMS placed it, or, in a layout,
+ *  those the layout puts it in. */
+export function ownConferences(talkId: string, placed: Seating): string[] {
+  const talk = placed.talks.find((t) => t.id === talkId);
+  if (!talk) return [];
+  if (placed.laidOut) return talk.trackIds;
+  return placed.sessions.find((s) => s.id === talk.sessionId)?.trackIds ?? [];
+}
+
+/** A talk as it sits: in a layout, in its session there, at that session's start, since a layout gives no talk its
+ *  own time; otherwise as AMS placed it. */
+function seated(talk: TalkSummary, placed: Seating): TalkSummary {
+  if (!placed.laidOut) return talk;
+  const sessionId = placed.talks.find((t) => t.id === talk.id)?.sessionId ?? null;
+  const startsAt = placed.sessions.find((s) => s.id === sessionId)?.startsAt ?? null;
+  return { ...talk, sessionId, startsAt, endsAt: null };
+}
+
+/** The sessions a layout places the talks in, each at its start there, keeping its length, with its talks in order. */
+async function laidOutSessions(store: ProgrammeStore, placed: Seating): Promise<LaidOutSession[]> {
+  const [sessions, talks] = await Promise.all([
+    store.sessionSummaries(placed.sessions.map((s) => s.id)),
+    store.talkSummaries(placed.sessions.flatMap((s) => s.talks)),
+  ]);
+  const talkById = new Map(talks.map((t) => [t.id, t]));
+  return placed.sessions.flatMap((laid) => {
+    const session = sessions.find((s) => s.id === laid.id);
+    if (!session) return [];
+    const length = session.startsAt && session.endsAt ? Date.parse(session.endsAt) - Date.parse(session.startsAt) : null;
+    const endsAt = laid.startsAt && length !== null ? new Date(Date.parse(laid.startsAt) + length).toISOString() : null;
+    const placedTalks = laid.talks.flatMap((id) => (talkById.has(id) ? [seated(talkById.get(id)!, placed)] : []));
+    return [{ session: { ...session, startsAt: laid.startsAt, endsAt }, talks: placedTalks }];
+  });
+}
+
+/** What the programme says about the matched talks, to place each match: the talks it shows, where each sits, their
+ *  conferences, their sessions' starts, and the conferences the list shows other than the attendee's own. */
 export interface Placing {
   talks: Map<string, TalkSummary>;
   tracksOf: Record<string, Track[]>;
@@ -42,17 +75,18 @@ export interface Placing {
   conferences: Set<string>;
 }
 
-/** The pools around an abstract, read from the store for the API's results; the attendee's own conferences have none.
- *  The tester's report reads its pools this way too. */
-export async function poolsFrom(store: ProgrammeStore, results: Match[], ownTrackIds: string[]): Promise<AroundPools> {
+/** The pools around an abstract, for the API's results, with each talk where it sits: in a test set's layout when it
+ *  has one. The attendee's own conferences, those the abstract sits in, have none. The tester's report reads its
+ *  pools this way too. */
+export async function poolsFrom(store: ProgrammeStore, results: Match[], placed: Seating, ownTrackIds: string[]): Promise<AroundPools> {
   const ids = [...new Set(results.map((r) => r.talk))];
-  const [summaries, tracksOf, listed] = await Promise.all([store.talkSummaries(ids), store.tracksOfTalks(ids), store.tracks()]);
-  const sessionIds = [...new Set(summaries.flatMap((t) => (t.sessionId ? [t.sessionId] : [])))];
   const own = new Set(ownTrackIds);
+  const [summaries, listed] = await Promise.all([store.talkSummaries(ids), store.tracks()]);
+  const trackIdsOf = new Map(placed.talks.map((t) => [t.id, t.trackIds]));
   return groupPools(results, {
-    talks: new Map(summaries.map((t) => [t.id, t])),
-    tracksOf,
-    sessionStarts: await store.sessionStarts(sessionIds),
+    talks: new Map(summaries.map((t) => [t.id, seated(t, placed)])),
+    tracksOf: Object.fromEntries(summaries.map((t) => [t.id, listed.filter((track) => trackIdsOf.get(t.id)?.includes(track.id))])),
+    sessionStarts: new Map(placed.sessions.flatMap((s) => (s.startsAt ? [[s.id, s.startsAt] as const] : []))),
     conferences: new Set(listed.map((t) => t.id).filter((id) => !own.has(id))),
   });
 }

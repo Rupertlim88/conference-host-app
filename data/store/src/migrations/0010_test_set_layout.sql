@@ -1,0 +1,1 @@
+ALTER TABLE "ams2027"."test_set" ADD COLUMN "layout" jsonb;

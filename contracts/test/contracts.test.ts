@@ -97,17 +97,25 @@ describe("the demo's menu, highlights, pages of names and fixed abstract", () =>
     expect(NamePageInputSchema.safeParse({ page: "press" }).success).toBe(false);
   });
 
-  test("the view around the abstract names the conferences of the abstract's session; its pools are null when the API cannot answer", () => {
-    expect(AroundAbstractSchema.safeParse({ abstract: null, abstractTrackIds: [], pools: null }).success).toBe(true);
-    expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: ["1878", "1912"], pools: noPools }).success).toBe(true);
-    expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: ["../x"], pools: noPools }).success).toBe(false);
-    expect(AroundAbstractSchema.safeParse({ abstract: summary, pools: noPools }).success).toBe(false);
+  test("the view around the abstract names the conferences it sits in; its pools are null when the API cannot answer, and its layout without one", () => {
+    expect(AroundAbstractSchema.safeParse({ abstract: null, abstractTrackIds: [], pools: null, layout: null }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: ["1878", "1912"], pools: noPools, layout: null }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: ["../x"], pools: noPools, layout: null }).success).toBe(false);
+    expect(AroundAbstractSchema.safeParse({ abstract: summary, pools: noPools, layout: null }).success).toBe(false);
+    expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: [], pools: noPools }).success).toBe(false);
+  });
+
+  test("with a test set's layout, the view carries each laid-out session with its talks", () => {
+    const session = { id: "S1", number: "5", title: "Storms", kind: "Session", format: "", startsAt: null, endsAt: null, room: "", building: "", trackIds: [] };
+    const layout = [{ session, talks: [summary] }];
+    expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: [], pools: noPools, layout }).success).toBe(true);
+    expect(AroundAbstractSchema.safeParse({ abstract: summary, abstractTrackIds: [], pools: noPools, layout: [{ session }] }).success).toBe(false);
   });
 
   describe("the matching API's pools around the abstract", () => {
     const talk = { id: "T2", sessionId: "S1", number: "5.2", title: "T", kind: "oral", startsAt: null, endsAt: null, room: "", building: "", booth: "", presentingAuthor: "", authorLine: "" };
     const match = { talk, kind: "unexpected", score: 0.8, reason: "Same technique.", tracks: [{ id: "P1", code: "EDU", title: "Education" }] };
-    const around = (pools: object) => AroundAbstractSchema.safeParse({ abstract: null, abstractTrackIds: [], pools: { ...noPools, ...pools } });
+    const around = (pools: object) => AroundAbstractSchema.safeParse({ abstract: null, abstractTrackIds: [], pools: { ...noPools, ...pools }, layout: null });
 
     test("each other conference, day, time block and session is a pool of matches, each with its talk, kind, score, reason and conferences", () => {
       expect(

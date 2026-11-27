@@ -175,11 +175,17 @@ export const AroundPoolsSchema = z.strictObject({
 export type AroundPools = z.infer<typeof AroundPoolsSchema>;
 export type AroundPool = AroundPools[keyof AroundPools][number];
 
-/** The demo's fixed abstract, the conferences of its session, which are the attendee's own, and the matching API's
- *  pools around it; the pools are null when the API cannot answer. */
+/** A session as a test set's layout places it for our versions: at its start there, with its talks there, in order. */
+export const LaidOutSessionSchema = z.strictObject({ session: SessionSummarySchema, talks: z.array(TalkSummarySchema) });
+export type LaidOutSession = z.infer<typeof LaidOutSessionSchema>;
+
+/** The demo's fixed abstract, the conferences it sits in, which are the attendee's own, the matching API's pools
+ *  around it, and the sessions a test set's layout places the talks in; the pools are null when the API cannot
+ *  answer, and the layout is null when the talks sit where AMS placed them. */
 export const AroundAbstractSchema = z.strictObject({
   abstract: TalkSummarySchema.nullable(),
   abstractTrackIds: z.array(Id),
   pools: AroundPoolsSchema.nullable(),
+  layout: z.array(LaidOutSessionSchema).nullable(),
 });
 export type AroundAbstract = z.infer<typeof AroundAbstractSchema>;

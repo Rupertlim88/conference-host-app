@@ -12,7 +12,9 @@ lists the best matches within. There are six kinds:
   match is not listed, and neither is a talk it never reached.
 
 The first five are the standard kinds. The API builds them from the programme the host app sends. Each talk carries
-its tracks, and its session carries its id and its start (`session.start`). The start is the meeting's clock time with
+its tracks, and its session carries its id and its start (`session.start`). When the latest test set has a layout, each
+talk is sent where the layout places it, so the API's days, time blocks, sessions and conferences are the layout's; a
+talk the layout places nowhere goes with no session and no tracks. The start is the meeting's clock time with
 its offset, such as `2027-01-11T08:30:00-07:00` for 8:30 AM in Denver in January.
 
 ## The requests

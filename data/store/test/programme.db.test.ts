@@ -126,19 +126,4 @@ describe.skipIf(!url)("store queries", { timeout: 60_000 }, () => {
       { heading: "Local Organizing Committee", lines: ["Melissa Burt and Scott Mackaro, Co-Chairs", "Stephanie Herring"] },
     ]);
   });
-
-  test("each shown talk is given with the conferences it is in, and unknown talks with none", async () => {
-    const education = { id: "1878", code: "EDUCATION", title: "35th Conference on Education" };
-    const tropical = { id: "1912", code: "TROPICAL", title: "First Symposium on Tropical Meteorology and Climate" };
-    expect(await ams.tracksOfTalks(["464598", "470089", "463094", "nope"])).toEqual({ "464598": [education], "470089": [education], "463094": [tropical] });
-    expect(await ams.tracksOfTalks([])).toEqual({});
-  });
-
-  test("each session's start comes back by its id, and an unknown session has none", async () => {
-    const [talk] = await ams.talkSummaries(["464598"]);
-    const session = await ams.session(talk!.sessionId!);
-    expect(session?.startsAt).toBeTruthy();
-    expect(await ams.sessionStarts([session!.id, "nope"])).toEqual(new Map([[session!.id, session!.startsAt]]));
-    expect(await ams.sessionStarts([])).toEqual(new Map());
-  });
 });

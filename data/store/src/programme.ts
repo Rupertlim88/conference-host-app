@@ -17,9 +17,10 @@ import type {
   Track,
   TrackDetail,
 } from "@repo/host-contracts";
-import { and, arrayContains, asc, eq, exists, ilike, inArray, isNotNull, or, sql, type SQL } from "drizzle-orm";
+import { and, arrayContains, asc, eq, exists, ilike, inArray, or, sql, type SQL } from "drizzle-orm";
 
 import type { Db } from "./connect";
+import { latestLayout, seating, seatsOf, type Seating } from "./layout";
 import { SOCIETY_TABLES, type Society, type SocietyTables } from "./tables";
 import { zonedDateTime } from "./time";
 
@@ -181,19 +182,6 @@ export function createProgramme(db: Db, society: Society) {
     },
 
     /** The tracks each of these talks, among the shown ones, is in, by talk id, in the conferences list's order. */
-    async tracksOfTalks(talkIds: string[]): Promise<Record<string, Track[]>> {
-      if (talkIds.length === 0) return {};
-      const talks = await db.select({ id: t.talks.id, trackIds: t.talks.trackIds }).from(t.talks).where(and(shown, inArray(t.talks.id, talkIds)));
-      const trackIds = [...new Set(talks.flatMap((talk) => talk.trackIds))];
-      const tracks = trackIds.length
-        ? await db
-            .select({ id: t.tracks.id, code: t.tracks.code, title: t.tracks.title })
-            .from(t.tracks)
-            .where(inArray(t.tracks.id, trackIds))
-            .orderBy(asc(t.tracks.sort))
-        : [];
-      return Object.fromEntries(talks.map((talk) => [talk.id, tracks.filter((track) => talk.trackIds.includes(track.id))]));
-    },
 
     async session(id: string): Promise<SessionDetail | null> {
       const [s] = await db.select().from(t.sessions).where(eq(t.sessions.id, id));
@@ -235,14 +223,15 @@ export function createProgramme(db: Db, society: Society) {
       };
     },
 
-    /** Each session's start, by its id; an unknown or untimed session has none. */
-    async sessionStarts(ids: string[]): Promise<Map<string, string>> {
-      if (ids.length === 0) return new Map();
-      const rows = await db
-        .select({ id: t.sessions.id, startsAt: t.sessions.startsAt })
-        .from(t.sessions)
-        .where(and(inArray(t.sessions.id, ids), isNotNull(t.sessions.startsAt)));
-      return new Map(rows.map((r) => [r.id, iso(r.startsAt)!]));
+    /** The short forms of these sessions; an unknown session has none. */
+    async sessionSummaries(ids: string[]): Promise<SessionSummary[]> {
+      if (ids.length === 0) return [];
+      return (await db.select().from(t.sessions).where(inArray(t.sessions.id, ids)).orderBy(...sessionOrder)).map(toSessionSummary);
+    },
+
+    /** Where every held talk sits, as the send carries it: in the latest test set's layout when it has one. */
+    async seating(): Promise<Seating> {
+      return seating(db, t, await timeZone());
     },
 
     /** Summaries in the order of `ids`; unknown ids are skipped. */
@@ -309,9 +298,10 @@ export function createProgramme(db: Db, society: Society) {
     },
 
     /** Every shown talk, with what the conference API's talk upload needs: its session's start is the meeting's
-     *  clock time with its offset. A sync that completes withdraws the rest at the API. */
+     *  clock time with its offset. A talk sits where the latest test set's layout places it, when it has one. A sync
+     *  that completes withdraws the rest at the API. */
     async talksForSync() {
-      const [rows, tz] = await Promise.all([
+      const [rows, tz, layout] = await Promise.all([
         db
           .select({
             talk: t.talks,
@@ -324,13 +314,35 @@ export function createProgramme(db: Db, society: Society) {
           .where(shown)
           .orderBy(asc(t.talks.id)),
         timeZone(),
+        latestLayout(db, t),
       ]);
-      return rows.map((r) => ({
-        ...r.talk,
-        sessionTitle: r.sessionTitle,
-        sessionFormat: r.sessionFormat,
-        sessionStart: r.sessionStartsAt ? zonedDateTime(r.sessionStartsAt, tz) : null,
-      }));
+      if (!layout) {
+        return rows.map((r) => ({
+          ...r.talk,
+          sessionTitle: r.sessionTitle,
+          sessionFormat: r.sessionFormat,
+          sessionStart: r.sessionStartsAt ? zonedDateTime(r.sessionStartsAt, tz) : null,
+        }));
+      }
+      const seats = seatsOf(layout, tz);
+      const ids = layout.sessions.map((s) => s.id);
+      const sessions = new Map(
+        (ids.length ? await db.select({ id: t.sessions.id, title: t.sessions.title, format: t.sessions.format }).from(t.sessions).where(inArray(t.sessions.id, ids)) : []).map(
+          (s) => [s.id, s],
+        ),
+      );
+      return rows.map((r) => {
+        const seat = seats.get(r.talk.id);
+        const session = seat?.sessionId ? sessions.get(seat.sessionId) : undefined;
+        return {
+          ...r.talk,
+          sessionId: seat?.sessionId ?? null,
+          trackIds: seat?.trackIds ?? [],
+          sessionTitle: session?.title ?? null,
+          sessionFormat: session?.format ?? null,
+          sessionStart: seat?.start ? zonedDateTime(seat.start, tz) : null,
+        };
+      });
     },
 
   };
