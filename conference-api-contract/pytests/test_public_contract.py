@@ -35,9 +35,11 @@ EXPRESSIBLE = {
     "matches_search_request-page-size-zero.json",
     "matches_search_response-score-above-one.json",
     "matches_search_response-description-too-long.json",
-    "matches_search_request-include-unknown.json",
+    "matches_search_request-top-zero.json",
+    "matches_search_response-nothing-shared.json",
     "matches_from_text_request-blank-text.json",
     "matches_search_request-restriction-twice.json",
+    "matches_from_text_response-judging-with-matches.json",
 }
 
 def validator(kind: str) -> Draft202012Validator:

@@ -5,13 +5,14 @@ import {
   ProblemSchema,
   TalksWriteRequestSchema,
   TalksWriteResponseSchema,
-  type Match,
+  type Connection,
   type MatchesSearchResponse,
+  type Restriction,
   type RestrictionRequest,
   type RestrictionType,
   type TalksWriteRequest,
   type TalksWriteResponse,
-} from "@repo/contracts";
+} from "@repo/contracts/public";
 import type { ConnectionStatus, Society } from "@repo/host-contracts";
 
 /** The conference id each society's programme is filed under at the conference API. */
@@ -21,8 +22,21 @@ export const CONFERENCE_IDS: Record<Society, string> = { ams: "ams-2027" };
  *  it is asked again a little later. */
 export type Judging = NonNullable<MatchesSearchResponse["judging"]>[number];
 
-/** The results of a restricted search, in the API's order, and the restrictions it is still judging. */
+/** A match as the host app uses it: the other talk of a connection, the restriction it is listed under, its kind and
+ *  score, and the main talk's description of why the other talk is relevant to it. */
+export interface Match {
+  talk: string;
+  restriction: Restriction;
+  kind: Connection["kind"];
+  score: number;
+  description: string;
+}
+
+/** The matches of a restricted search, in the API's order, and the restrictions it is still judging. */
 export type RestrictedAnswer = { status: "ok"; matches: Match[]; judging: Judging[] } | { status: "unavailable" };
+
+/** The connections a search lists, as the API gave them, in its order, and the restrictions it is still judging. */
+export type ConnectionsAnswer = { status: "ok"; connections: Connection[]; judging: Judging[] } | { status: "unavailable" };
 
 /** A kind of restriction that groups the programme: every kind but the talks a search names. */
 export type StandardKind = Exclude<RestrictionType, "talks">;
@@ -31,13 +45,13 @@ export type StandardKind = Exclude<RestrictionType, "talks">;
 export const TALKS_PER_SEARCH = 1000;
 
 export interface ConferenceApi {
-  /** The matches the matching API lists for a talk under every restriction of these kinds, and those it is still
-   *  judging: every page of one matches search. */
-  restricted(talkId: string, kinds: StandardKind[]): Promise<RestrictedAnswer>;
-  /** The verdicts the matching API lists for a talk under the talks restriction of these talks, which are only
+  /** The matches the matching API lists for a talk under every restriction of these kinds, at most `top` in each, best
+   *  first, and those it is still judging: every page of one matches search. */
+  restricted(talkId: string, kinds: StandardKind[], top: number): Promise<RestrictedAnswer>;
+  /** Every connection the matching API lists for a talk under the talks restriction of these talks, which are only
    *  matches, as it gave them, and whether it is still judging them: every page of one search for each thousand
    *  talks. */
-  verdicts(talkId: string, talks: string[]): Promise<RestrictedAnswer>;
+  verdicts(talkId: string, talks: string[]): Promise<ConnectionsAnswer>;
   /** Writes talks; stops when `signal` aborts or the API takes longer than a minute. */
   writeTalks(req: TalksWriteRequest, signal?: AbortSignal): Promise<TalksWriteResponse>;
   /** One matches:search for a talk, to test the address and the key. Writes nothing, and keeps no body. */
@@ -84,6 +98,19 @@ export function checkTalksWrite(req: TalksWriteRequest): void {
   checked(TalksWriteRequestSchema, req);
 }
 
+/** What one matches search asks for: its restrictions, and how many matches to list in each. */
+interface Search {
+  restrictions: RestrictionRequest[];
+  top: number;
+}
+
+/** A connection as the host app uses it. Every pair follows the order of its talks, the main talk first, so the other
+ *  talk and the main talk's description come second and first. */
+function asMatch(connection: Connection): Match {
+  const { talks, restriction, kind, score, descriptions } = connection;
+  return { talk: talks[1], restriction, kind, score, description: descriptions[0] };
+}
+
 /** Used when no API address is set: every matches search is unavailable. */
 export const unconfiguredApi: ConferenceApi = {
   restricted: async () => ({ status: "unavailable" }),
@@ -109,33 +136,34 @@ export function conferenceApi(opts: {
       signal,
     });
 
-  /** Every page of one search for a talk's matches under these restrictions, in pages of a thousand, all before the
-   *  deadline, with each restriction still being judged once, though every page names it; null when a page fails. */
-  async function everyPage(talkId: string, restrictions: RestrictionRequest[], deadline: AbortSignal) {
-    const matches: Match[] = [];
+  /** Every page of one search for a talk's connections under these restrictions, at most `top` in each, in pages of a
+   *  thousand, all before the deadline: the talk's entry joined where it continues on the next page, in the API's
+   *  order, with each restriction still being judged once, though every page names it; null when a page fails. */
+  async function everyPage(talkId: string, search: Search, deadline: AbortSignal) {
+    const connections: Connection[] = [];
     const judging = new Map<string, Judging>();
     let pageToken: string | undefined;
     do {
-      const body = { likeTalks: [talkId], restrictions, pageSize: 1000, ...(pageToken ? { pageToken } : {}) };
+      const body = { likeTalks: [talkId], ...search, pageSize: 1000, ...(pageToken ? { pageToken } : {}) };
       const res = await post("matches:search", checked(MatchesSearchRequestSchema, body), deadline);
       if (!res.ok) return null;
       const page = MatchesSearchResponseSchema.safeParse(await res.json());
       if (!page.success) return null;
-      matches.push(...page.data.matches);
+      for (const entry of page.data.abstracts) if (entry.talk === talkId) connections.push(...entry.connections);
       for (const j of page.data.judging ?? []) judging.set(JSON.stringify(j), j);
       pageToken = page.data.nextPageToken;
     } while (pageToken);
-    return { matches, judging: [...judging.values()] };
+    return { connections, judging: [...judging.values()] };
   }
 
   /** Every search in turn, each with its own time limit across its pages; their answers joined in order. */
-  async function everySearch(talkId: string, searches: RestrictionRequest[][], timeoutMs: number): Promise<RestrictedAnswer> {
-    const answer = { status: "ok" as const, matches: [] as Match[], judging: [] as Judging[] };
+  async function everySearch(talkId: string, searches: Search[], timeoutMs: number): Promise<ConnectionsAnswer> {
+    const answer = { status: "ok" as const, connections: [] as Connection[], judging: [] as Judging[] };
     try {
-      for (const restrictions of searches) {
-        const found = await everyPage(talkId, restrictions, AbortSignal.timeout(timeoutMs));
+      for (const search of searches) {
+        const found = await everyPage(talkId, search, AbortSignal.timeout(timeoutMs));
         if (!found) return { status: "unavailable" };
-        answer.matches.push(...found.matches);
+        answer.connections.push(...found.connections);
         answer.judging.push(...found.judging);
       }
       return answer;
@@ -145,13 +173,22 @@ export function conferenceApi(opts: {
   }
 
   return {
-    // Every restriction of each kind, as many matches as each lists: no ids and no K.
-    restricted: (talkId, kinds) => everySearch(talkId, [kinds.map((type) => ({ type }) as RestrictionRequest)], opts.timeoutMs ?? 3000),
+    // Every restriction of each kind, at most `top` matches in each: no ids and no K.
+    async restricted(talkId, kinds, top) {
+      const restrictions = kinds.map((type) => ({ type }) as RestrictionRequest);
+      const answer = await everySearch(talkId, [{ restrictions, top }], opts.timeoutMs ?? 3000);
+      if (answer.status === "unavailable") return answer;
+      return { status: "ok", matches: answer.connections.map(asMatch), judging: answer.judging };
+    },
 
-    // The talks restriction, like every restriction, lists only the talks it names that match.
+    // The talks restriction, like every restriction, lists only the talks it names that match; asking for as many as
+    // it names lists every one.
     verdicts: (talkId, talks) => {
-      const searches: RestrictionRequest[][] = [];
-      for (let i = 0; i < talks.length; i += TALKS_PER_SEARCH) searches.push([{ type: "talks", ids: talks.slice(i, i + TALKS_PER_SEARCH) }]);
+      const searches: Search[] = [];
+      for (let i = 0; i < talks.length; i += TALKS_PER_SEARCH) {
+        const ids = talks.slice(i, i + TALKS_PER_SEARCH);
+        searches.push({ restrictions: [{ type: "talks", ids }], top: ids.length });
+      }
       return everySearch(talkId, searches, opts.timeoutMs ?? 10_000);
     },
 
@@ -159,7 +196,7 @@ export function conferenceApi(opts: {
       const started = performance.now();
       const ms = () => Math.round(performance.now() - started);
       try {
-        const body = checked(MatchesSearchRequestSchema, { likeTalks: [talkId], topPerPerson: 1 });
+        const body = checked(MatchesSearchRequestSchema, { likeTalks: [talkId], top: 1 });
         const res = await post("matches:search", body, AbortSignal.timeout(opts.timeoutMs ?? 5000));
         const validBody = res.ok && MatchesSearchResponseSchema.safeParse(await res.json().catch(() => null)).success;
         return { outcome: { kind: "answered", httpStatus: res.status, validBody }, ms: ms() };

@@ -95,7 +95,10 @@ export const OPERATIONS = {
   matchesFromText: {
     method: "POST",
     path: "/v1/conferences/{conference}/matches:fromText",
-    summary: "Get matches for text a person enters, worked out on the spot.",
+    summary:
+      "Get matches for text a person enters. It is matched like a new talk, which can take minutes: until it is judged, " +
+      "the answer is {\"judging\": true}; ask again with the same request, every 30 seconds or more, and once judged it " +
+      "is answered at once, as of the same programme version.",
     limits: limits(64 * KiB, 60, 20),
     request: { name: "MatchesFromTextRequest", schema: MatchesFromTextRequestSchema },
     response: { name: "MatchesFromTextResponse", schema: MatchesFromTextResponseSchema },

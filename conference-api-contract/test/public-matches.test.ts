@@ -22,8 +22,15 @@ function issuePaths(schema: z.ZodType, value: unknown): string[] {
   ]);
 }
 
-const searchMatch = read("valid/matches_search_response.json").matches[0];
+const searchEntry = read("valid/matches_search_response.json").abstracts[0];
+const connection = searchEntry.connections[0];
 const textMatch = read("valid/matches_from_text_response.json").matches[0];
+const answering = (change: object, entry: object = {}) => ({
+  abstracts: [{ ...searchEntry, ...entry, connections: [{ ...connection, ...change }] }],
+});
+const AT = "abstracts.0.connections.0";
+const without = (value: Record<string, unknown>, key: string) =>
+  Object.fromEntries(Object.entries(value).filter(([k]) => k !== key));
 
 describe("valid examples parse", () => {
   test("search request", () =>
@@ -38,93 +45,111 @@ describe("valid examples parse", () => {
     expect(MatchesFromTextRequestSchema.safeParse(read("valid/matches_from_text_request.json")).success).toBe(true));
   test("fromText response", () =>
     expect(MatchesFromTextResponseSchema.safeParse(read("valid/matches_from_text_response.json")).success).toBe(true));
-  test("an empty search asks for everyone's matches", () =>
-    expect(MatchesSearchRequestSchema.safeParse({}).success).toBe(true));
   test("a last page has no next token", () =>
-    expect(MatchesSearchResponseSchema.safeParse({ matches: [searchMatch] }).success).toBe(true));
+    expect(MatchesSearchResponseSchema.safeParse({ abstracts: [searchEntry] }).success).toBe(true));
 });
 
 describe("matches:search", () => {
+  const liking = (extra: object) => ({ likeTalks: ["T42"], ...extra });
   test("refuses people and likeTalks together", () =>
     expect(issuePaths(MatchesSearchRequestSchema, { people: ["P1"], likeTalks: ["T42"] })).toContain("likeTalks"));
+  test("names the people or the liked talks it matches, never everyone", () => {
+    expect(issuePaths(MatchesSearchRequestSchema, {})).toContain("people");
+    expect(issuePaths(MatchesSearchRequestSchema, { restrictions: [{ type: "day" }] })).toContain("people");
+  });
   test("pageSize is 1 to 1,000 and defaults to 100", () => {
-    expect(MatchesSearchRequestSchema.parse({}).pageSize).toBe(100);
-    expect(issuePaths(MatchesSearchRequestSchema, { pageSize: 0 })).toContain("pageSize");
-    expect(issuePaths(MatchesSearchRequestSchema, { pageSize: 1001 })).toContain("pageSize");
-    expect(MatchesSearchRequestSchema.safeParse({ pageSize: 1000 }).success).toBe(true);
+    expect(MatchesSearchRequestSchema.parse(liking({})).pageSize).toBe(100);
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ pageSize: 0 }))).toContain("pageSize");
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ pageSize: 1001 }))).toContain("pageSize");
+    expect(MatchesSearchRequestSchema.safeParse(liking({ pageSize: 1000 })).success).toBe(true);
+  });
+  test("asks for 1 to 1,000 matches per main talk and restriction, or leaves it out for every match found", () => {
+    expect(MatchesSearchRequestSchema.safeParse(liking({ top: 5 })).success).toBe(true);
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ top: 0 }))).toContain("top");
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ top: 1001 }))).toContain("top");
+  });
+  test("no longer takes include or topPerPerson: only matches are listed, as many as top asks for", () => {
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ include: "all" }))).toContain("include");
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ topPerPerson: 3 }))).toContain("topPerPerson");
   });
   test("minScore is 0 to 1", () => {
-    expect(issuePaths(MatchesSearchRequestSchema, { minScore: -0.01 })).toContain("minScore");
-    expect(issuePaths(MatchesSearchRequestSchema, { minScore: 1.01 })).toContain("minScore");
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ minScore: -0.01 }))).toContain("minScore");
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ minScore: 1.01 }))).toContain("minScore");
   });
   test("refuses a kind outside core and unexpected", () =>
-    expect(issuePaths(MatchesSearchRequestSchema, { kind: "both" })).toContain("kind"));
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ kind: "both" }))).toContain("kind"));
   test("refuses more than 100 liked talks", () =>
     expect(
       issuePaths(MatchesSearchRequestSchema, { likeTalks: Array.from({ length: 101 }, (_, i) => `T${i}`) }),
     ).toContain("likeTalks"));
   test("refuses a page token that is not one of ours", () =>
-    expect(issuePaths(MatchesSearchRequestSchema, { pageToken: "abc" })).toContain("pageToken"));
-  test("include is matches or all, and may be left out", () => {
-    expect(MatchesSearchRequestSchema.safeParse({ include: "all" }).success).toBe(true);
-    expect(MatchesSearchRequestSchema.safeParse({ include: "matches" }).success).toBe(true);
-    expect(issuePaths(MatchesSearchRequestSchema, { include: "some" })).toContain("include");
+    expect(issuePaths(MatchesSearchRequestSchema, liking({ pageToken: "abc" }))).toContain("pageToken"));
+});
+
+describe("matches:search answer", () => {
+  test("has one entry per main talk, with its title and its connections", () => {
+    expect(issuePaths(MatchesSearchResponseSchema, { abstracts: [without(searchEntry, "title")] })).toContain(
+      "abstracts.0.title",
+    );
+    expect(issuePaths(MatchesSearchResponseSchema, { abstracts: [{ ...searchEntry, connections: [] }] })).toContain(
+      "abstracts.0.connections",
+    );
   });
-  test("a result names the asker's talk it is judged from", () => {
-    const without = { ...searchMatch };
-    delete without.basedOn;
-    expect(issuePaths(MatchesSearchResponseSchema, { matches: [without] })).toContain("matches.0.basedOn");
+  test("a connection names both talks with their titles, the main talk first", () => {
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ talks: ["T42", "T17"] }))).toContain(`${AT}.talks`);
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ talks: ["T17", "T17"] }))).toContain(`${AT}.talks`);
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ titles: [connection.titles[0]] }))).toContain(`${AT}.titles`);
   });
-  test("a result is a match exactly when the two share something", () => {
-    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, shared: [] }] })).toContain(
-      "matches.0.match",
+  test("a connection carries two descriptions, one from each talk's side, each 1 to 800 characters", () => {
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ descriptions: [connection.descriptions[0]] }))).toContain(
+      `${AT}.descriptions`,
     );
     expect(
-      issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, match: false, shared: ["intent"] }] }),
-    ).toContain("matches.0.match");
-    expect(
-      MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, match: false, shared: [] }] }).success,
-    ).toBe(true);
+      issuePaths(MatchesSearchResponseSchema, answering({ descriptions: [connection.descriptions[0], "x".repeat(801)] })),
+    ).toContain(`${AT}.descriptions.1`);
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ descriptions: [" ", connection.descriptions[1]] }))).toContain(
+      `${AT}.descriptions.0`,
+    );
   });
-  test("shared names the intent and the technique at most once each, in that order", () => {
-    expect(
-      MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, shared: ["intent", "technique"] }] }).success,
-    ).toBe(true);
-    for (const shared of [["technique", "intent"], ["intent", "intent"], ["method"]]) {
-      expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, shared }] }).join(" "), String(shared))
-        .toContain("matches.0.shared");
+  test("a connection is a real match: it shares the intent, the technique or both, in that order", () => {
+    expect(MatchesSearchResponseSchema.safeParse(answering({ shared: ["intent", "technique"] })).success).toBe(true);
+    for (const shared of [[], ["technique", "intent"], ["intent", "intent"], ["method"]]) {
+      expect(issuePaths(MatchesSearchResponseSchema, answering({ shared })).join(" "), String(shared)).toContain(`${AT}.shared`);
     }
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ match: false }))).toContain(`${AT}.match`);
   });
-  test("a description is 1 to 800 characters", () => {
-    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, description: "x".repeat(801) }] })).toContain(
-      "matches.0.description",
-    );
-    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, description: " " }] })).toContain(
-      "matches.0.description",
+  test("each linked method gives the intent and the technique of both talks, in the order of talks, at most 20", () => {
+    const pair = connection.methods[0];
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ methods: [[pair[0]]] }))).toContain(`${AT}.methods.0`);
+    expect(
+      issuePaths(MatchesSearchResponseSchema, answering({ methods: [[pair[0], { ...pair[1], intent: "x".repeat(2001) }]] })),
+    ).toContain(`${AT}.methods.0.1.intent`);
+    expect(
+      issuePaths(MatchesSearchResponseSchema, answering({ methods: Array.from({ length: 21 }, () => pair) })),
+    ).toContain(`${AT}.methods`);
+  });
+  test("refuses a score above 1", () =>
+    expect(issuePaths(MatchesSearchResponseSchema, answering({ score: 1.5 }))).toContain(`${AT}.score`));
+  test("a connection says which restriction it is listed under", () => {
+    for (const restriction of [
+      { type: "conference" },
+      { type: "subConference", id: "Hydrology" },
+      { type: "day", id: "2027-01-11" },
+      { type: "timeBlock", id: "2027-01-11T08:30:00-06:00" },
+      { type: "session", id: "G21" },
+      { type: "talks" },
+    ]) {
+      expect(MatchesSearchResponseSchema.safeParse(answering({ restriction })).success).toBe(true);
+    }
+    const unplaced = without(connection, "restriction");
+    expect(issuePaths(MatchesSearchResponseSchema, { abstracts: [{ ...searchEntry, connections: [unplaced] }] })).toContain(
+      `${AT}.restriction`,
     );
   });
-  test("each linked method gives the intent and the technique of both talks, at most 20 pairs", () => {
-    const pair = searchMatch.methods[0];
-    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, methods: [{ this: pair.this }] }] })).toContain(
-      "matches.0.methods.0.other",
-    );
-    expect(
-      issuePaths(MatchesSearchResponseSchema, {
-        matches: [{ ...searchMatch, methods: [{ ...pair, other: { ...pair.other, intent: "x".repeat(2001) } }] }],
-      }),
-    ).toContain("matches.0.methods.0.other.intent");
-    expect(
-      issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, methods: Array.from({ length: 21 }, () => pair) }] }),
-    ).toContain("matches.0.methods");
+  test("a page holds at most 1,000 connections", () => {
+    const entry = { ...searchEntry, connections: Array.from({ length: 501 }, () => connection) };
+    expect(issuePaths(MatchesSearchResponseSchema, { abstracts: [entry, entry] })).toContain("abstracts");
   });
-  test("a search result has no reason or sharedMethods any more", () =>
-    expect(
-      MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, reason: "r", sharedMethods: [] }] }).success,
-    ).toBe(false));
-  test("refuses a score above 1 in a match", () =>
-    expect(issuePaths(MatchesSearchResponseSchema, { matches: [{ ...searchMatch, score: 1.5 }] })).toContain(
-      "matches.0.score",
-    ));
 });
 
 describe("matches:fromText", () => {
@@ -133,11 +158,12 @@ describe("matches:fromText", () => {
   test("refuses a missing text", () => expect(issuePaths(MatchesFromTextRequestSchema, {})).toContain("text"));
   test("not enough information needs a reason", () =>
     expect(
-      issuePaths(MatchesFromTextResponseSchema, { enoughInformation: false, whatIsMissing: null, matches: [] }),
+      issuePaths(MatchesFromTextResponseSchema, { judging: false, enoughInformation: false, whatIsMissing: null, matches: [] }),
     ).toContain("whatIsMissing"));
   test("not enough information means no matches", () =>
     expect(
       issuePaths(MatchesFromTextResponseSchema, {
+        judging: false,
         enoughInformation: false,
         whatIsMissing: "a clear research method",
         matches: [textMatch],
@@ -145,13 +171,22 @@ describe("matches:fromText", () => {
     ).toContain("matches"));
   test("enough information means nothing is missing", () =>
     expect(
-      issuePaths(MatchesFromTextResponseSchema, { enoughInformation: true, whatIsMissing: "x", matches: [] }),
+      issuePaths(MatchesFromTextResponseSchema, { judging: false, enoughInformation: true, whatIsMissing: "x", matches: [] }),
     ).toContain("whatIsMissing"));
+  test("a text still being judged says so, and nothing else", () => {
+    expect(MatchesFromTextResponseSchema.safeParse({ judging: true }).success).toBe(true);
+    expect(issuePaths(MatchesFromTextResponseSchema, { judging: true, enoughInformation: true })).toContain("enoughInformation");
+  });
+  test("an answer says it is no longer being judged", () =>
+    expect(issuePaths(MatchesFromTextResponseSchema, { enoughInformation: true, whatIsMissing: null, matches: [] })).toContain(
+      "judging",
+    ));
   test("a fromText match keeps its reason and shared methods", () =>
     expect(Object.keys(textMatch)).toEqual(expect.arrayContaining(["reason", "sharedMethods"])));
   test("a fromText match never names a person", () =>
     expect(
       MatchesFromTextResponseSchema.safeParse({
+        judging: false,
         enoughInformation: true,
         whatIsMissing: null,
         matches: [{ ...textMatch, person: "P1" }],
@@ -160,7 +195,6 @@ describe("matches:fromText", () => {
 });
 
 describe("matches:search with restrictions", () => {
-  const restricted = { ...searchMatch, restriction: { type: "session", id: "G21" } };
   const asking = (restrictions: unknown[], extra: object = {}) => ({ likeTalks: ["T42"], restrictions, ...extra });
   test("a search can restrict to any of the five standard kinds, each with which ones and its own K", () =>
     expect(
@@ -194,35 +228,10 @@ describe("matches:search with restrictions", () => {
     expect(MatchesSearchRequestSchema.safeParse(asking([{ type: "timeBlock", ids: ["2027-01-11T08:30:00"] }])).success).toBe(false);
     expect(MatchesSearchRequestSchema.safeParse(asking([{ type: "conference", ids: ["x"] }])).success).toBe(false);
   });
-  test("restricts the matches of named people or liked talks, never of everyone", () =>
-    expect(issuePaths(MatchesSearchRequestSchema, { restrictions: [{ type: "day" }] })).toContain("restrictions"));
-  test("lists only matches, and sets no cap per person", () => {
-    expect(issuePaths(MatchesSearchRequestSchema, asking([{ type: "day" }], { include: "all" }))).toContain("include");
-    expect(issuePaths(MatchesSearchRequestSchema, asking([{ type: "day" }], { topPerPerson: 3 }))).toContain("topPerPerson");
-  });
-  test("a result says which restriction it is listed under", () => {
-    for (const restriction of [
-      { type: "conference" },
-      { type: "subConference", id: "Hydrology" },
-      { type: "day", id: "2027-01-11" },
-      { type: "timeBlock", id: "2027-01-11T08:30:00-06:00" },
-      { type: "session", id: "G21" },
-      { type: "talks" },
-    ]) {
-      expect(MatchesSearchResponseSchema.safeParse({ matches: [{ ...searchMatch, restriction }] }).success).toBe(true);
-    }
-  });
-  test("a result listed under any restriction is a match", () => {
-    expect(
-      issuePaths(MatchesSearchResponseSchema, { matches: [{ ...restricted, match: false, shared: [] }] }),
-    ).toContain("matches.0.restriction");
-    const named = { ...searchMatch, match: false, shared: [], restriction: { type: "talks" } };
-    expect(issuePaths(MatchesSearchResponseSchema, { matches: [named] })).toContain("matches.0.restriction");
-  });
   test("an answer lists the restrictions still being judged, for each talk they restrict", () => {
     const judging = [{ basedOn: "T42", restriction: { type: "timeBlock", id: "2027-01-11T08:30:00-06:00" } }];
-    expect(MatchesSearchResponseSchema.safeParse({ matches: [], judging }).success).toBe(true);
-    expect(MatchesSearchResponseSchema.safeParse({ matches: [], judging: [{ restriction: { type: "day" } }] }).success).toBe(
+    expect(MatchesSearchResponseSchema.safeParse({ abstracts: [], judging }).success).toBe(true);
+    expect(MatchesSearchResponseSchema.safeParse({ abstracts: [], judging: [{ restriction: { type: "day" } }] }).success).toBe(
       false,
     );
   });
@@ -231,15 +240,15 @@ describe("matches:search with restrictions", () => {
 const EXPECTED_PATH: Record<string, string> = {
   "matches_search_request-people-and-like-talks.json": "likeTalks",
   "matches_search_request-page-size-zero.json": "pageSize",
-  "matches_search_response-score-above-one.json": "matches.0.score",
-  "matches_search_response-description-too-long.json": "matches.0.description",
-  "matches_search_response-match-without-shared.json": "matches.0.match",
-  "matches_search_request-include-unknown.json": "include",
+  "matches_search_response-score-above-one.json": "abstracts.0.connections.0.score",
+  "matches_search_response-description-too-long.json": "abstracts.0.connections.0.descriptions.1",
+  "matches_search_response-nothing-shared.json": "abstracts.0.connections.0.shared",
+  "matches_search_request-top-zero.json": "top",
   "matches_from_text_request-blank-text.json": "text",
   "matches_from_text_response-not-enough-with-matches.json": "matches",
-  "matches_search_request-restrictions-with-all.json": "include",
+  "matches_from_text_response-judging-with-matches.json": "matches",
   "matches_search_request-restriction-twice.json": "restrictions",
-  "matches_search_request-restrictions-for-everyone.json": "restrictions",
+  "matches_search_request-for-everyone.json": "people",
 };
 const SCHEMA_OF: Record<string, z.ZodType> = {
   matches_search_request: MatchesSearchRequestSchema,

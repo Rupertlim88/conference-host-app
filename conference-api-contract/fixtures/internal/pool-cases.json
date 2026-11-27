@@ -1,0 +1,84 @@
+{
+  "about": "The pools a talk is listed in, seen from the talk it is judged from. The data layer, when it serves matches, and the matching engines, when they find candidates, must both give exactly these pools, in this order.",
+  "cases": [
+    {
+      "name": "a talk in two sub-conferences, one of them the judged talk's own, with its session's day, time block and session",
+      "talk": { "tracks": ["Radar", "Hydro"], "session": { "id": "S1", "start": "2027-01-11T08:30:00-06:00" } },
+      "judgedFrom": { "tracks": ["Hydro"] },
+      "pools": [
+        { "type": "conference" },
+        { "type": "subConference", "id": "Radar" },
+        { "type": "day", "id": "2027-01-11" },
+        { "type": "timeBlock", "id": "2027-01-11T08:30:00-06:00" },
+        { "type": "session", "id": "S1" }
+      ]
+    },
+    {
+      "name": "a start given to the millisecond is in the same time block as one given to the second",
+      "talk": { "tracks": [], "session": { "id": "S2", "start": "2027-01-11T08:30:00.000-06:00" } },
+      "judgedFrom": { "tracks": [] },
+      "pools": [
+        { "type": "conference" },
+        { "type": "day", "id": "2027-01-11" },
+        { "type": "timeBlock", "id": "2027-01-11T08:30:00-06:00" },
+        { "type": "session", "id": "S2" }
+      ]
+    },
+    {
+      "name": "a late-evening session keeps the day of the conference's own clock, not the next day in UTC",
+      "talk": { "tracks": [], "session": { "id": "S3", "start": "2027-01-11T23:30:00-06:00" } },
+      "judgedFrom": { "tracks": [] },
+      "pools": [
+        { "type": "conference" },
+        { "type": "day", "id": "2027-01-11" },
+        { "type": "timeBlock", "id": "2027-01-11T23:30:00-06:00" },
+        { "type": "session", "id": "S3" }
+      ]
+    },
+    {
+      "name": "a start given in UTC keeps UTC's day and its own form",
+      "talk": { "tracks": [], "session": { "id": "S4", "start": "2027-01-12T05:30:00Z" } },
+      "judgedFrom": { "tracks": [] },
+      "pools": [
+        { "type": "conference" },
+        { "type": "day", "id": "2027-01-12" },
+        { "type": "timeBlock", "id": "2027-01-12T05:30:00Z" },
+        { "type": "session", "id": "S4" }
+      ]
+    },
+    {
+      "name": "a talk sent without a session is only in the conference and its other sub-conferences",
+      "talk": { "tracks": ["Radar"] },
+      "judgedFrom": { "tracks": ["Hydro"] },
+      "pools": [{ "type": "conference" }, { "type": "subConference", "id": "Radar" }]
+    },
+    {
+      "name": "a session sent without a start has no day or time block",
+      "talk": { "tracks": [], "session": { "id": "S9" } },
+      "judgedFrom": { "tracks": [] },
+      "pools": [{ "type": "conference" }, { "type": "session", "id": "S9" }]
+    },
+    {
+      "name": "a track named twice is one sub-conference",
+      "talk": { "tracks": ["Radar", "Radar"] },
+      "judgedFrom": { "tracks": [] },
+      "pools": [{ "type": "conference" }, { "type": "subConference", "id": "Radar" }]
+    },
+    {
+      "name": "a talk only in the judged talk's own sub-conferences has none of this kind",
+      "talk": { "tracks": ["Hydro"] },
+      "judgedFrom": { "tracks": ["Hydro", "Radar"] },
+      "pools": [{ "type": "conference" }]
+    },
+    {
+      "name": "sub-conferences come in the order of their names",
+      "talk": { "tracks": ["Zeta", "Alpha"] },
+      "judgedFrom": { "tracks": [] },
+      "pools": [
+        { "type": "conference" },
+        { "type": "subConference", "id": "Alpha" },
+        { "type": "subConference", "id": "Zeta" }
+      ]
+    }
+  ]
+}

@@ -6,10 +6,9 @@
   "talks": [
     "T42"
   ],
-  "include": "all",
   "kind": "unexpected",
   "minScore": 0.7,
-  "topPerPerson": 10,
+  "top": 5,
   "pageSize": 500,
   "pageToken": "Qm9vazEyMzQ1Njc4OTAxMj"
 }
