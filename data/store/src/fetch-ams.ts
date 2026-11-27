@@ -10,8 +10,9 @@ export type AmsFiles = Record<AmsType, Row[]>;
 
 /**
  * The fields the public programme shows, per type: every other field is dropped before anything is stored
- * (data/CLAUDE.md rule 3). The API also returns reviewer ratings and comments, submitters' notes,
- * payment and account details, withdrawal reasons and session subtitles that carry organisers' email addresses.
+ * (the data layer's rule that the meeting's data holds only what the public programme shows). The API also
+ * returns reviewer ratings and comments, submitters' notes, payment and account details, withdrawal reasons and
+ * session subtitles that carry organisers' email addresses.
  * A field AMS adds later is dropped until it is added here.
  */
 const PUBLIC_FIELDS: Record<AmsType, readonly string[]> = {
