@@ -4,8 +4,6 @@ import {
   PlaceLayoutSchema,
   RecommendationsInputSchema,
   RecommendationsSchema,
-  SHOWN_PER_PLACE,
-  type AroundMatch,
   type AroundPools,
   type Place,
   type PlaceLayout,
@@ -62,28 +60,22 @@ export function placesAround(abstract: string, ownTrackIds: string[], sent: Talk
   return [...places.values()].sort((a, b) => LAYOUTS.indexOf(a.layout) - LAYOUTS.indexOf(b.layout) || a.key.localeCompare(b.key));
 }
 
-/** What a place shows visitors with this abstract as the attendee's: the picks the pages make, from the same answers,
- *  as many as the place shows. */
-function shownIn(place: PlaceToAsk, pools: AroundPools, related: RelatedTalks, listed: Set<string>, sessionStart: Map<string, string | null>): string[] {
-  const first = (matches: AroundMatch[] = []) => matches.slice(0, SHOWN_PER_PLACE[place.layout]).map((m) => m.talk.id);
-  switch (place.layout) {
-    case "related":
-      return related.status === "matches" ? related.matches.map((m) => m.talk.id) : [];
-    case "conference_outside":
-    case "conference_inside":
-      // Conferences and Symposia ranks only the conferences its list shows.
-      return listed.has(place.key) ? first(pools.subConference.find((p) => p.id === place.key)?.matches) : [];
-    case "day":
-      return first(pools.day.find((p) => p.id === place.key)?.matches);
-    case "time_block": {
-      // The calendar recommends the sessions of listed talks whose session starts with the block.
-      const at = Date.parse(place.start!);
-      const matches = pools.timeBlock.find((p) => Date.parse(p.id) === at)?.matches ?? [];
-      return first(matches.filter((m) => Date.parse(sessionStart.get(m.talk.id) ?? "") === at));
-    }
-    case "session":
-      return first(pools.session.find((p) => p.id === place.key)?.matches.filter((m) => m.talk.sessionId === place.key));
-  }
+/** The pool each kind of place shows from. */
+const POOL_OF: Record<Exclude<PlaceLayout, "related">, keyof AroundPools> = {
+  conference_outside: "subConference",
+  conference_inside: "subConference",
+  day: "day",
+  time_block: "timeBlock",
+  session: "session",
+};
+
+/** What a place shows visitors with this abstract as the attendee's: its related talks, or its pool, which holds
+ *  exactly what its box on the pages shows. */
+function shownIn(place: PlaceToAsk, pools: AroundPools, related: RelatedTalks): string[] {
+  if (place.layout === "related") return related.status === "matches" ? related.matches.map((m) => m.talk.id) : [];
+  const id = place.layout === "time_block" ? Date.parse(place.start!) : place.key;
+  const pool = pools[POOL_OF[place.layout]].find((p) => (place.layout === "time_block" ? Date.parse(p.id) : p.id) === id);
+  return pool?.matches.map((m) => m.talk.id) ?? [];
 }
 
 /** The report on one abstract: null when the demo does not hold and show it, "unavailable" when the matching API cannot
@@ -95,22 +87,20 @@ export type Report = { status: "ready"; report: Recommendations } | { status: "j
 export async function reportOn(abstractId: string, deps: RecommendationsDeps): Promise<Report> {
   const [abstract] = await deps.store.talkSummaries([abstractId]);
   if (!abstract) return null;
-  const [session, forSync, tracks, runs] = await Promise.all([
+  const [session, forSync, runs] = await Promise.all([
     abstract.sessionId ? deps.store.session(abstract.sessionId) : null,
     deps.store.talksForSync(),
-    deps.store.tracks(),
     deps.log.runs(),
   ]);
   const sent = forSync.map(toPartnerTalk).filter((t): t is TalkInput => t !== null);
-  const sessionStart = new Map(sent.map((t) => [t.id, t.session?.start ?? null]));
-  const listed = new Set(tracks.map((t) => t.id));
-  const toAsk = placesAround(abstract.id, session?.trackIds ?? [], sent);
+  const ownTrackIds = session?.trackIds ?? [];
+  const toAsk = placesAround(abstract.id, ownTrackIds, sent);
 
   // What each place shows comes from the same two searches the pages make, each asking for as many as its page does.
   const aroundRelated = await searchRelated(deps.api, abstract.id);
   const aroundBoxes = await searchAround(deps.api, abstract.id);
   if (aroundRelated.status === "unavailable" || aroundBoxes.status === "unavailable") return { status: "unavailable" };
-  const [related, pools] = await Promise.all([relatedFrom(deps.store, aroundRelated.matches), poolsFrom(deps.store, aroundBoxes.matches)]);
+  const [related, pools] = await Promise.all([relatedFrom(deps.store, aroundRelated.matches), poolsFrom(deps.store, aroundBoxes.matches, ownTrackIds)]);
   let judging = aroundRelated.judging.length + aroundBoxes.judging.length;
 
   const places: Place[] = [];
@@ -124,7 +114,7 @@ export async function reportOn(abstractId: string, deps: RecommendationsDeps): P
       layout: place.layout,
       key: place.key,
       pool: place.pool,
-      shown: shownIn(place, pools, related, listed, sessionStart),
+      shown: shownIn(place, pools, related),
       verdicts: answer.connections,
       notJudged: place.pool.filter((id) => !judged.has(id)),
     });

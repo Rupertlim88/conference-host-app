@@ -20,7 +20,7 @@ const config: HostConfig = {
   api: null,
 };
 
-// The demo is open: anyone with a Google account may sign in (host-app CLAUDE.md rule 6).
+// The demo is open: anyone with a Google account may sign in (the host app's rule that it is always on).
 describe.skipIf(!url)("sign-in", { timeout: 60_000 }, () => {
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;

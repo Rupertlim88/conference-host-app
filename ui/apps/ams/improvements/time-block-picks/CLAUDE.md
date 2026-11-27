@@ -24,6 +24,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    block with no recommendation opens with its box empty, and the rest of the block stays as AMS has it. When the
    matching API cannot answer, every block's box is empty, the rest of the calendar stays as AMS has it, and one gold
    note says so.
-   *How:* code alone: our improvements' change to the calendar's day, from the matching API's time-block pool for the
-   fixed abstract, the one that starts when the block does.
+   *How:* code alone: our improvements' change to the calendar's day, from the backend's time-block pool for the fixed
+   abstract, the one that starts when the block does, which holds the first two talks the matching API lists whose
+   session starts with the block; the matching API lists at most one talk from each session in a time block.
    *File:* `time-block-picks.tsx`

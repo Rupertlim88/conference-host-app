@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 
 import { SessionCard, TalkCard } from "@/base/cards";
 import { trpc } from "@/shared/connection";
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 import { cn } from "@/shared/ui/utils";
 
 /** The star, wired to the backend. Starring refreshes both the star list and My Schedule. */

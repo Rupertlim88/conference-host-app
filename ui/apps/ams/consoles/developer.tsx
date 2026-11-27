@@ -9,14 +9,13 @@ import type {
   SyncRun,
   TalkSummary,
 } from "@repo/host-contracts";
-import { useFormatter, useTranslations } from "next-intl";
+import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { MEETING_ZONE } from "@/shared/app";
 import { trpc } from "@/shared/connection";
-import { ChangesSummary } from "@/consoles/console-frame";
-import { PageTitle } from "@/base/frame";
+import { ChangesSummary, useConsoleTime } from "@/consoles/console-frame";
+import { PageTitle } from "@/shared/marks";
 import { SendControl, type SendProblem, useSend } from "@/consoles/send";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
@@ -31,17 +30,8 @@ export function DeveloperView({
 }) {
   const t = useTranslations("developer");
   const c = useTranslations("console");
-  const format = useFormatter();
+  const when = useConsoleTime();
   const run = status.lastRun;
-  const at = (iso: string) =>
-    format.dateTime(new Date(iso), {
-      weekday: "short",
-      month: "short",
-      day: "numeric",
-      hour: "numeric",
-      minute: "2-digit",
-      timeZone: MEETING_ZONE,
-    });
   return (
     <>
       <PageTitle>{t("title")}</PageTitle>
@@ -55,7 +45,7 @@ export function DeveloperView({
           {run
             ? t("lastRun", {
                 state: c(`runState.${run.state}`),
-                at: at(run.startedAt),
+                at: when(run.startedAt),
               })
             : t("noneYet")}
         </dd>
@@ -133,7 +123,7 @@ export function DeveloperControls({
         )}
         {!test.busy && test.failed && (
           <p role="alert" className="text-sm text-destructive">
-            {c("failed")}
+            {t("testFailed")}
           </p>
         )}
       </section>
@@ -191,15 +181,17 @@ export function DeveloperControls({
 export function FixedAbstractControl({
   abstract,
   busy,
-  refused,
+  outcome,
   onFix,
 }: {
   abstract: TalkSummary | null;
   busy: boolean;
-  refused: boolean;
+  /** "refused" when the backend refuses the talk, "failed" when the save failed for any other reason. */
+  outcome: "refused" | "failed" | null;
   onFix: (talkId: string) => void;
 }) {
   const t = useTranslations("developer.fixed");
+  const c = useTranslations("console");
   const [talkId, setTalkId] = useState("");
   const typed = talkId.trim();
   return (
@@ -232,9 +224,9 @@ export function FixedAbstractControl({
         </Button>
       </form>
       {busy && <p className="text-sm">{t("saving")}</p>}
-      {!busy && refused && (
+      {!busy && outcome && (
         <p role="alert" className="text-sm text-destructive">
-          {t("refused")}
+          {outcome === "refused" ? t("refused") : c("failed")}
         </p>
       )}
     </section>
@@ -262,7 +254,7 @@ export function DeveloperActions({
       <FixedAbstractControl
         abstract={abstract}
         busy={fix.isPending}
-        refused={fix.isError}
+        outcome={fix.error ? (fix.error.data?.code === "BAD_REQUEST" ? "refused" : "failed") : null}
         onFix={(talkId) => fix.mutate({ talkId })}
       />
       <DeveloperControls

@@ -18,7 +18,8 @@ export const SyncRunSchema = z.strictObject({
   withdrawn: Total,
   unchanged: Total,
   programmeVersion: z.string(),
-  /** Why a failed run failed: the API's status and problem title, never its body or the key. Empty otherwise. */
+  /** Why a run failed or was interrupted, in a short reason, such as the deadline or the API's status and problem
+   *  title, never the API's body or the key. Empty otherwise. */
   error: z.string(),
 });
 export type SyncRun = z.infer<typeof SyncRunSchema>;

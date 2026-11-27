@@ -1,6 +1,6 @@
 // Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.
 import type { Note, Schedule, Target } from "@repo/host-contracts";
-import { and, asc, eq, isNull, or, sql } from "drizzle-orm";
+import { and, asc, eq, or, sql } from "drizzle-orm";
 
 import type { Db } from "./connect";
 import { toSessionSummary, toTalkSummary } from "./programme";
@@ -33,13 +33,14 @@ export function createGuestData(db: Db, society: Society) {
         );
     },
 
-    /** The person's starred talks and sessions; a withdrawn talk's star is kept but not listed. */
+    /** The person's starred talks and sessions; a star on a talk that is withdrawn or that the demo no longer holds is
+     *  kept but not listed. */
     async starred(userId: string): Promise<Target[]> {
       const rows = await db
         .select({ targetKind: t.stars.targetKind, targetId: t.stars.targetId })
         .from(t.stars)
         .leftJoin(t.talks, and(eq(t.stars.targetKind, "talk"), eq(t.stars.targetId, t.talks.id)))
-        .where(and(eq(t.stars.userId, userId), or(isNull(t.talks.withdrawn), shown)));
+        .where(and(eq(t.stars.userId, userId), or(eq(t.stars.targetKind, "session"), shown)));
       return rows as Target[];
     },
 
@@ -72,7 +73,7 @@ export function createGuestData(db: Db, society: Society) {
             eq(t.notes.userId, userId),
             eq(t.notes.targetKind, target.targetKind),
             eq(t.notes.targetId, target.targetId),
-            or(isNull(t.talks.withdrawn), shown),
+            or(eq(t.notes.targetKind, "session"), shown),
           ),
         );
       return row ? { body: row.body, updatedAt: row.updatedAt.toISOString() } : null;
@@ -120,8 +121,8 @@ export function createGuestData(db: Db, society: Society) {
         .from(t.notes)
         .leftJoin(t.talks, and(eq(t.notes.targetKind, "talk"), eq(t.notes.targetId, t.talks.id)))
         .leftJoin(t.sessions, and(eq(t.notes.targetKind, "session"), eq(t.notes.targetId, t.sessions.id)))
-        // A note on a withdrawn talk is kept but not listed; one on a talk no longer loaded is listed untitled.
-        .where(and(eq(t.notes.userId, userId), or(isNull(t.talks.withdrawn), shown)))
+        // A note on a talk that is withdrawn or that the demo no longer holds is kept but not listed.
+        .where(and(eq(t.notes.userId, userId), or(eq(t.notes.targetKind, "session"), shown)))
         .orderBy(sql`${t.notes.updatedAt} desc`);
       return rows.map((r) => ({
         targetKind: r.targetKind as Target["targetKind"],

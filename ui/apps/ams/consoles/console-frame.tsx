@@ -124,15 +124,22 @@ export function SessionStatus({ changed }: { changed: boolean }) {
   return <Chip kind={changed ? "changed" : "published"} />;
 }
 
-/** A time in the console, always in the meeting's zone, since the session form reads times that way:
+/** How the consoles write a time, always in the meeting's zone, since the session form reads times that way:
  *  "Tue, Jan 27, 1:45 PM - 3:00 PM". */
-export function ConsoleTime({ start, end }: { start: string | null; end?: string | null }) {
+export function useConsoleTime(): (start: string, end?: string | null) => string {
   const format = useFormatter();
-  const t = useTranslations("console");
-  if (!start) return <>{t("noTime")}</>;
-  const day = format.dateTime(new Date(start), { weekday: "short", month: "short", day: "numeric", timeZone: MEETING_ZONE });
   const time = (iso: string) => format.dateTime(new Date(iso), { hour: "numeric", minute: "2-digit", timeZone: MEETING_ZONE });
-  return <>{`${day}, ${time(start)}${end ? ` - ${time(end)}` : ""}`}</>;
+  return (start, end) => {
+    const day = format.dateTime(new Date(start), { weekday: "short", month: "short", day: "numeric", timeZone: MEETING_ZONE });
+    return `${day}, ${time(start)}${end ? ` - ${time(end)}` : ""}`;
+  };
+}
+
+/** A time in the console, or that there is none. */
+export function ConsoleTime({ start, end }: { start: string | null; end?: string | null }) {
+  const t = useTranslations("console");
+  const when = useConsoleTime();
+  return <>{start ? when(start, end) : t("noTime")}</>;
 }
 
 /** How the programme differs from the published one, counted. */
@@ -179,4 +186,11 @@ export function meetingClock(iso: string | null, timeZone: string): { date: stri
   }).formatToParts(new Date(iso));
   const part = (type: Intl.DateTimeFormatPartTypes) => parts.find((p) => p.type === type)?.value ?? "";
   return { date: `${part("year")}-${part("month")}-${part("day")}`, time: `${part("hour")}:${part("minute")}` };
+}
+
+/** A session's stored date, times and room as the session form's fields, on the meeting's clock; blank for no time. */
+export function sessionFields(session: { startsAt: string | null; endsAt: string | null; room: string }): { date: string; start: string; end: string; room: string } {
+  const start = meetingClock(session.startsAt, MEETING_ZONE);
+  const end = meetingClock(session.endsAt, MEETING_ZONE);
+  return { date: start?.date ?? "", start: start?.time ?? "", end: end?.time ?? "", room: session.room };
 }

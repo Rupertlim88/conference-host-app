@@ -1,7 +1,7 @@
 // The pages that are AMS's own text are short pages in the demo's own words.
 import { useTranslations } from "next-intl";
 
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 
 const INFORMATION = ["faqs", "presenters", "policies", "accessibility", "green-meetings", "social-media", "slack", "press", "clear-cache"] as const;
 const RESOURCES = ["registration", "health-resources", "wellness-rooms", "safety-tips", "transportation", "local-restaurants"] as const;

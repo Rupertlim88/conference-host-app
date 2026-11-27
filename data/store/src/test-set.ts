@@ -3,6 +3,7 @@ import type { TestSet } from "@repo/host-contracts";
 import { getTableColumns, inArray, sql } from "drizzle-orm";
 
 import type { Db } from "./connect";
+import { fixAbstract } from "./demo-settings";
 import type { Tx } from "./load";
 import { SOCIETY_TABLES, type Society, type SocietyTables } from "./tables";
 
@@ -44,8 +45,9 @@ export function createTestSets(db: Db, society: Society) {
     },
 
     /** Stores the test set in place of the one before, and in the same step restarts the demo's programme: every
-     *  session back as published, exactly the test set's talks held, and the demo fixed to its first abstract. The
-     *  backend checks the test set against the whole programme first. */
+     *  session back as published, exactly the test set's talks held, and the demo fixed to its first abstract, as the
+     *  developer console fixes it, or left as it was when that abstract cannot be fixed. The backend checks the test
+     *  set against the whole programme first. */
     async hold(testSet: TestSet): Promise<void> {
       await db.transaction(async (tx) => {
         await tx.update(t.sessions).set({
@@ -55,8 +57,7 @@ export function createTestSets(db: Db, society: Society) {
           building: sql`${t.sessions.pubBuilding}`,
         });
         await holdTalks(tx, t, testSet.talks);
-        const fixed = { fixedTalkId: testSet.askers[0]! };
-        await tx.insert(t.demoSettings).values({ id: 1, ...fixed }).onConflictDoUpdate({ target: t.demoSettings.id, set: fixed });
+        await fixAbstract(tx, t, testSet.askers[0]!);
         const row = { conference: testSet.conference, askers: testSet.askers, talks: testSet.talks, storedAt: new Date() };
         await tx.insert(t.testSet).values({ id: 1, ...row }).onConflictDoUpdate({ target: t.testSet.id, set: row });
       });

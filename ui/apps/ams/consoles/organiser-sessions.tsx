@@ -9,11 +9,10 @@ import { useRouter } from "next/navigation";
 import { useState } from "react";
 
 import { trpc } from "@/shared/connection";
-import { Cell, ConsoleTime, Pager, PaperStatus, SessionStatus, Table } from "@/consoles/console-frame";
-import { PageTitle } from "@/base/frame";
+import { Cell, ConsoleTime, Pager, PaperStatus, SessionStatus, sessionFields, Table } from "@/consoles/console-frame";
+import { PageTitle, placeOf } from "@/shared/marks";
 import { Button } from "@/shared/ui/button";
 import { Input } from "@/shared/ui/input";
-import { placeOf } from "@/base/cards";
 
 /** The organiser's sessions: a search box, then one line a session with its papers counted, 50 a page. */
 export function OrganiserSessionsView({ list, q }: { list: SessionList; q: string }) {
@@ -182,18 +181,19 @@ export function SessionFormFields({
   );
 }
 
-/** The session form, wired to the backend. A refused change names its problem; a saved one reloads the page. */
-export function SessionForm({ sessionId, initial }: { sessionId: string; initial: SessionTimes }) {
+/** The session form, wired to the backend, starting from the session's stored times. A refused change names its
+ *  problem; a saved one reloads the page. */
+export function SessionForm({ session }: { session: OrganiserSessionDetail }) {
   const router = useRouter();
   const change = trpc.organiser.sessions.change.useMutation({ onSuccess: () => router.refresh() });
   const problem = change.error?.message;
   const outcome: SaveOutcome | null = change.isSuccess ? "saved" : change.isError ? (isProblem(problem) ? problem : "failed") : null;
   return (
     <SessionFormFields
-      initial={initial}
+      initial={sessionFields(session)}
       busy={change.isPending}
       outcome={outcome}
-      onSave={(times) => change.mutate({ id: sessionId, ...times })}
+      onSave={(times) => change.mutate({ id: session.id, ...times })}
     />
   );
 }

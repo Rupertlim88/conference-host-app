@@ -61,8 +61,9 @@ export const AmsFilesSchema = z.object({
   MeetingInfo: MeetingInfoSchema,
 });
 
-/** Programmes that list organisations, not talks; each has its own button, so the conferences list leaves it out. */
-const LISTINGS = new Set(["EXHIBITHALL", "CAREERFAIR", "SPONSORS"]);
+/** Programmes that list organisations, not talks. Each has its own button on AMS's menu, so the conferences list
+ *  leaves it out, and the fetch keeps it even where the web programme leaves it out. */
+export const LISTINGS = new Set(["EXHIBITHALL", "CAREERFAIR", "SPONSORS"]);
 export type AmsFiles = z.infer<typeof AmsFilesSchema>;
 
 const MEETING = {

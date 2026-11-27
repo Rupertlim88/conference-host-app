@@ -1,7 +1,6 @@
 import { connect, createProgramme, createSyncLog } from "@repo/host-store";
 
-import { CONFERENCE_IDS, conferenceApi, unconfiguredApi } from "../matching-api";
-import { readConfig } from "../server";
+import { matchingApiFor, readConfig } from "../server";
 import { SendFailed, SendRunning, sendProgramme } from "../send";
 
 // npm run sync --workspace=@repo/host-backend: sends the programme as the organiser console's Send does, and records
@@ -9,10 +8,7 @@ import { SendFailed, SendRunning, sendProgramme } from "../send";
 const config = readConfig(process.env);
 const { db, close } = connect(config.databaseUrl);
 try {
-  const api = config.api
-    ? conferenceApi({ url: config.api.url, key: config.api.key, conference: CONFERENCE_IDS[config.society] })
-    : unconfiguredApi;
-  const run = await sendProgramme({ store: createProgramme(db, config.society), log: createSyncLog(db, config.society), api });
+  const run = await sendProgramme({ store: createProgramme(db, config.society), log: createSyncLog(db, config.society), api: matchingApiFor(config) });
   console.log(
     `${config.society}: sent ${run.sent} talks; added ${run.added}, changed ${run.changed}, withdrawn ${run.withdrawn}, unchanged ${run.unchanged}; ${run.programmeVersion}`,
   );

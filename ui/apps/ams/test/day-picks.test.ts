@@ -15,17 +15,17 @@ const match = (id: string, score: number): AroundMatch => ({
 const ids = (matches: AroundMatch[]) => matches.map((m) => m.talk.id);
 
 describe("picksOn", () => {
-  test("the first three talks the matching API lists in its pool for that day, in its order", () => {
+  test("the talks the backend's pool for that day holds, in the matching API's order", () => {
     const pools = aroundPools({
       day: [
-        { id: "2027-01-12", matches: [match("b", 0.9), match("d", 0.8), match("c", 0.7), match("a", 0.5)] },
+        { id: "2027-01-12", matches: [match("b", 0.9), match("d", 0.8), match("c", 0.7)] },
         { id: "2027-01-13", matches: [match("e", 0.99)] },
       ],
     });
     expect(ids(picksOn("2027-01-12", pools))).toEqual(["b", "d", "c"]);
   });
 
-  test("never padded: a day whose pool lists fewer shows only those", () => {
+  test("never padded: a day whose pool holds fewer shows only those", () => {
     expect(ids(picksOn("2027-01-13", aroundPools({ day: [{ id: "2027-01-13", matches: [match("e", 0.99)] }] })))).toEqual(["e"]);
   });
 

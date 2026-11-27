@@ -2,7 +2,7 @@
 
 ## AMS 107th Annual Meeting programme (2027)
 
-The public programme of the 107th AMS Annual Meeting, 10 to 14 January 2027 at the Colorado Convention Center in Denver and online, as published so far. AMS is still building it: the files hold 4,531 papers (162 of them breaks) and 922 programme sessions, beside the exhibit hall's, career fair's and sponsors' 148 listed organisations. The host app's AMS version loads a sample of them: every session, and five talks with an abstract from each conference, with every break and highlighted talk.
+The public programme of the 107th AMS Annual Meeting, 10 to 14 January 2027 at the Colorado Convention Center in Denver and online, as published so far. AMS is still building it: the files hold 4,531 papers (162 of them breaks) and 922 programme sessions, beside the exhibit hall's, career fair's and sponsors' 148 listed organisations. The host app loads all of them as AMS's whole programme. The demo holds the talks of the latest test set a tester sends or, until one arrives, a sample: every session, and five talks with an abstract from each conference, with every break and highlighted talk.
 
 ## Source and refresh
 

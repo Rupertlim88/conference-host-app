@@ -77,16 +77,16 @@ Everything else is a lower level, written by Claude to carry out these specifica
    files is removed. The demo then holds the latest test set's talks, or the sample's until a test set arrives, as both
    live and published. It all happens in one transaction, so a failed load changes nothing. It undoes
    organisers' edits.
-   *How:* code alone: one transaction of writes in chunks of 500, holding the talks as a test set does; the `load`
-   command migrates first.
+   *How:* code alone: AMS's files are mapped and the sample worked out first, then one transaction of writes in chunks
+   of 500, holding the talks as a test set does; the `load` command migrates first, then loads.
    *File:* `load.ts`
 
 10. **The demo carries a sample: every track and session, with five talks with an abstract from each track.** The
     five are spread evenly through the track's talks in time order, so that every day of the meeting holds some, and a
     talk counts for every track it is in. Breaks and the talks on Program
-    Highlights' lists are always kept, and count against no track. People stay only with a talk that stays.
-    *How:* code alone; the `load` command works it out from AMS's files, and loading holds its talks until a test set
-    arrives.
+    Highlights' lists are always kept, and count against no track.
+    *How:* code alone: it chooses the sample's talks from AMS's files; loading keeps every track and session beside
+    them, and holds the sample's talks, with their people, until a test set arrives.
     *File:* `sample.ts`
 
 11. **The store keeps AMS's whole published programme beside the talks the demo holds.** Every talk AMS publishes is
@@ -96,8 +96,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *File:* `whole-programme.ts`
 
 12. **The latest test set says which talks the demo holds.** Storing a test set replaces the one before it, and in the
-    same step makes the demo hold exactly its talks, taken from the whole published programme, with every session and
-    conference kept, and fixes the demo to its first abstract. Holding restarts the demo's programme: organisers'
+    same step makes the demo hold exactly its talks, with their people, taken from the whole published programme, with
+    every session and conference kept, and fixes the demo to its first abstract as the developer console does,
+    leaving the setting as it was when that abstract cannot be fixed. Holding restarts the demo's programme: organisers'
     edits go away, and stars and notes stay. Until a test set arrives, the demo holds the sample; loading again keeps
     the latest test set and holds its talks.
     *How:* code alone: one transaction.
@@ -108,7 +109,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
 13. **The attendee app sees only the talks that are not withdrawn.** It reads the meeting, its days in the meeting's
     zone, tracks, sessions, talks and people; the conferences list leaves out the listings of organisations. It finds a
     programme AMS's menu opens by its code, reads Program Highlights' lists and the pages of names, and gives the
-    conferences each of a set of talks is in. A person is listed only while one of their talks is shown.
+    conferences each of a set of talks is in and when each of a set of sessions starts. A person is listed only while one of their talks is shown.
     A person who has no shown talk has no page either. Search covers talks, sessions and people, at most 50, 20 and 20.
     The talks a send carries are the same shown talks, with their session's title, format and start, the start as the
     meeting's clock shows it, with its offset. The keep-alive's one
@@ -117,7 +118,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *File:* `programme.ts`
 
 14. **Each guest's stars and notes are their own, and are kept when a talk is withdrawn, but not shown.** A guest
-    stars and unstars talks and sessions, and sees their schedule. A note saved blank is deleted.
+    stars and unstars talks and sessions, and sees their schedule. A star or note on a talk the demo no longer holds is
+    kept but not shown either, and shows again once a test set holds the talk. A note saved blank is deleted.
     *How:* code alone: every read and write is filtered by the guest's id.
     *File:* `guest-data.ts`
 
@@ -125,7 +127,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
     - **Reading:** papers in pages of 50, filtered by status (all, scheduled, withdrawn, changed) and search, where a
       page past the end gives the last page; sessions with their count of shown talks and whether they changed,
       leaving out the listings' organisations; the
-      published days; the counts of every change.
+      published days; the counts of every change; and a talk a send carries, for the developer console's connection
+      test.
     - **Editing:** moving a paper, withdrawing or restoring it, changing a session's time and room (its talks move with
       it, and untimed talks take its times), and putting everything back as published. Moving a paper and changing a
       session lock the session they change first, and putting back does sessions before talks, so two edits never
@@ -146,6 +149,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
     break, can be fixed; any other is refused, and the setting stays. With none set, or when the fixed talk is later
     withdrawn, the demo's default abstract stands in: a highly cited AMS 2027 talk, kept in every sample, whose topic
     reaches many fields. If that talk is not shown, the earliest such talk stands in. The setting is kept through
-    reloads.
-    *How:* code alone: one row of settings, read and written through Drizzle.
+    reloads. A test set fixes it the same way, to its first abstract.
+    *How:* code alone: one row of settings, read and written through Drizzle; it is written only after that one check,
+    whether the developer console or a test set fixes it.
     *File:* `demo-settings.ts`

@@ -5,7 +5,7 @@ import { afterAll, beforeEach, describe, expect, test } from "vitest";
 
 import { AmsFilesSchema, amsRows } from "../src/ams-rows";
 import { connect, type Db } from "../src/connect";
-import { loadRows, type SocietyRows } from "../src/load";
+import { loadRows } from "../src/load";
 import { migrateStore } from "../src/migrate";
 import { amsTables } from "../src/tables";
 import { createWholeProgramme } from "../src/whole-programme";
@@ -28,8 +28,6 @@ describe.skipIf(!url)("AMS's whole published programme", { timeout: 60_000 }, ()
   const whole = createWholeProgramme(db, "ams");
   const attendee = createStore(db, "ams");
   const rows = amsRows(AmsFilesSchema.parse(fixture("ams-slice.json")));
-  /** The demo's sample, as the load command would pass it: only these talks. */
-  const sampleOf = (ids: string[]): SocietyRows => ({ ...rows, talks: rows.talks.filter((t) => ids.includes(t.id)) });
   const ids = async () => (await whole.contents()).talks.map((t) => t.id).sort();
 
   beforeEach(async () => {
@@ -41,20 +39,20 @@ describe.skipIf(!url)("AMS's whole published programme", { timeout: 60_000 }, ()
   });
 
   test("loading keeps every talk AMS publishes, while the attendee app sees only the sample the demo holds", async () => {
-    await loadRows(db, amsTables, rows, sampleOf([J71, POSTER]));
+    await loadRows(db, amsTables, rows, [J71, POSTER]);
     expect(await ids()).toEqual(ALL);
     expect((await attendee.talkSummaries(ALL)).map((t) => t.id)).toEqual([POSTER, J71]);
   });
 
   test("each talk is kept with its session, its kind, whether it has an abstract, and its conferences", async () => {
-    await loadRows(db, amsTables, rows, sampleOf([J71]));
+    await loadRows(db, amsTables, rows, [J71]);
     const talks = (await whole.contents()).talks;
     expect(talks.find((t) => t.id === J71)).toMatchObject({ sessionId: "73193", kind: "oral", hasAbstract: true, trackIds: ["1878"] });
     expect(talks.find((t) => t.id === BREAK)).toMatchObject({ sessionId: null, kind: "break", hasAbstract: false, trackIds: ["1926"] });
   });
 
   test("each session gives its published start on the meeting's clock, even after an organiser moves it", async () => {
-    await loadRows(db, amsTables, rows, sampleOf([J71]));
+    await loadRows(db, amsTables, rows, [J71]);
     await db.execute(sql`update ams2027.sessions set starts_at = starts_at + interval '1 hour' where id = '73193'`);
     const sessions = (await whole.contents()).sessions;
     expect(sessions.find((s) => s.id === "73193")).toEqual({ id: "73193", start: "2026-01-27T12:45:00-07:00", trackIds: ["1878", "1891"] });
@@ -62,15 +60,15 @@ describe.skipIf(!url)("AMS's whole published programme", { timeout: 60_000 }, ()
   });
 
   test("the conferences come in AMS's order, with their titles", async () => {
-    await loadRows(db, amsTables, rows, sampleOf([J71]));
+    await loadRows(db, amsTables, rows, [J71]);
     expect((await whole.contents()).tracks.map((t) => t.id)).toEqual(["1878", "1891", "1912", "1926", "1947"]);
   });
 
   test("a reload drops talks AMS no longer publishes", async () => {
-    await loadRows(db, amsTables, rows, sampleOf([J71]));
+    await loadRows(db, amsTables, rows, [J71]);
     const fewer = { ...rows, talks: rows.talks.filter((t) => t.id !== J75) };
     fewer.talkPeople = fewer.talkPeople.filter((l) => l.talkId !== J75);
-    await loadRows(db, amsTables, fewer, sampleOf([J71]));
+    await loadRows(db, amsTables, fewer, [J71]);
     expect(await ids()).toEqual(ALL.filter((id) => id !== J75));
   });
 });

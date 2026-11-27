@@ -125,8 +125,8 @@ export async function syncProgramme(
   return result;
 }
 
-// The rule "two sends never run at once" is model-checked: .claude/skills/verify-send-runs. Change this file's
-// order of steps, or this number, only with that check.
+// That two sends never write at once is model-checked: .claude/skills/verify-send-runs. Change this file's order of
+// steps, or this number, only with that check.
 /** No send writes to the conference API for longer than this. It must stay shorter than STALE_AFTER_MINUTES in
  *  data/store/src/sync-log.ts, after which another send may take over a run that never finished. */
 export const SEND_DEADLINE_MS = 5 * 60_000;

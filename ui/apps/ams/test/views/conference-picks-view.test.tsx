@@ -24,13 +24,12 @@ const match = (id: string, number: string, score: number, over: Partial<AroundMa
   tracks: [],
   ...over,
 });
-// The matching API's pool for each other conference, in its order. Delta is the attendee's own conference. Gamma's
-// talk is Z; Beta's is Y, which scores higher.
+// The backend's pool for each other conference, holding the one talk a conference shows. Delta is the attendee's own
+// conference, so it has no pool. Gamma's talk is Z; Beta's is Y, which scores higher.
 const pools = aroundPools({
   subConference: [
-    { id: "B", matches: [match("Y", "J5.3", 0.9, { kind: "unexpected", reason: "Your smoke heights feed its warnings." }), match("V", "J5.1", 0.6)] },
-    { id: "C", matches: [match("Z", "11.2", 0.8), match("X", "3.1", 0.7)] },
-    { id: "D", matches: [match("W", "4.4", 0.95)] },
+    { id: "B", matches: [match("Y", "J5.3", 0.9, { kind: "unexpected", reason: "Your smoke heights feed its warnings." })] },
+    { id: "C", matches: [match("Z", "11.2", 0.8)] },
   ],
 });
 const around = (over: Partial<AroundAbstract> = {}): AroundAbstract => ({ abstract: talkSummary(), abstractTrackIds: ["D"], pools, ...over });
@@ -56,10 +55,10 @@ test("the other conferences holding a match for the abstract come first, in a go
   expectRestBelowBox();
 });
 
-test("each conference shows the first talk the matching API lists in its pool, and conferences follow that talk's score", () => {
+test("each conference shows the talk its pool holds, and conferences follow that talk's score", () => {
   const listed = aroundPools({
     subConference: [
-      { id: "C", matches: [match("X", "3.1", 0.7), match("Z", "11.2", 0.8)] },
+      { id: "C", matches: [match("X", "3.1", 0.7)] },
       { id: "A", matches: [match("U", "2.2", 0.75)] },
     ],
   });
@@ -96,7 +95,7 @@ test("the box names the abstract the conferences were picked for", () => {
 });
 
 test("when no other conference holds a match, the box at the top shows empty and AMS's order stays below it", () => {
-  renderApp(<ConferencePicksView tracks={tracks} around={around({ pools: aroundPools({ subConference: [pools.subConference[2]!] }) })} label={LABEL} />);
+  renderApp(<ConferencePicksView tracks={tracks} around={around({ pools: aroundPools({ subConference: [] }) })} label={LABEL} />);
   expect(box().textContent).toBe(LABEL);
   expect(lists()).toHaveLength(1);
   expect(rest()).toEqual(["Alpha", "Beta", "Gamma", "Delta Your conference", "Epsilon"]);

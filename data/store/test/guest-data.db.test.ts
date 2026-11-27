@@ -9,6 +9,7 @@ import { migrateStore } from "../src/migrate";
 import { loadRows } from "../src/load";
 import { createStore } from "./store";
 import { amsTables } from "../src/tables";
+import { createTestSets } from "../src/test-set";
 
 const url = process.env.HOST_TEST_DATABASE_URL;
 const fixture = (name: string) => JSON.parse(readFileSync(join(import.meta.dirname, "fixtures", name), "utf8"));
@@ -17,10 +18,12 @@ describe.skipIf(!url)("stars, notes and the sync list", { timeout: 60_000 }, () 
   const conn = url ? connect(url) : null;
   const db = (conn?.db ?? null) as Db;
   const ams = createStore(db, "ams");
+  const rows = amsRows(AmsFilesSchema.parse(fixture("ams-slice.json")));
 
   beforeAll(async () => {
     await migrateStore(db);
-    await loadRows(db, amsTables, amsRows(AmsFilesSchema.parse(fixture("ams-slice.json"))));
+    await db.execute(sql`delete from ams2027.test_set`);
+    await loadRows(db, amsTables, rows);
     await db.execute(sql`delete from ams2027.stars`);
     await db.execute(sql`delete from ams2027.notes`);
   });
@@ -75,5 +78,23 @@ describe.skipIf(!url)("stars, notes and the sync list", { timeout: 60_000 }, () 
     const j71 = all.find((x) => x.number === "J7.1")!;
     // Session 73193 starts at 19:45 UTC: 12:45 in Denver, the meeting's zone, in January.
     expect(j71.sessionStart).toBe("2026-01-27T12:45:00-07:00");
+  });
+
+  test("a star and a note on a talk the demo no longer holds are kept but not listed, and show again once it is held", async () => {
+    const testSets = createTestSets(db, "ams");
+    const holding = (talks: string[]) => testSets.hold({ conference: "ams-2027", askers: ["464598"], talks });
+    try {
+      await ams.star("u3", { targetKind: "talk", targetId: "470089" });
+      await ams.saveNote("u3", { targetKind: "talk", targetId: "470089" }, "Ask about the radar.");
+      await holding(["464598"]);
+      expect(await ams.starred("u3")).toEqual([]);
+      expect(await ams.notes("u3")).toEqual([]);
+      await holding(["464598", "470089"]);
+      expect(await ams.starred("u3")).toEqual([{ targetKind: "talk", targetId: "470089" }]);
+      expect((await ams.notes("u3")).map((n) => n.body)).toEqual(["Ask about the radar."]);
+    } finally {
+      await db.execute(sql`delete from ams2027.test_set`);
+      await loadRows(db, amsTables, rows);
+    }
   });
 });

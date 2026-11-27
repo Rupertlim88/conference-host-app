@@ -1,7 +1,7 @@
 import { describe, expect, test } from "vitest";
 
 import type { SocietyRows, TalkRow } from "../src/load";
-import { SAMPLE_SIZE, sampleRows } from "../src/sample";
+import { SAMPLE_SIZE, sampleTalkIds } from "../src/sample";
 
 const at = (minute: number) => new Date(Date.UTC(2027, 0, 11, 16, minute));
 const talk = (id: string, minute: number, over: Partial<TalkRow> = {}): TalkRow => ({
@@ -42,21 +42,21 @@ const rows = (talks: TalkRow[]): SocietyRows => ({
   infoLists: [],
 });
 
-describe("sampleRows", () => {
+describe("sampleTalkIds", () => {
   test("keeps five talks with an abstract from each track, spread evenly through its time order", () => {
     const all = [9, 0, 8, 1, 7, 2, 6, 3, 5, 4].map((m) => talk(`t${m}`, m * 60));
-    expect(sampleRows(rows(all)).talks.map((t) => t.id).sort()).toEqual(["t0", "t2", "t4", "t6", "t8"]);
+    expect(sampleTalkIds(rows(all)).sort()).toEqual(["t0", "t2", "t4", "t6", "t8"]);
     expect(SAMPLE_SIZE).toBe(5);
   });
 
   test("a track with five or fewer talks keeps them all", () => {
     const all = [3, 1, 2].map((m) => talk(`t${m}`, m));
-    expect(sampleRows(rows(all)).talks.map((t) => t.id).sort()).toEqual(["t1", "t2", "t3"]);
+    expect(sampleTalkIds(rows(all)).sort()).toEqual(["t1", "t2", "t3"]);
   });
 
   test("a talk counts for every track it is in, so a track already holding five keeps no more", () => {
     const all = [...[1, 2, 3, 4, 5].map((m) => talk(`a${m}`, m, { trackIds: ["A", "B"] })), talk("b6", 6, { trackIds: ["B"] }), talk("a7", 7)];
-    expect(sampleRows(rows(all)).talks.map((t) => t.id)).toEqual(["a1", "a2", "a3", "a4", "a5"]);
+    expect(sampleTalkIds(rows(all))).toEqual(["a1", "a2", "a3", "a4", "a5"]);
   });
 
   test("keeps every break and every highlighted talk, and counts neither against the five", () => {
@@ -67,18 +67,11 @@ describe("sampleRows", () => {
       talk("handout", 10, { supplementary: true }),
       talk("fellow", 11, { newFellow: true }),
     ];
-    expect(sampleRows(rows(all)).talks.map((t) => t.id).sort()).toEqual(["coffee", "fellow", "handout", "keynote", "t1", "t2", "t3", "t4", "t5"]);
+    expect(sampleTalkIds(rows(all)).sort()).toEqual(["coffee", "fellow", "handout", "keynote", "t1", "t2", "t3", "t4", "t5"]);
   });
 
   test("a talk with no abstract is not one of the five", () => {
     const all = [talk("blank", 0, { abstract: "" }), ...[1, 2, 3, 4, 5].map((m) => talk(`t${m}`, m))];
-    expect(sampleRows(rows(all)).talks.map((t) => t.id)).toEqual(["t1", "t2", "t3", "t4", "t5"]);
-  });
-
-  test("keeps every track and session, and only the people of the talks it keeps", () => {
-    const sampled = sampleRows(rows([1, 2, 3, 4, 5, 6].map((m) => talk(`t${m}`, m))));
-    expect(sampled.tracks.map((t) => t.id)).toEqual(["A", "L"]);
-    expect(sampled.people.map((p) => p.id)).toEqual(["pt1", "pt2", "pt3", "pt4", "pt5"]);
-    expect(sampled.talkPeople.map((tp) => tp.talkId)).toEqual(["t1", "t2", "t3", "t4", "t5"]);
+    expect(sampleTalkIds(rows(all))).toEqual(["t1", "t2", "t3", "t4", "t5"]);
   });
 });

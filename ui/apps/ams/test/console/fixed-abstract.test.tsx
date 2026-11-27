@@ -11,7 +11,7 @@ const section = () => screen.getByRole("heading", { level: 2, name: "The demo's 
 
 test("shows the abstract the demo is fixed to, and fixes it to the talk id typed", () => {
   const fixed: string[] = [];
-  renderApp(<FixedAbstractControl abstract={talkSummary()} busy={false} refused={false} onFix={(id) => fixed.push(id)} />);
+  renderApp(<FixedAbstractControl abstract={talkSummary()} busy={false} outcome={null} onFix={(id) => fixed.push(id)} />);
   expect(section()).toHaveTextContent("J1.2 - What is a Snow Squall?");
   fireEvent.change(screen.getByLabelText("Talk id"), { target: { value: " 493803 " } });
   fireEvent.click(screen.getByRole("button", { name: "Fix the demo to this talk" }));
@@ -19,10 +19,15 @@ test("shows the abstract the demo is fixed to, and fixes it to the talk id typed
 });
 
 test("cannot be pressed while saving or with no id, and says why a talk was refused", () => {
-  const { rerender } = renderApp(<FixedAbstractControl abstract={null} busy={true} refused={false} onFix={() => {}} />);
+  const { rerender } = renderApp(<FixedAbstractControl abstract={null} busy={true} outcome={null} onFix={() => {}} />);
   expect(screen.getByText("No talk with an abstract yet.")).toBeInTheDocument();
   expect(screen.getByRole("button", { name: "Fix the demo to this talk" })).toBeDisabled();
-  rerender(<FixedAbstractControl abstract={null} busy={false} refused={true} onFix={() => {}} />);
+  rerender(<FixedAbstractControl abstract={null} busy={false} outcome="refused" onFix={() => {}} />);
   expect(screen.getByRole("button", { name: "Fix the demo to this talk" })).toBeDisabled();
   expect(screen.getByRole("alert")).toHaveTextContent("That talk cannot be the demo's abstract: it must be shown, and have an abstract.");
+});
+
+test("a save that failed for another reason says it did not save, not that the talk was refused", () => {
+  renderApp(<FixedAbstractControl abstract={null} busy={false} outcome="failed" onFix={() => {}} />);
+  expect(screen.getByRole("alert")).toHaveTextContent("That did not save. Please try again.");
 });

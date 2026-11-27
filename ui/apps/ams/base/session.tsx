@@ -4,7 +4,7 @@ import { useFormatter, useTranslations } from "next-intl";
 import Link from "next/link";
 
 import { cardLabel, InfoBox, TalkCard } from "@/base/cards";
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 
 /** A session as the meeting app shows it: its conferences, title, star, when and where, description, organizers,
  *  presentations and related conferences. Its list of talks comes from the page, so our versions can change it. */

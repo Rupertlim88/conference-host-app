@@ -8,7 +8,7 @@ import { useTranslations } from "next-intl";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 
-import { Logo } from "@/base/frame";
+import { Logo } from "@/shared/marks";
 import { Button } from "@/shared/ui/button";
 
 /** The sign-in page: the demo's name, that any Google account may sign in, a note when the last sign-in did not finish, and Google sign-in when it is set up. */

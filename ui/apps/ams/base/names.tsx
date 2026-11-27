@@ -2,7 +2,7 @@
 import type { NamePage, NameSection } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 
 /** A page of names: each heading with its lines of names, in AMS's order. */
 export function NamesView({ page, sections }: { page: NamePage; sections: NameSection[] }) {

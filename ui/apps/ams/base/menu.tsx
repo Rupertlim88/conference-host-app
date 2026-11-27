@@ -43,7 +43,7 @@ import { useTranslations } from "next-intl";
 import Link from "next/link";
 import { useState } from "react";
 
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 
 type GroupKey = "highlights" | "information" | "resources";
 interface Button {

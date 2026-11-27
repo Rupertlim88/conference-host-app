@@ -15,9 +15,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 ### The frame and its buttons
 
-2. **Every attendee page sits in one frame, like the Confex meeting app's, and Home opens it.** A skip link; a top bar
-   with sign-out, the time-zone switch, My Schedule, search and, on phones, a menu sheet that closes when a link is
-   picked; a banner with the logo and the meeting's name and city; on computers, a side menu; and the demo's bar that
+2. **Every attendee page sits in one frame, like the Confex meeting app's, and its banner leads Home.** A skip link; a
+   top bar with sign-out, the time-zone switch, My Schedule, search and, on phones, a menu sheet that closes when a link
+   is picked; a banner with the logo and the meeting's name and city, which leads Home; on computers, a side menu; and the demo's bar that
    switches between the base and our versions. What the menu and Home offer is the rule on Home and the menu.
    *How:* code alone; the attendee layout counts with this file.
    *File:* `frame.tsx`
@@ -57,8 +57,9 @@ Everything else is a lower level, written by Claude to carry out these specifica
     *How:* code alone; the calendar's pages count with this file.
     *File:* `calendar.tsx`
 
-6. **Conferences and Symposia lists every track, and each track lists its sessions by day.** The list leaves out the
-    listings of organisations, and its list is a change point, where our versions can change it. A track shows how many
+6. **Conferences and Symposia lists every track, and each track lists its sessions by day.** The list shows the tracks
+    the backend gives it, which leave out the listings of organisations, and its list is a change point, where our
+    versions can change it. A track shows how many
     sessions it has, then its sessions under each day in meeting time, untimed ones last. The programmes AMS's menu opens
     by name (Events, Main Exhibit Hall, Career Resource and Graduate School Fair, Sponsor Index, Presidential Conference
     and Town Hall Meetings) open as track pages.
@@ -72,7 +73,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
 
 8. **Search finds talks, sessions and people from two to a hundred characters.** A shorter or longer query is not run
     and says which limit it broke; no hits says nothing matches. Results show people, then sessions, then presentations.
-    *How:* code alone: a plain form that puts the query in the address; the search page counts with this file.
+    *How:* code alone: a plain form that puts the query in the address; the search page counts with this file, and the
+    host app's contract checks the query's length before the backend searches.
     *File:* `search.tsx`
 
 ### A session and a talk

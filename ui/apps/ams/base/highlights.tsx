@@ -3,7 +3,7 @@ import type { Highlight, HighlightList } from "@repo/host-contracts";
 import { useTranslations } from "next-intl";
 
 import { TalkCard } from "@/base/cards";
-import { PageTitle } from "@/base/frame";
+import { PageTitle } from "@/shared/marks";
 import { SessionsByDay } from "@/base/programmes";
 
 /** The lists among Program Highlights' sub-items, by their address. */

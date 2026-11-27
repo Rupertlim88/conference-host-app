@@ -38,7 +38,8 @@ export type TestSetReply = z.infer<typeof TestSetReplySchema>;
 export const PlaceLayoutSchema = z.enum(["related", "conference_outside", "conference_inside", "day", "time_block", "session"]);
 export type PlaceLayout = z.infer<typeof PlaceLayoutSchema>;
 
-/** How many talks each place shows visitors at most. The pages and the tester's report both read it. */
+/** How many talks each place shows visitors at most. The backend keeps that many in each place's related talks or
+ *  pool, which the pages show and the tester's report reads. */
 export const SHOWN_PER_PLACE = {
   related: 5,
   conference_outside: 1,

@@ -6,7 +6,8 @@ import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { AmsFilesSchema, amsRows } from "../src/ams-rows";
 import { connect, type Db } from "../src/connect";
 import { migrateStore } from "../src/migrate";
-import { loadRows } from "../src/load";
+import { loadAms, loadRows } from "../src/load";
+import { sampleTalkIds } from "../src/sample";
 import { amsTables } from "../src/tables";
 
 const url = process.env.HOST_TEST_DATABASE_URL;
@@ -28,6 +29,13 @@ describe.skipIf(!url)("loading rows into Postgres", { timeout: 60_000 }, () => {
   });
   afterAll(async () => {
     await conn?.close();
+  });
+
+  test("loading AMS's files maps them to the programme, and the demo holds their sample until a test set arrives", async () => {
+    const counts = await loadAms(db, amsTables, fixture("ams-slice.json"));
+    expect(counts.published).toBe(ams.talks.length);
+    const held = await db.select({ id: amsTables.talks.id }).from(amsTables.talks);
+    expect(held.map((r) => r.id).sort()).toEqual(sampleTalkIds(ams).sort());
   });
 
   test("loads a society and a second load changes nothing", async () => {
