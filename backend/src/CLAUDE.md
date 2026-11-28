@@ -22,7 +22,8 @@ Everything else is a lower level, written by Claude to carry out these specifica
    the keep-alive's secret, when set, at least 16, and the tester's token, when set, at least 32. From the settings it
    builds one backend: the store, the matching API for the meeting's conference (or none, when no address is set),
    sign-in, the keep-alive, the tester's requests, and one router joining the attendee app's and the consoles'
-   requests. The developer console is told only the API's address, without any query
+   requests. A page's caller answers as the guest the page has already looked up, without looking them up again.
+   The developer console is told only the API's address, without any query
    or credentials, and whether a key is set: never the key. An unexpected error in a request from the browser is logged
    on the server.
    *How:* code alone: the settings are parsed with zod into typed values once, and one backend is built from them on
