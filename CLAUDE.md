@@ -243,7 +243,7 @@ Don't use `poteto-mode` or its playbooks. They assume Cursor, team PR fleets, ot
 
 41. **Long jobs show progress and save as they go.** Every experiment or long-running command shows live progress the user can check at any time (progress lines or a status file). It saves its work incrementally, so if it stops, nothing finished is lost and a rerun resumes rather than restarts. While testing, experiments, downloads and paid model calls may run within the budget Rupert sets in the chat session, such as $5; Claude keeps track of how much of it is left, and when it reaches $0, asks him to add to it. Once the app is live, there is no budget: the live service makes the calls its code makes.
 
-42. **Every dependency and its version is listed in one file.** `DEPENDENCIES.md` at the repo root lists every runtime, tool and library the app depends on, with the version each manifest declares and the exact version installed. It is generated from the manifests and lockfiles and never edited by hand. To add, remove or change a dependency or a version, change its manifest and lockfile, then regenerate the file (`npm run deps`); CI fails when the file is out of date. The app may not depend on anything that file does not list.
+42. **Every dependency and its version is listed in one file.** `DEPENDENCIES.md` at the repo root lists every runtime, tool and library the app depends on, with the version each manifest declares and the exact version installed. It is generated from the manifests and lockfiles and never edited by hand. To add, remove or change a dependency or a version, change its manifest and lockfile, then regenerate the file (`npm run deps`). The app may not depend on anything that file does not list.
 
 43. **The stack is fixed.** This is a Turborepo monorepo with npm workspaces. **Turborepo** runs every task, from the repo root (`npm run build|dev|lint`, or `turbo run <task> --filter=<app>`). Do not substitute a different tool for any of these, or for any tool a product's rules choose, without Rupert's explicit approval. Install missing packages into the workspace that needs them, never globally; the Turborepo CLI is the one global tool. When wiring a tool for the first time, follow its current official docs (check via Context7).
 
@@ -261,7 +261,7 @@ Don't use `poteto-mode` or its playbooks. They assume Cursor, team PR fleets, ot
 
 ## Working together
 
-49. **Several people build this app, each through their own pull requests.** Nobody changes main directly. Each person works on a branch of their own, with one piece of work per pull request, and a pull request merges only when the required checks pass and it is up to date with main. Before starting something, check the open pull requests, so that two people, or two Claude sessions, never build the same thing.
+49. **Several people build this app, each through their own pull requests.** Nobody changes main directly. Each person works on a branch of their own, with one piece of work per pull request, and a pull request merges only when it is up to date with main. Before starting something, check the open pull requests, so that two people, or two Claude sessions, never build the same thing.
 
 50. **Secrets pass from person to person, never through the repository.** Each person keeps the settings the app needs on their own computer only. Secrets are shared privately, and are never committed, put in a pull request or posted in a group chat.
 

@@ -16,7 +16,7 @@ All commands below run from the repository root. `S` stands for `ams`.
 ## Before the first launch
 
 - Postgres must be running, and the database named in the app's `HOST_DATABASE_URL` must exist. It may be empty. On Rupert's Mac the cluster is `~/pgsql/data` on port 54329: start it with `~/pgsql/bin/pg_ctl -D ~/pgsql/data -l ~/pgsql/data/server.log -o "-p 54329" start`.
-- The app needs `ui/apps/S/.env.local`, which git ignores. The app's `README.md` lists its settings. For the local conference API set `CONFERENCE_API_URL=http://127.0.0.1:8787`; launch issues the key, so `CONFERENCE_API_KEY` there is ignored. The conference API needs Postgres with `pgcrypto`. On Rupert's Mac that is a second cluster: start it with `/opt/homebrew/opt/postgresql@18/bin/pg_ctl -D ~/pgsql-api/data -l ~/pgsql-api/server.log -o "-p 54330" start` and set `API_DATABASE_URL=postgres://rupertlim@localhost:54330/postgres`. Without `API_DATABASE_URL` the API's databases go on the host database's server, as in CI.
+- The app needs `ui/apps/S/.env.local`, which git ignores. The app's `README.md` lists its settings. For the local conference API set `CONFERENCE_API_URL=http://127.0.0.1:8787`; launch issues the key, so `CONFERENCE_API_KEY` there is ignored. The conference API needs Postgres with `pgcrypto`. On Rupert's Mac that is a second cluster: start it with `/opt/homebrew/opt/postgresql@18/bin/pg_ctl -D ~/pgsql-api/data -l ~/pgsql-api/server.log -o "-p 54330" start` and set `API_DATABASE_URL=postgres://rupertlim@localhost:54330/postgres`. Without `API_DATABASE_URL` the API's databases go on the host database's server, as in the database tests.
 
 ## Launch
 

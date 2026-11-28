@@ -6,7 +6,7 @@ import { test } from "node:test";
 
 import { collect, render, isCurrent } from "./dependencies.mjs";
 
-/** A minimal repo: one npm workspace, a Python project with a dev group, and CI. */
+/** A minimal repo: one npm workspace, and a Python project with a dev group and a pinned Python. */
 function fakeRepo() {
   const root = mkdtempSync(join(tmpdir(), "dependencies-"));
   const write = (path, text) => {
@@ -90,21 +90,7 @@ function fakeRepo() {
       "",
     ].join("\n"),
   );
-  write(
-    ".github/workflows/ci.yml",
-    [
-      "jobs:",
-      "  web:",
-      "    steps:",
-      "      - uses: actions/setup-node@v4",
-      "        with:",
-      "          node-version: 24",
-      "  python:",
-      "    steps:",
-      "      - uses: astral-sh/setup-uv@v6",
-      "      - run: uv python install 3.12",
-    ].join("\n"),
-  );
+  write(".python-version", "3.12\n");
   return root;
 }
 
@@ -159,13 +145,13 @@ test("every python dependency group is listed under its own name, not only dev",
   });
 });
 
-test("runtimes come from the manifests and from CI", () => {
+test("runtimes come from the manifests and the pinned Python version", () => {
   const { runtimes } = collect(fakeRepo());
   assert.deepEqual(runtimes, [
     {
       name: "Node.js",
       declared: ">=24 (package.json engines)",
-      used: "24 (CI)",
+      used: "not pinned",
     },
     {
       name: "npm",
@@ -175,12 +161,12 @@ test("runtimes come from the manifests and from CI", () => {
     {
       name: "Python",
       declared: ">=3.12 (pyproject.toml)",
-      used: "3.12 (CI)",
+      used: "3.12 (.python-version)",
     },
     {
       name: "uv",
-      declared: "setup-uv@v6 (CI)",
-      used: "latest uv at CI time (not pinned)",
+      declared: "not pinned",
+      used: "not pinned",
     },
   ]);
 });
