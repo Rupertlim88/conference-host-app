@@ -90,7 +90,8 @@
     "notFound": "We could not find that page.",
     "home": "Back to Home",
     "generic": "Something went wrong.",
-    "retry": "Try again"
+    "retry": "Try again",
+    "loading": "Loading…"
   },
   "console": {
     "nav": "Console",

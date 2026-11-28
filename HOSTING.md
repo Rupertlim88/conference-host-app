@@ -15,7 +15,7 @@ A key lasts the number of days it is issued for, at most a year. When it expires
 
 ## 1. Create the database
 
-1. In Supabase, create a project on the free plan. Pick the region closest to your Vercel functions. Vercel's default region is Washington, D.C. (`iad1`).
+1. In Supabase, create a project on the free plan, in West US (Oregon). The app's functions run beside it, in Portland, Oregon (`pdx1`), as `ui/apps/ams/vercel.json` sets: every click asks the database several times in a row, so the two must be close. If the database is ever in another region, set `regions` in that file to the Vercel region nearest it.
 2. Open **Connect** and copy two connection strings, each with the database password filled in:
    - the **transaction pooler** string (port 6543), which the app uses
    - the **session pooler** string (port 5432), which you use from your machine

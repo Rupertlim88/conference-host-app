@@ -29,9 +29,10 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *How:* code alone: tRPC over React Query; the backend's route counts with this file.
    *File:* `connection.tsx`
 
-4. **Every page reads the backend on the server as the signed-in guest, and an item that is not there shows "not found".** A visitor who is not signed in is sent to sign in before a page reads anything; only the sign-in page itself, which needs no guest, asks the backend directly whether someone is signed in. An item the backend does not know, or an input that is not well formed, shows the not-found page; any other failure is an error.
+4. **Every page reads the backend on the server as the signed-in guest, and an item that is not there shows "not found".** The guest is looked up once for each request, however many times a page and its layout read the backend. A visitor who is not signed in is sent to sign in before a page reads anything; only the sign-in page itself, which needs no guest, asks the backend directly whether someone is signed in. An item the backend does not know, or an input that is not well formed, shows the not-found page; any other failure is an error.
    *How:* code alone: every other page reads through this server-only file, which asks the backend who is signed in,
-   and the backend asks Better Auth.
+   once for each request through React's cache, and the backend asks Better Auth; the backend then answers as that
+   guest without asking again.
    *File:* `server.ts`
 
 ### The look
@@ -49,7 +50,7 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *How:* code alone: the attendee app, the consoles and the sign-in page all use these.
    *File:* `marks.tsx`
 
-### Signing in and errors
+### Signing in, errors and loading
 
 7. **Guests sign in with Google, and signing out cannot be undone with Back.** A signed-in guest sent to sign-in goes
    home. A failed sign-in says so. Where Google is not set up, the page says so instead of showing the button.
@@ -63,21 +64,27 @@ Everything else is a lower level, written by Claude to carry out these specifica
    *How:* code alone: Next.js's error and not-found files hand over to this file.
    *File:* `errors.tsx`
 
+9. **While a page loads, the app shows at once that it is loading.** As soon as a link is followed, the frame stays
+   and the page's place shows a loading state until the page arrives, in the attendee app and in both consoles; a
+   screen reader hears that the page is loading.
+   *How:* code alone: Next.js's loading files hand over to this file.
+   *File:* `loading.tsx`
+
 ### Times, building blocks and words
 
-9. **Times show in meeting time or the guest's own zone, and the guest's choice is remembered.** The choice is
+10. **Times show in meeting time or the guest's own zone, and the guest's choice is remembered.** The choice is
    remembered on their device, and lasts for the page if the device refuses to store it. The page shows the same time
    on the server and in the browser. A time shows as a day, a date, a time or a range.
    *How:* code alone: `Intl` formatting; the choice in local storage.
    *File:* `meeting-time.tsx`
 
-10. **The UI's building blocks are shadcn/ui components, kept as shadcn makes them.** Badge, button, input, sheet and
+11. **The UI's building blocks are shadcn/ui components, kept as shadcn makes them.** Badge, button, input, sheet and
     skeleton, and the one helper through which they and the rest of the app merge class names with shadcn's own `cn`.
     *How:* Claude adds them with the shadcn command, and changes them only where the look needs it, or where a word they
     show must come from the English text.
     *File:* `ui/`
 
-11. **Every word the UI shows is in one English text file.** The words the UI writes come from it; what the meeting's
+12. **Every word the UI shows is in one English text file.** The words the UI writes come from it; what the meeting's
     own data says, such as a session's kind, and the reasons the backend records, such as why a send failed, are shown
     as they come.
     *How:* Claude writes the words; next-intl reads them, and the app's title and install manifest read their words

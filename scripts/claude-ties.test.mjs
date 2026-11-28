@@ -147,6 +147,7 @@ test("a Next.js entry file and a command-line script count with the file they ha
     "ui/ams/app/(app)/talks/[id]/page.tsx": "export { default } from '@/features/talk';\n",
     "ui/ams/app/layout.tsx": "",
     "ui/ams/app/(app)/error.tsx": "",
+    "ui/ams/app/(app)/loading.tsx": "",
     "ui/ams/app/not-found.tsx": "",
     "ui/ams/app/manifest.ts": "",
     "ui/ams/app/api/trpc/[trpc]/route.ts": "",

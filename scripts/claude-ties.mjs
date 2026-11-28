@@ -8,7 +8,7 @@
 // its whole folder; `*File:* needed` marks a rule not yet tied. Every rule also has a `*How:*` line. A file's heading is
 // its first comment line (after any "use client" line), a SQL file's first comment, or a Markdown file's title.
 //
-// Not counted: a file's own tests, an entry point that hands over to one file (Next.js's page, layout, error,
+// Not counted: a file's own tests, an entry point that hands over to one file (Next.js's page, layout, loading, error,
 // not-found, route and manifest files, its icon files, next-intl's request settings, and command-line scripts), files
 // that only set up the tools, overviews, the docs (the hosting guide among them), the tools themselves and the copy of
 // the conference API's contract.
@@ -38,7 +38,7 @@ function isTest(path) {
  *  scripts. It counts with the file it hands over to, as a test does. */
 function isEntryPoint(path) {
   return (
-    /(^|\/)app\/(.+\/)?(page|layout|error|global-error|not-found|route|manifest)\.[jt]sx?$/.test(path) ||
+    /(^|\/)app\/(.+\/)?(page|layout|loading|error|global-error|not-found|route|manifest)\.[jt]sx?$/.test(path) ||
     /(^|\/)app\/(.+\/)?(icon|apple-icon|favicon)\.(svg|png|ico)$/.test(path) ||
     /(^|\/)cli\/[^/]+\.[cm]?ts$/.test(path) ||
     /-cli\.[cm]?ts$/.test(path)

@@ -16,7 +16,7 @@ import { z } from "zod";
 
 import { attendeeRoutes } from "./attendee-router";
 import { developerRouter, organiserRouter } from "./console-router";
-import { authOptions, createCallerFactory, router, viewerFrom } from "./gate";
+import { authOptions, createCallerFactory, router, viewerFrom, type Context } from "./gate";
 import { keepAlive } from "./keep-alive";
 import { CONFERENCE_IDS, conferenceApi, unconfiguredApi, type ConferenceApi } from "./matching-api";
 import { answerProgrammeMap } from "./programme-map";
@@ -150,8 +150,8 @@ function build(env: Record<string, string | undefined>) {
     handleTestSet: (req: Request) => tester(req, () => takeTestSet(req, { conference, whole, testSets, store, log, api })),
     handleRecommendations: (req: Request) => tester(req, () => answerRecommendations(req, { store, testSets, log, api })),
     /** The router for server components, as the person behind these headers. */
-    callerFor: async (headers: Headers): Promise<HostCaller> =>
-      createHostCaller({ store, organiser, log, demo, api, settings, viewer: await viewer(headers) }),
+    /** The router as a guest the page has already looked up, so a page looks its guest up only once. */
+    callerFor: (guest: Context["viewer"]): HostCaller => createHostCaller({ store, organiser, log, demo, api, settings, viewer: guest }),
     handleTrpc: (req: Request) =>
       fetchRequestHandler({
         endpoint: "/api/trpc",
